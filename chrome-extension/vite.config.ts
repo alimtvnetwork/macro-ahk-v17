@@ -316,7 +316,7 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       emptyOutDir: true,
-      sourcemap: noSourcemap ? false : (isDev ? true : false),
+      sourcemap: noSourcemap ? false : true,
       minify: isDev ? false : 'esbuild',
       modulePreload: false,
       rollupOptions: {
