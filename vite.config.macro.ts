@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: 'standalone-scripts/macro-controller/dist',
     emptyOutDir: false,
-    sourcemap: mode === 'development' ? 'inline' : false,
+    sourcemap: mode === 'development' ? 'inline' : true,
     minify: mode !== 'development' ? 'esbuild' : false,
     lib: {
       entry: resolve(__dirname, 'standalone-scripts/macro-controller/src/index.ts'),
