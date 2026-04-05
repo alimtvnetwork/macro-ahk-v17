@@ -260,32 +260,35 @@ async function injectAllScripts(
     const startTime = Date.now();
     const projectId = getActiveProjectId() ?? undefined;
 
-    // Split scripts: those with CSS need individual injection, rest can batch
-    const withCss: typeof scripts = [];
-    const batchable: typeof scripts = [];
-    for (const s of scripts) {
-        if (s.injectable.assets?.css) {
-            withCss.push(s);
-        } else {
-            batchable.push(s);
-        }
-    }
-
     const results: InjectionResult[] = [];
 
-    // Inject CSS-dependent scripts individually (CSS must precede JS)
-    for (const script of withCss) {
-        const result = await injectSingleScript(tabId, script.injectable, script.configJson, script.themeJson, script.codeSource);
-        results.push(result);
+    const orderedScripts = [...scripts].sort((a, b) => {
+        const aOrder = a.injectable.order ?? 0;
+        const bOrder = b.injectable.order ?? 0;
+        return aOrder - bOrder;
+    });
+
+    // CRITICAL: preserve dependency order across CSS and non-CSS scripts.
+    // If any script in the chain needs CSS, batching only the non-CSS subset can
+    // execute a dependent script before its prerequisites. In that case, inject
+    // the full ordered chain sequentially.
+    const hasCssScript = orderedScripts.some((s) => Boolean(s.injectable.assets?.css));
+    if (hasCssScript) {
+        console.log("[injection] 3/4 ORDER    — CSS-bearing chain detected, forcing sequential ordered injection (%d scripts)", orderedScripts.length);
+        for (const script of orderedScripts) {
+            const result = await injectSingleScript(tabId, script.injectable, script.configJson, script.themeJson, script.codeSource);
+            results.push(result);
+        }
+        return results;
     }
 
-    // Batch all non-CSS scripts into a single executeScript call
-    if (batchable.length > 0) {
+    // No CSS dependencies in the chain — safe to batch in resolved order.
+    if (orderedScripts.length > 0) {
         try {
             const wrappedParts: string[] = [];
             const scriptMeta: Array<{ id: string; name: string }> = [];
 
-            for (const script of batchable) {
+            for (const script of orderedScripts) {
                 const wrapped = wrapWithIsolation(script.injectable, script.configJson, script.themeJson);
                 wrappedParts.push(wrapped);
                 scriptMeta.push({ id: script.injectable.id, name: script.injectable.name ?? script.injectable.id });
@@ -307,7 +310,7 @@ async function injectAllScripts(
                     domTarget: execResult.domTarget,
                 });
                 // Fire-and-forget: logging is non-critical, don't block injection
-                const matchedScript = batchable.find(s => s.injectable.id === meta.id)!;
+                const matchedScript = orderedScripts.find(s => s.injectable.id === meta.id)!;
                 logInjectionSuccess(
                     matchedScript.injectable,
                     projectId,
@@ -321,7 +324,7 @@ async function injectAllScripts(
             // Fallback to sequential on batch failure
             console.warn("[injection] Batch injection failed, falling back to sequential: %s",
                 batchError instanceof Error ? batchError.message : String(batchError));
-            for (const script of batchable) {
+            for (const script of orderedScripts) {
                 const result = await injectSingleScript(tabId, script.injectable, script.configJson, script.themeJson, script.codeSource);
                 results.push(result);
             }
@@ -874,6 +877,13 @@ async function prependDependencyScripts(callerScripts: unknown[], allProjects: S
                 if (!relevantIds.has(sub.projectId)) queue.push(sub.projectId);
             }
         }
+    }
+
+    // Safety net: the click-injection path depends on marco-sdk for window.marco
+    // toasts/auth APIs even when project metadata is stale or incomplete.
+    const marcoSdkProject = allProjects.find((p) => p.id === "marco-sdk");
+    if (marcoSdkProject && marcoSdkProject.id !== activeId) {
+        relevantIds.add(marcoSdkProject.id);
     }
 
     // Step 3: Build ProjectNode array for topological sort
