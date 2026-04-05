@@ -6,7 +6,6 @@ import { TypeIcon } from "./TypeIcon";
 import { TreeNodeKeyEditor } from "./TreeNodeKeyEditor";
 import { TreeNodeValueEditor } from "./TreeNodeValueEditor";
 import { TreeNodeActions } from "./TreeNodeActions";
-import { ObjectNodes } from "./ObjectNodes";
 
 interface TreeNodeRowProps {
   nodeKey: string;
