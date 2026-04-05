@@ -255,7 +255,7 @@ export async function buildSessionReport(sid?: string): Promise<string> {
         if (sections.length === 0) {
             const missingList = missing.length > 0 ? ` Missing files: [${missing.join(", ")}].` : "";
             const foundList = found.length > 0 ? ` Found but empty: [${found.join(", ")}].` : "";
-            return `[Session #${targetSid}] No log data in OPFS dir "${absoluteSessionDirPath}".${missingList}${foundList}`;
+            return `[session-log-writer] Session #${targetSid} has no readable log data at dir "${absoluteSessionDirPath}".${missingList}${foundList}`;
         }
 
         const ver = version || "?";
@@ -273,14 +273,7 @@ export async function buildSessionReport(sid?: string): Promise<string> {
     } catch (err) {
         const errName = err instanceof DOMException ? err.name : "UnknownError";
         const errMsg = err instanceof Error ? err.message : String(err);
-        return [
-            `[session-log-writer] Failed to read session #${targetSid}`,
-            `  OPFS dir: ${absoluteSessionDirPath}`,
-            `  Error: ${errName}: ${errMsg}`,
-            `  Expected file paths:`,
-            ...expectedAbsolutePaths.map((filePath) => `    - ${filePath}`),
-            `  Cause: The session directory was likely pruned or never created.`,
-        ].join("\n");
+        return `[session-log-writer] Failed to read session #${targetSid} at OPFS dir "${absoluteSessionDirPath}" (${errName}: ${errMsg}). Expected file paths: [${expectedAbsolutePaths.join(", ")}]. Cause: The session directory was likely pruned or never created.`;
     }
 }
 
