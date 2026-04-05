@@ -353,19 +353,47 @@ export async function pruneOldSessionLogs(maxAgeDays = 7): Promise<number> {
 
 /** Lists all available session IDs from OPFS. */
 export async function listSessionIds(): Promise<string[]> {
+    const sessions = await listSessionsWithTimestamps();
+    return sessions.map((s) => s.id);
+}
+
+/** Session info with ID and last-modified timestamp. */
+export interface SessionInfo {
+    id: string;
+    lastModified: string; // ISO timestamp
+}
+
+/** Lists all available sessions with their most recent file timestamp. */
+export async function listSessionsWithTimestamps(): Promise<SessionInfo[]> {
     try {
         const root = await navigator.storage.getDirectory();
         const logsRoot = await root.getDirectoryHandle(LOGS_DIR_NAME);
-        const ids: string[] = [];
+        const results: SessionInfo[] = [];
 
         const entries = (logsRoot as FileSystemDirectoryHandle & AsyncIterable<[string, FileSystemHandle]>)[Symbol.asyncIterator]();
         for await (const [name, handle] of { [Symbol.asyncIterator]: () => entries }) {
-            if (handle.kind === "directory" && name.startsWith(SESSION_PREFIX)) {
-                ids.push(name.replace(SESSION_PREFIX, ""));
-            }
+            if (handle.kind !== "directory" || !name.startsWith(SESSION_PREFIX)) continue;
+            const sid = name.replace(SESSION_PREFIX, "");
+            let latestMs = 0;
+
+            try {
+                const dir = await logsRoot.getDirectoryHandle(name);
+                for (const fname of [EVENTS_LOG, ERRORS_LOG, SCRIPTS_LOG]) {
+                    try {
+                        const fh = await dir.getFileHandle(fname);
+                        const file = await fh.getFile();
+                        if (file.lastModified > latestMs) latestMs = file.lastModified;
+                    } catch { /* file may not exist */ }
+                }
+            } catch { /* dir unreadable */ }
+
+            results.push({
+                id: sid,
+                lastModified: latestMs > 0 ? new Date(latestMs).toISOString() : "",
+            });
         }
 
-        return ids.sort((a, b) => Number(b) - Number(a));
+        return results.sort((a, b) => Number(b.id) - Number(a.id));
     } catch {
         return [];
     }

@@ -37,17 +37,37 @@ interface SessionLog {
   ext_version?: string;
 }
 
-interface SessionLogsResponse {
-  sessionId: string;
-  logs: SessionLog[];
-  errors: SessionLog[];
+interface SessionInfoEntry {
+  id: string;
+  lastModified: string;
 }
 
 interface SessionReportResponse {
   report: string;
   sessionId: string;
   sessions: string[];
+  sessionsWithTimestamps?: SessionInfoEntry[];
 }
+
+/** Formats an ISO timestamp as a relative age label like "2h ago", "3d ago". */
+function formatAge(iso: string): string {
+  if (!iso) return "";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 0) return "now";
+  const mins = Math.floor(diffMs / 60_000);
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+interface SessionLogsResponse {
+  sessionId: string;
+  logs: SessionLog[];
+  errors: SessionLog[];
+}
+
 
 function formatLogEntry(entry: SessionLog): string {
   const ts = entry.timestamp ?? entry.Timestamp ?? "";
@@ -113,7 +133,7 @@ const CURRENT_SESSION_VALUE = "__current__";
 // eslint-disable-next-line max-lines-per-function -- session selector + copy button with loading/copied states
 export function SessionCopyButton() {
   const [state, setState] = useState<"idle" | "loading" | "copied">("idle");
-  const [sessions, setSessions] = useState<string[]>([]);
+  const [sessions, setSessions] = useState<SessionInfoEntry[]>([]);
   const [selectedSession, setSelectedSession] = useState<string>(CURRENT_SESSION_VALUE);
   const [loadingSessions, setLoadingSessions] = useState(false);
 
@@ -125,9 +145,8 @@ export function SessionCopyButton() {
     sendMessage<SessionReportResponse>({ type: "GET_SESSION_REPORT" })
       .then((res) => {
         if (cancelled) return;
-        const available = res.sessions ?? [];
-        setSessions(available);
-        // Default to current session
+        const withTs = res.sessionsWithTimestamps ?? (res.sessions ?? []).map((id) => ({ id, lastModified: "" }));
+        setSessions(withTs);
         if (res.sessionId && res.sessionId !== "none") {
           setSelectedSession(res.sessionId);
         }
@@ -191,16 +210,21 @@ export function SessionCopyButton() {
           onValueChange={setSelectedSession}
           disabled={isLoading}
         >
-          <SelectTrigger className="h-7 text-[10px] w-[100px] px-2">
+          <SelectTrigger className="h-7 text-[10px] w-[120px] px-2">
             <SelectValue placeholder={loadingSessions ? "…" : "Session"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={CURRENT_SESSION_VALUE} className="text-[10px]">
               Current
             </SelectItem>
-            {sessions.map((sid) => (
-              <SelectItem key={sid} value={sid} className="text-[10px]">
-                #{sid}
+            {sessions.map((s) => (
+              <SelectItem key={s.id} value={s.id} className="text-[10px]">
+                <span className="flex items-center gap-1.5">
+                  <span>#{s.id}</span>
+                  {s.lastModified && (
+                    <span className="text-muted-foreground">{formatAge(s.lastModified)}</span>
+                  )}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

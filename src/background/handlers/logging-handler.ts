@@ -14,7 +14,8 @@
 import type { MessageRequest, OkResponse } from "../../shared/messages";
 import type { DbManager } from "../db-manager";
 import { collectRows, countTable, queryAll, queryWithSource } from "./logging-queries";
-import { initSessionLogDir, writeLogEntry, writeErrorEntry, buildSessionReport, listSessionIds, browseOpfsSessions } from "../session-log-writer";
+import { initSessionLogDir, writeLogEntry, writeErrorEntry, buildSessionReport, listSessionIds, listSessionsWithTimestamps, browseOpfsSessions } from "../session-log-writer";
+import type { SessionInfo } from "../session-log-writer";
 
 let dbManager: DbManager | null = null;
 let currentSessionId: number | null = null;
@@ -324,13 +325,14 @@ function queryRecentErrorsAll(limit: number): unknown[] {
 /** Returns a comprehensive plain-text report from session log files. */
 export async function handleGetSessionReport(
     message: MessageRequest,
-): Promise<{ report: string; sessionId: string; sessions: string[] }> {
+): Promise<{ report: string; sessionId: string; sessions: string[]; sessionsWithTimestamps: SessionInfo[] }> {
     const msg = message as MessageRequest & { sessionId?: string };
     const sid = msg.sessionId ?? (currentSessionId !== null ? String(currentSessionId) : null);
     const report = await buildSessionReport(sid ?? undefined);
-    const sessions = await listSessionIds();
+    const sessionsWithTs = await listSessionsWithTimestamps();
+    const sessions = sessionsWithTs.map((s) => s.id);
 
-    return { report, sessionId: sid ?? "none", sessions };
+    return { report, sessionId: sid ?? "none", sessions, sessionsWithTimestamps: sessionsWithTs };
 }
 
 export { collectRows, countTable };

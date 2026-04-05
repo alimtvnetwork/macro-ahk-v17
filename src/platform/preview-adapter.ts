@@ -599,9 +599,16 @@ function getMockResponse(message: MessagePayload): unknown {
         TOGGLE_AUTOMATION_CHAIN: { isOk: true },
         IMPORT_AUTOMATION_CHAINS: { isOk: true, imported: 0 },
         GET_SESSION_REPORT: {
-            report: "══════════════════════════════════════════\n  Marco Full Session Report\n  Session: #29\n  Generated: 2026-04-05T10:00:00Z\n  Version: 2.16.0\n══════════════════════════════════════════\n\n2026-04-05T09:58:00Z  INFO   background    INJECTION     SCRIPT_INJECTED  marco-sdk.js\n2026-04-05T09:58:01Z  INFO   background    INJECTION     SCRIPT_INJECTED  macro-looping.js\n",
+            report: "══════════════════════════════════════════\n  Marco Full Session Report\n  Session: #29\n  Generated: 2026-04-05T10:00:00Z\n  Version: 2.17.0\n══════════════════════════════════════════\n\n2026-04-05T09:58:00Z  INFO   background    INJECTION     SCRIPT_INJECTED  marco-sdk.js\n2026-04-05T09:58:01Z  INFO   background    INJECTION     SCRIPT_INJECTED  macro-looping.js\n",
             sessionId: "29",
             sessions: ["29", "28", "27", "26", "25"],
+            sessionsWithTimestamps: [
+                { id: "29", lastModified: new Date(Date.now() - 15 * 60_000).toISOString() },
+                { id: "28", lastModified: new Date(Date.now() - 2 * 3600_000).toISOString() },
+                { id: "27", lastModified: new Date(Date.now() - 5 * 3600_000).toISOString() },
+                { id: "26", lastModified: new Date(Date.now() - 24 * 3600_000).toISOString() },
+                { id: "25", lastModified: new Date(Date.now() - 3 * 24 * 3600_000).toISOString() },
+            ],
         },
         BROWSE_OPFS_SESSIONS: {
             rootPath: "opfs-root/session-logs",
