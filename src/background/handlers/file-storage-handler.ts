@@ -11,9 +11,16 @@
 
 import type { Database as SqlJsDatabase } from "sql.js";
 import type { DbManager } from "../db-manager";
-import { invalidateNamespaceCache } from "../namespace-cache";
-
 let dbManager: DbManager | null = null;
+let onFilesChanged: ((projectId: string) => void) | null = null;
+
+/**
+ * Registers a callback invoked when files change (save/delete).
+ * Used by namespace-cache to invalidate without a circular import.
+ */
+export function onFileStorageChange(cb: (projectId: string) => void): void {
+    onFilesChanged = cb;
+}
 
 export function bindFileStorageDbManager(manager: DbManager): void {
     dbManager = manager;
