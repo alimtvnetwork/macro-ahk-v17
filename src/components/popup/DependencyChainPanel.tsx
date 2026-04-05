@@ -67,6 +67,7 @@ export function DependencyChainPanel() {
   const [expanded, setExpanded] = useState(false);
   const [snapshot, setSnapshot] = useState<ChainSnapshot | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fetchChain = useCallback(async () => {
     setLoading(true);
