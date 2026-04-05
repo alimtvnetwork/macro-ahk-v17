@@ -341,3 +341,82 @@ export async function listSessionIds(): Promise<string[]> {
         return [];
     }
 }
+
+/* ------------------------------------------------------------------ */
+/*  OPFS Session Browser                                               */
+/* ------------------------------------------------------------------ */
+
+interface SessionFileInfo {
+    name: string;
+    absolutePath: string;
+    sizeBytes: number;
+    lastModified: string;
+}
+
+interface SessionDirInfo {
+    sessionId: string;
+    absolutePath: string;
+    files: SessionFileInfo[];
+    totalSizeBytes: number;
+}
+
+/** Browses all OPFS session directories and returns file metadata with absolute paths. */
+export async function browseOpfsSessions(): Promise<{
+    rootPath: string;
+    sessions: SessionDirInfo[];
+    totalSessions: number;
+}> {
+    const rootPath = `opfs-root/${LOGS_DIR_NAME}`;
+    const sessions: SessionDirInfo[] = [];
+
+    try {
+        const root = await navigator.storage.getDirectory();
+        const logsRoot = await root.getDirectoryHandle(LOGS_DIR_NAME);
+
+        const dirEntries = (logsRoot as FileSystemDirectoryHandle & AsyncIterable<[string, FileSystemHandle]>)[Symbol.asyncIterator]();
+        for await (const [name, handle] of { [Symbol.asyncIterator]: () => dirEntries }) {
+            if (handle.kind !== "directory" || !name.startsWith(SESSION_PREFIX)) continue;
+
+            const sid = name.replace(SESSION_PREFIX, "");
+            const absoluteDirPath = `${rootPath}/${name}`;
+            const files: SessionFileInfo[] = [];
+            let totalSizeBytes = 0;
+
+            try {
+                const dir = await logsRoot.getDirectoryHandle(name);
+                const fileEntries = (dir as FileSystemDirectoryHandle & AsyncIterable<[string, FileSystemHandle]>)[Symbol.asyncIterator]();
+                for await (const [fileName, fileHandle] of { [Symbol.asyncIterator]: () => fileEntries }) {
+                    if (fileHandle.kind !== "file") continue;
+                    try {
+                        const fh = await dir.getFileHandle(fileName);
+                        const file = await fh.getFile();
+                        const sizeBytes = file.size;
+                        totalSizeBytes += sizeBytes;
+                        files.push({
+                            name: fileName,
+                            absolutePath: `${absoluteDirPath}/${fileName}`,
+                            sizeBytes,
+                            lastModified: new Date(file.lastModified).toISOString(),
+                        });
+                    } catch {
+                        files.push({
+                            name: fileName,
+                            absolutePath: `${absoluteDirPath}/${fileName}`,
+                            sizeBytes: 0,
+                            lastModified: "unknown",
+                        });
+                    }
+                }
+            } catch {
+                // Directory exists but can't be read
+            }
+
+            sessions.push({ sessionId: sid, absolutePath: absoluteDirPath, files, totalSizeBytes });
+        }
+    } catch {
+        // OPFS root or session-logs dir doesn't exist
+    }
+
+    sessions.sort((a, b) => Number(b.sessionId) - Number(a.sessionId));
+    return { rootPath, sessions, totalSessions: sessions.length };
+}
