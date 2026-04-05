@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { sendMessage } from "@/lib/message-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
