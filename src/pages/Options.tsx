@@ -205,6 +205,23 @@ const OptionsPage = () => {
           id: crypto.randomUUID(),
           schemaVersion: manifest.schemaVersion ?? 1,
           name: manifest.name ?? file.name.replace(/\.json$/, ""),
+          version: manifest.version ?? "1.0.0",
+          description: manifest.description ?? "",
+          targetUrls: manifest.targetUrls ?? [],
+          scripts: manifest.scripts ?? [],
+          configs: manifest.configs ?? [],
+          variables: manifest.variables ? JSON.stringify(manifest.variables) : "{}",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await pSave(newProject);
+        toast.success(`Imported "${newProject.name}"`);
+      } catch {
+        toast.error("Failed to parse JSON file");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleNewScript = () => {
     // Create a blank script and navigate to it
