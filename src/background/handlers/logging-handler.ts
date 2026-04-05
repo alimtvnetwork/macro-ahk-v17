@@ -14,7 +14,7 @@
 import type { MessageRequest, OkResponse } from "../../shared/messages";
 import type { DbManager } from "../db-manager";
 import { collectRows, countTable, queryAll, queryWithSource } from "./logging-queries";
-import { initSessionLogDir, writeLogEntry, writeErrorEntry, buildSessionReport, listSessionIds } from "../session-log-writer";
+import { initSessionLogDir, writeLogEntry, writeErrorEntry, buildSessionReport, listSessionIds, browseOpfsSessions } from "../session-log-writer";
 
 let dbManager: DbManager | null = null;
 let currentSessionId: number | null = null;
@@ -334,3 +334,12 @@ export async function handleGetSessionReport(
 }
 
 export { collectRows, countTable };
+
+/* ------------------------------------------------------------------ */
+/*  BROWSE_OPFS_SESSIONS                                               */
+/* ------------------------------------------------------------------ */
+
+/** Returns all OPFS session directories with file metadata and absolute paths. */
+export async function handleBrowseOpfsSessions() {
+    return browseOpfsSessions();
+}

@@ -598,6 +598,37 @@ function getMockResponse(message: MessagePayload): unknown {
         DELETE_AUTOMATION_CHAIN: { isOk: true },
         TOGGLE_AUTOMATION_CHAIN: { isOk: true },
         IMPORT_AUTOMATION_CHAINS: { isOk: true, imported: 0 },
+        BROWSE_OPFS_SESSIONS: {
+            rootPath: "opfs-root/session-logs",
+            totalSessions: 3,
+            sessions: [
+                {
+                    sessionId: "29",
+                    absolutePath: "opfs-root/session-logs/session-29",
+                    totalSizeBytes: 4812,
+                    files: [
+                        { name: "events.log", absolutePath: "opfs-root/session-logs/session-29/events.log", sizeBytes: 3200, lastModified: "2026-04-05T08:30:00Z" },
+                        { name: "errors.log", absolutePath: "opfs-root/session-logs/session-29/errors.log", sizeBytes: 512, lastModified: "2026-04-05T08:28:00Z" },
+                        { name: "scripts.log", absolutePath: "opfs-root/session-logs/session-29/scripts.log", sizeBytes: 1100, lastModified: "2026-04-05T08:25:00Z" },
+                    ],
+                },
+                {
+                    sessionId: "28",
+                    absolutePath: "opfs-root/session-logs/session-28",
+                    totalSizeBytes: 2048,
+                    files: [
+                        { name: "events.log", absolutePath: "opfs-root/session-logs/session-28/events.log", sizeBytes: 1800, lastModified: "2026-04-04T14:10:00Z" },
+                        { name: "scripts.log", absolutePath: "opfs-root/session-logs/session-28/scripts.log", sizeBytes: 248, lastModified: "2026-04-04T14:05:00Z" },
+                    ],
+                },
+                {
+                    sessionId: "27",
+                    absolutePath: "opfs-root/session-logs/session-27",
+                    totalSizeBytes: 0,
+                    files: [],
+                },
+            ],
+        },
     };
 
     return mocks[message.type] ?? { isOk: true };
