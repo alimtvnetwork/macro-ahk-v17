@@ -4,7 +4,7 @@
 
 // eslint-disable-next-line max-lines-per-function
 export function AboutSection() {
-    const version = "2.5.0"; // Resolved from manifest in extension context
+    const version = "2.9.0"; // Resolved from manifest in extension context
 
     return (
         <>
