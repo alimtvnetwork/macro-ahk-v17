@@ -30,7 +30,7 @@ export function bindDbManager(manager: DbManager): void {
 }
 
 /** Starts a new logging session and returns its ID (INTEGER AUTOINCREMENT). */
-export function startSession(version: string): string {
+export async function startSession(version: string): Promise<string> {
     const db = getLogsDb();
     const now = new Date().toISOString();
 
@@ -44,8 +44,8 @@ export function startSession(version: string): string {
     currentSessionId = sessionId;
     dbManager!.markDirty();
 
-    // Initialize OPFS session log directory
-    void initSessionLogDir(String(sessionId), version);
+    // Initialize OPFS session log directory before first writes can race past it
+    await initSessionLogDir(String(sessionId), version);
 
     return String(sessionId);
 }
