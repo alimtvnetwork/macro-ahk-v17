@@ -46,9 +46,10 @@ When a suggestion is completed:
 - **createdAt**: 2026-03-21
 - **source**: Spec (`ts-migration-v2/02-class-architecture.md`)
 - **affectedProject**: Macro controller
-- **description**: Refactor to class-based modules, remove window globals. Phase 01 (init fix) is done.
-- **status**: open
+- **description**: Refactor to class-based modules, remove window globals.
+- **status**: done
 - **priority**: High
+- **completionNotes**: Already implemented. MacroController class at `src/core/MacroController.ts`, macro-looping.ts reduced to 177 lines, all globals migrated to namespace.
 
 ### S-049: E2E Verification of React UI (Step 10)
 - **createdAt**: 2026-03-16
