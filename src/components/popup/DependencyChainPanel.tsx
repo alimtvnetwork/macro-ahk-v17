@@ -125,9 +125,14 @@ export function DependencyChainPanel() {
   const copyToClipboard = useCallback(async () => {
     if (!snapshot) return;
     const text = formatChainText(snapshot);
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast.success("Chain diagnostics copied to clipboard");
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
   }, [snapshot, formatChainText]);
 
   useEffect(() => {
