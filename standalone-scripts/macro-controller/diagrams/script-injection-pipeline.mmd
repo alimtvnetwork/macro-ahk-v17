@@ -1,0 +1,91 @@
+%%{init: {'theme': 'dark', 'themeVariables': {'darkMode': true, 'background': '#222222', 'primaryColor': '#F5A623', 'primaryTextColor': '#1a1a1a', 'lineColor': '#666', 'fontSize': '13px'}}}%%
+
+flowchart TD
+    classDef root fill:#F5A623,stroke:#F5A623,color:#1a1a1a,stroke-width:0px,font-weight:bold,font-size:15px
+    classDef emerald fill:#10B981,stroke:#10B981,color:#fff,stroke-width:2px,font-weight:bold
+    classDef emeraldSub fill:#2a2a2a,stroke:#10B981,color:#e0e0e0,stroke-width:1px
+    classDef sky fill:#0EA5E9,stroke:#0EA5E9,color:#fff,stroke-width:2px,font-weight:bold
+    classDef skySub fill:#2a2a2a,stroke:#0EA5E9,color:#e0e0e0,stroke-width:1px
+    classDef rose fill:#F43F5E,stroke:#F43F5E,color:#fff,stroke-width:2px,font-weight:bold
+    classDef roseSub fill:#2a2a2a,stroke:#F43F5E,color:#e0e0e0,stroke-width:1px
+    classDef amber fill:#F59E0B,stroke:#F59E0B,color:#1a1a1a,stroke-width:2px,font-weight:bold
+    classDef amberSub fill:#2a2a2a,stroke:#F59E0B,color:#e0e0e0,stroke-width:1px
+    classDef violet fill:#8B5CF6,stroke:#8B5CF6,color:#fff,stroke-width:2px,font-weight:bold
+    classDef violetSub fill:#2a2a2a,stroke:#8B5CF6,color:#e0e0e0,stroke-width:1px
+    classDef cyan fill:#06B6D4,stroke:#06B6D4,color:#fff,stroke-width:2px,font-weight:bold
+    classDef cyanSub fill:#2a2a2a,stroke:#06B6D4,color:#e0e0e0,stroke-width:1px
+
+    %% Legend on the left
+    subgraph LEGEND ["Color Legend"]
+        direction TB
+        L1(["Emerald = Dependency Resolution"]):::emerald
+        L2(["Sky = Script Resolution"]):::sky
+        L3(["Rose = Namespace Bootstrap"]):::rose
+        L4(["Amber = Relay + Token Seeding"]):::amber
+        L5(["Violet = Wrap + Execute"]):::violet
+        L6(["Cyan = Namespace Registration"]):::cyan
+        L7(["Coral = Dynamic Loading"]):::coral
+    end
+    style LEGEND fill:#1a1a1a,stroke:#555,color:#e0e0e0,stroke-width:1px
+
+    classDef coral fill:#FF6B6B,stroke:#FF6B6B,color:#fff,stroke-width:2px,font-weight:bold
+    classDef coralSub fill:#2a2a2a,stroke:#FF6B6B,color:#e0e0e0,stroke-width:1px
+
+    LEGEND ~~~ ROOT
+
+    ROOT(["Script Injection Pipeline"]):::root
+
+    ROOT --> S0 & S1 & S15 & S2 & S34 & S5 & S6
+
+    %% Stage 0 - Emerald
+    S0(["Stage 0: Dependency Resolution"]):::emerald
+    S0 --> S0A(["Topological sort of project deps"]):::emeraldSub
+    S0A --> S0B(["Prepend dependency scripts"]):::emeraldSub
+
+    %% Stage 1 - Sky
+    S1(["Stage 1: Script Resolution"]):::sky
+    S1 --> S1A(["Resolve script bindings"]):::skySub
+    S1A --> S1B(["Map to injectable code"]):::skySub
+
+    %% Stage 1.5 - Rose
+    S15(["Stage 1.5: Namespace Bootstrap"]):::rose
+    S15 --> S15A(["bootstrapNamespaceRoot"]):::roseSub
+    S15A --> S15B(["RiseupAsiaMacroExt init"]):::roseSub
+    S15B --> S15C(["MAIN world only - NO fallback"]):::roseSub
+    S15C --> S15D(["CSP blocked -> DEGRADED health"]):::roseSub
+
+    %% Stage 2 - Amber
+    S2(["Stage 2: Relay + Token Seeding"]):::amber
+    S2 --> S2A(["Install message relay CS"]):::amberSub
+    S2 --> S2B(["Seed session tokens"]):::amberSub
+
+    %% Stage 3-4 - Violet
+    S34(["Stage 3-4: Wrap + Execute"]):::violet
+    S34 --> S3A(["IIFE error isolation wrapper"]):::violetSub
+    S3A --> S3B(["SDK preamble injection"]):::violetSub
+    S3B --> S4A(["injectWithCspFallback MAIN"]):::violetSub
+    S4A --> S4B(["Fallback warning: non-MAIN world"]):::violetSub
+
+    %% Stage 5 - Cyan
+    S5(["Stage 5: Namespace Registration"]):::cyan
+    S5 --> S5A(["5a: Settings + llmGuide"]):::cyanSub
+    S5 --> S5B(["5b: Projects per CodeName"]):::cyanSub
+    S5B --> S5C(["Console: Projects.X.vars.get"]):::cyanSub
+    S5A --> S5D(["Fallback -> DEGRADED + error"]):::cyanSub
+
+    %% Stage 6 - Coral (Dynamic Loading)
+    S6(["Stage 6: Dynamic Loading (Runtime)"]):::coral
+    S6 --> S6A(["await RiseupAsiaMacroExt.require"]):::coralSub
+    S6A --> S6B(["postMessage -> relay -> background"]):::coralSub
+    S6B --> S6C(["Validate: allowDynamicRequests"]):::coralSub
+    S6C --> S6D(["Validate: target isGlobal"]):::coralSub
+    S6D --> S6E(["Inject target script into tab"]):::coralSub
+    S6E --> S6F(["Log to SQLite DynamicLoadLog"]):::coralSub
+
+    %% Sequential flow
+    S0B -.->|"resolved scripts"| S1
+    S1B -.->|"injectable code"| S15
+    S15B -.->|"namespace ready"| S2
+    S2B -.->|"tokens seeded"| S34
+    S4A -.->|"scripts live"| S5
+    S5C -.->|"namespace ready"| S6

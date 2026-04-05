@@ -1,0 +1,149 @@
+/**
+ * Marco Extension — Shortcut Command Handler
+ *
+ * Handles keyboard command events from manifest.json.
+ * Current command: run-scripts (Ctrl+Shift+Down by default).
+ *
+ * @see spec/05-chrome-extension/18-message-protocol.md — Message types
+ */
+
+import { MessageType } from "../shared/messages";
+import { handleMessage } from "./message-router";
+
+const RUN_SCRIPTS_COMMAND = "run-scripts";
+
+interface ActiveProjectResponse {
+    activeProject?: {
+        id?: string;
+        name?: string;
+        scripts?: unknown[];
+    } | null;
+}
+
+/** Registers chrome.commands listeners. */
+export function registerShortcutCommands(): void {
+    chrome.commands.onCommand.addListener((command) => {
+        console.log("[Marco] Shortcut command received: %s at %s", command, new Date().toISOString());
+
+        if (command === RUN_SCRIPTS_COMMAND) {
+            void runScriptsFromShortcut();
+        }
+    });
+
+    // Log registered commands for debugging — verify shortcut is actually assigned
+    chrome.commands.getAll((commands) => {
+        const runCmd = commands.find((c) => c.name === RUN_SCRIPTS_COMMAND);
+        if (runCmd) {
+            const shortcut = runCmd.shortcut || "";
+            if (shortcut) {
+                console.log("[Marco] ✅ Shortcut registered: %s → %s", RUN_SCRIPTS_COMMAND, shortcut);
+            } else {
+                console.warn("[Marco] ⚠️ Shortcut '%s' exists but has NO key binding assigned! Go to chrome://extensions/shortcuts to assign one.", RUN_SCRIPTS_COMMAND);
+            }
+        } else {
+            console.error("[Marco] ❌ Shortcut '%s' not found in manifest commands — check manifest.json", RUN_SCRIPTS_COMMAND);
+        }
+
+        // Log all registered commands for cross-reference
+        console.log("[Marco] All registered commands: %s",
+            commands.map(c => `${c.name}=${c.shortcut || "(none)"}`).join(", "));
+    });
+}
+
+/** Runs active project scripts in the currently active tab. */
+async function runScriptsFromShortcut(): Promise<void> {
+    const t0 = performance.now();
+
+    try {
+        const activeTabId = await getActiveTabId();
+
+        if (activeTabId === null) {
+            console.warn("[Marco] Shortcut: no active tab found — aborting");
+            return;
+        }
+
+        console.log("[Marco] Shortcut: active tab=%d, fetching project scripts...", activeTabId);
+
+        const scripts = await getActiveProjectScripts();
+
+        if (scripts.length === 0) {
+            console.warn("[Marco] Shortcut: no scripts in active project — aborting");
+            return;
+        }
+
+        console.log("[Marco] Shortcut: injecting %d scripts into tab %d", scripts.length, activeTabId);
+
+        const response = await sendInternalMessage<{ results?: unknown[] }>({
+            type: MessageType.INJECT_SCRIPTS,
+            tabId: activeTabId,
+            scripts,
+        });
+
+        const elapsed = Math.round(performance.now() - t0);
+        const resultCount = response?.results ? (response.results as unknown[]).length : 0;
+
+        console.log("[Marco] Shortcut: injection complete — %d results in %dms", resultCount, elapsed);
+    } catch (runError) {
+        const reason = runError instanceof Error ? runError.message : String(runError);
+        const stack = runError instanceof Error ? runError.stack : undefined;
+
+        console.error("[Marco] Shortcut run failed: %s", reason);
+        if (stack) {
+            console.error("[Marco] Shortcut stack: %s", stack);
+        }
+    }
+}
+
+/** Returns the active tab id, or null if unavailable. */
+async function getActiveTabId(): Promise<number | null> {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tabId = tab?.id;
+
+        return typeof tabId === "number" ? tabId : null;
+    } catch (err) {
+        console.warn("[Marco] Shortcut: chrome.tabs.query failed: %s",
+            err instanceof Error ? err.message : String(err));
+
+        return null;
+    }
+}
+
+/** Loads active project scripts used by popup run injection. */
+async function getActiveProjectScripts(): Promise<unknown[]> {
+    const response = await sendInternalMessage<ActiveProjectResponse>({
+        type: MessageType.GET_ACTIVE_PROJECT,
+    });
+
+    const project = response?.activeProject;
+    if (!project) {
+        console.warn("[Marco] Shortcut: GET_ACTIVE_PROJECT returned no active project");
+        return [];
+    }
+
+    console.log("[Marco] Shortcut: active project='%s' (id=%s), scripts=%d",
+        project.name ?? "?", project.id ?? "?", project.scripts?.length ?? 0);
+
+    const scripts = project.scripts ?? [];
+
+    return Array.isArray(scripts) ? scripts : [];
+}
+
+/**
+ * Dispatches an internal message through the background router.
+ * Uses a properly resolved promise pattern compatible with service workers.
+ */
+function sendInternalMessage<T>(message: Record<string, unknown>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const sender = {} as chrome.runtime.MessageSender;
+
+        // handleMessage is async — it calls sendResponse when done
+        handleMessage(message, sender, (response: unknown) => {
+            resolve(response as T);
+        }).catch((err: unknown) => {
+            console.error("[Marco] Shortcut: internal message dispatch error: %s",
+                err instanceof Error ? err.message : String(err));
+            reject(err);
+        });
+    });
+}
