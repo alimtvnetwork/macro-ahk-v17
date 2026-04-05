@@ -9,7 +9,7 @@ import {
   deleteNestedKey,
   renameNestedKey,
 } from "./json-tree-helpers";
-import { ObjectNodes } from "./ObjectNodes";
+import { ObjectNodes } from "./TreeNodeRow";
 import { AddPropertyButton } from "./AddPropertyButton";
 
 interface Props {

@@ -6,7 +6,6 @@ import { TypeIcon } from "./TypeIcon";
 import { TreeNodeKeyEditor } from "./TreeNodeKeyEditor";
 import { TreeNodeValueEditor } from "./TreeNodeValueEditor";
 import { TreeNodeActions } from "./TreeNodeActions";
-import { ObjectNodes } from "./ObjectNodes";
 
 interface TreeNodeRowProps {
   nodeKey: string;
@@ -263,6 +262,33 @@ function ArrayNodes({ items, path, onUpdate, onDelete, onRename }: ArrayNodesPro
           nodeKey={String(idx)}
           value={item}
           path={[...path, String(idx)]}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          onRename={onRename}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface ObjectNodesProps {
+  obj: JsonObject;
+  path: string[];
+  onUpdate: OnUpdateHandler;
+  onDelete: OnDeleteHandler;
+  onRename: OnRenameHandler;
+}
+
+/** Renders all entries of a JSON object as TreeNodeRows. */
+export function ObjectNodes({ obj, path, onUpdate, onDelete, onRename }: ObjectNodesProps) {
+  return (
+    <div className="space-y-0.5">
+      {Object.entries(obj).map(([key, val]) => (
+        <TreeNodeRow
+          key={[...path, key].join(".")}
+          nodeKey={key}
+          value={val}
+          path={[...path, key]}
           onUpdate={onUpdate}
           onDelete={onDelete}
           onRename={onRename}
