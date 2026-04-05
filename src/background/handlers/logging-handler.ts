@@ -334,3 +334,12 @@ export async function handleGetSessionReport(
 }
 
 export { collectRows, countTable };
+
+/* ------------------------------------------------------------------ */
+/*  BROWSE_OPFS_SESSIONS                                               */
+/* ------------------------------------------------------------------ */
+
+/** Returns all OPFS session directories with file metadata and absolute paths. */
+export async function handleBrowseOpfsSessions() {
+    return browseOpfsSessions();
+}
