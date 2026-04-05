@@ -210,16 +210,21 @@ export function SessionCopyButton() {
           onValueChange={setSelectedSession}
           disabled={isLoading}
         >
-          <SelectTrigger className="h-7 text-[10px] w-[100px] px-2">
+          <SelectTrigger className="h-7 text-[10px] w-[120px] px-2">
             <SelectValue placeholder={loadingSessions ? "…" : "Session"} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={CURRENT_SESSION_VALUE} className="text-[10px]">
               Current
             </SelectItem>
-            {sessions.map((sid) => (
-              <SelectItem key={sid} value={sid} className="text-[10px]">
-                #{sid}
+            {sessions.map((s) => (
+              <SelectItem key={s.id} value={s.id} className="text-[10px]">
+                <span className="flex items-center gap-1.5">
+                  <span>#{s.id}</span>
+                  {s.lastModified && (
+                    <span className="text-muted-foreground">{formatAge(s.lastModified)}</span>
+                  )}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
