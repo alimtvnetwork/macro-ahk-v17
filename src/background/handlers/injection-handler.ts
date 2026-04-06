@@ -1033,3 +1033,71 @@ export async function handleGetTabInjections(
 
     return { injections: allInjections };
 }
+
+/* ------------------------------------------------------------------ */
+/*  Post-injection verification                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Runs a lightweight check in the MAIN world to confirm that key globals
+ * (marco SDK, MacroController, RiseupAsiaMacroExt, and the UI container)
+ * actually exist after injection. Logs a detailed verification report to
+ * the tab console so false-positive "SCRIPT_INJECTED" entries are caught.
+ */
+async function verifyPostInjectionGlobals(tabId: number): Promise<void> {
+    try {
+        const [frameResult] = await chrome.scripting.executeScript({
+            target: { tabId },
+            world: "MAIN",
+            func: () => {
+                const win = window as unknown as Record<string, unknown>;
+                const marcoSdk = typeof win.marco === "object" && win.marco !== null;
+                const extRoot = typeof win.RiseupAsiaMacroExt === "object" && win.RiseupAsiaMacroExt !== null;
+                const mcClass = typeof (win as any).MacroController === "function";
+                const mcInstance = !!(
+                    extRoot &&
+                    (win.RiseupAsiaMacroExt as any)?.Projects?.MacroController?.api?.mc
+                );
+                const uiContainer = !!document.getElementById("macro-loop-container");
+                const markerEl = !!document.querySelector("[data-marco-injected]");
+
+                return { marcoSdk, extRoot, mcClass, mcInstance, uiContainer, markerEl };
+            },
+        });
+
+        const r = frameResult?.result as {
+            marcoSdk: boolean;
+            extRoot: boolean;
+            mcClass: boolean;
+            mcInstance: boolean;
+            uiContainer: boolean;
+            markerEl: boolean;
+        } | undefined;
+
+        if (!r) return;
+
+        const allOk = r.marcoSdk && r.extRoot && r.mcClass && r.mcInstance && r.uiContainer;
+        const status = allOk ? "✅ VERIFIED" : "⚠️ INCOMPLETE";
+
+        const lines: Array<{ msg: string; level: "log" | "warn" | "error" }> = [
+            { msg: `window.marco (SDK)           : ${r.marcoSdk ? "✅" : "❌"}`, level: r.marcoSdk ? "log" : "error" },
+            { msg: `window.RiseupAsiaMacroExt     : ${r.extRoot ? "✅" : "❌"}`, level: r.extRoot ? "log" : "error" },
+            { msg: `window.MacroController (class): ${r.mcClass ? "✅" : "❌"}`, level: r.mcClass ? "log" : "error" },
+            { msg: `api.mc (singleton instance)   : ${r.mcInstance ? "✅" : "❌"}`, level: r.mcInstance ? "log" : "warn" },
+            { msg: `#macro-loop-container (UI)    : ${r.uiContainer ? "✅" : "❌"}`, level: r.uiContainer ? "log" : "warn" },
+            { msg: `[data-marco-injected] marker  : ${r.markerEl ? "✅" : "⚠️ (not required)"}`, level: "log" },
+        ];
+
+        void mirrorPipelineLogsToTab(tabId, lines, `${status} Post-Injection Verification`);
+
+        if (!allOk) {
+            logBgWarnError(
+                BgLogTag.INJECTION,
+                `Post-injection verification INCOMPLETE on tab ${tabId}: ` +
+                `sdk=${r.marcoSdk} ext=${r.extRoot} mc=${r.mcClass} instance=${r.mcInstance} ui=${r.uiContainer}`,
+            );
+        }
+    } catch {
+        // Verification is best-effort — never block the pipeline
+    }
+}
