@@ -294,10 +294,57 @@ export function buildGeneralPanel(
     panel.appendChild(field.row);
   });
 
+  // ── Backdrop Opacity Slider ──
+  const { getBackdropOpacity, setBackdropOpacity } = await_import_panel_layout();
+  const bdRow = document.createElement('div');
+  bdRow.style.cssText = 'margin-top:14px;margin-bottom:10px;';
+  const bdLabel = document.createElement('div');
+  bdLabel.style.cssText = 'font-size:10px;color:' + cSectionHeader + ';margin-bottom:3px;font-weight:600;';
+  bdLabel.textContent = 'Backdrop Opacity';
+  bdRow.appendChild(bdLabel);
+
+  const bdSliderRow = document.createElement('div');
+  bdSliderRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+  const bdSlider = document.createElement('input');
+  bdSlider.type = 'range';
+  bdSlider.min = '0';
+  bdSlider.max = '100';
+  bdSlider.value = String(Math.round(getBackdropOpacity() * 100));
+  bdSlider.style.cssText = 'flex:1;height:6px;accent-color:' + cPrimary + ';cursor:pointer;';
+
+  const bdValueLabel = document.createElement('span');
+  bdValueLabel.style.cssText = 'font-size:11px;color:' + cPanelText + ';min-width:36px;text-align:right;font-family:monospace;';
+  bdValueLabel.textContent = bdSlider.value + '%';
+
+  bdSlider.oninput = function() {
+    const pct = parseInt(bdSlider.value, 10);
+    bdValueLabel.textContent = pct + '%';
+    setBackdropOpacity(pct / 100);
+  };
+
+  bdSliderRow.appendChild(bdSlider);
+  bdSliderRow.appendChild(bdValueLabel);
+  bdRow.appendChild(bdSliderRow);
+
+  const bdHint = document.createElement('div');
+  bdHint.style.cssText = 'font-size:9px;color:#64748b;margin-top:2px;';
+  bdHint.textContent = 'Dark overlay behind the floating panel. 0% = transparent, 100% = opaque.';
+  bdRow.appendChild(bdHint);
+  panel.appendChild(bdRow);
+
   const verInfo = document.createElement('div');
   verInfo.style.cssText = 'margin-top:16px;padding:10px;background:' + cPanelBgAlt + ';border-radius:6px;font-size:10px;color:#64748b;';
   verInfo.innerHTML = '<strong style="color:' + cPrimaryLight + '">MacroLoop</strong> v' + VERSION + '<br>Changes are saved to the running instance. For permanent changes, update the config JSON or extension settings.';
   panel.appendChild(verInfo);
 
   return { panel, inputs };
+}
+
+/** Lazy import to avoid circular dependency with panel-layout */
+function await_import_panel_layout(): { getBackdropOpacity: () => number; setBackdropOpacity: (v: number) => void } {
+  // Direct import is safe here since settings-tab-panels doesn't import panel-layout elsewhere
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const pl = require('../ui/panel-layout');
+  return { getBackdropOpacity: pl.getBackdropOpacity, setBackdropOpacity: pl.setBackdropOpacity };
 }
