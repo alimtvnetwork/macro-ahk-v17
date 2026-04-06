@@ -242,6 +242,12 @@ export async function handleInjectScripts(
     const lastSuccessPath = lastSuccess?.injectionPath;
     const lastDomTarget = lastSuccess?.domTarget;
     recordInjection(msg.tabId, sorted, lastSuccessPath, lastDomTarget, totalMs, budgetMs);
+
+    // ── Post-injection verification — confirm globals actually landed in MAIN world ──
+    if (successCount > 0) {
+        void verifyPostInjectionGlobals(msg.tabId).catch(() => {});
+    }
+
     return { results };
 }
 
