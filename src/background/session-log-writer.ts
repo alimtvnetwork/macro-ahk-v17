@@ -135,8 +135,7 @@ export async function initSessionLogDir(sid: string, ver: string): Promise<void>
             void pruneOldSessionLogs();
         } catch (err) {
             const absDir = `opfs-root/${LOGS_DIR_NAME}/${SESSION_PREFIX}${sid}`;
-            const errDetail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-            console.warn(`[session-log-writer::initSessionDir] OPFS dir init failed at "${absDir}" (${errDetail}). Expected files: [${absDir}/${EVENTS_LOG}, ${absDir}/${ERRORS_LOG}, ${absDir}/${SCRIPTS_LOG}]`);
+            console.error(`[session-log-writer::initSessionDir] OPFS dir init failed at "${absDir}". Expected files: [${absDir}/${EVENTS_LOG}, ${absDir}/${ERRORS_LOG}, ${absDir}/${SCRIPTS_LOG}]`, err);
             sessionDir = null;
         }
     })();
