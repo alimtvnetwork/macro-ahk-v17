@@ -4,7 +4,52 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { resolve } from 'path';
 import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import { execSync } from 'node:child_process';
-import { generateAutoAliases } from './scripts/vite-plugin-auto-alias';
+
+function resolveDeclaredAssetSource(projectRootDir: string, projectDistDir: string, fileName: string, assetKey?: string): string | null {
+  const directCandidates = [
+    resolve(projectDistDir, fileName),
+    resolve(projectRootDir, fileName),
+  ];
+
+  for (const candidate of directCandidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  const rootFiles = existsSync(projectRootDir)
+    ? readdirSync(projectRootDir).filter((file) => !file.startsWith('.'))
+    : [];
+  const normalizedFileName = fileName.toLowerCase();
+  const prefixedMatch = rootFiles.find((file) => file.toLowerCase().endsWith(`-${normalizedFileName}`));
+
+  if (prefixedMatch) {
+    return resolve(projectRootDir, prefixedMatch);
+  }
+
+  if (assetKey === 'config') {
+    const configMatch = rootFiles.find(
+      (file) => /\.json$/i.test(file)
+        && /config/i.test(file)
+        && !/instruction|theme|prompt/i.test(file),
+    );
+    if (configMatch) {
+      return resolve(projectRootDir, configMatch);
+    }
+  }
+
+  if (assetKey === 'theme') {
+    const themeMatch = rootFiles.find(
+      (file) => /\.json$/i.test(file) && /theme/i.test(file),
+    );
+    if (themeMatch) {
+      return resolve(projectRootDir, themeMatch);
+    }
+  }
+
+  return null;
+}
+
 
 /**
  * Custom plugin that copies manifest.json to dist/ and rewrites
