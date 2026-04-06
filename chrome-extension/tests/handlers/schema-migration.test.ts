@@ -90,7 +90,7 @@ describe("Schema Migration Runner", () => {
         const first = await migrateSchema(logsDb, errorsDb);
         const second = await migrateSchema(logsDb, errorsDb);
 
-        expect(first.applied).toBe(3);
+        expect(first.applied).toBe(5);
         expect(second.applied).toBe(0);
         expect(second.failed).toBe(false);
     });

@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+const ID_LOOP_JS_EXECUTOR = 'loop-js-executor';
+const ID_LOOP_JS_HISTORY = 'loop-js-history';
+const SEL_LOOP_JS_HIST_ITEM = '.loop-js-hist-item';
+
 // Mock all transitive deps of js-executor
 vi.mock('../shared-state', () => ({
   VERSION: '1.0.0-test',
-  IDS: { JS_EXECUTOR: ID_LOOP_JS_EXECUTOR },
+  IDS: { JS_EXECUTOR: 'loop-js-executor' },
   cPanelFg: '#fff',
   cPanelFgDim: '#999',
   cLogDefault: '#ccc', cLogSuccess: '#0f0', cLogError: '#f00',
@@ -17,10 +21,6 @@ vi.mock('../logging', () => ({
 
 import { addLoopJsHistoryEntry, navigateLoopJsHistory, executeJs } from '../ui/js-executor';
 import { log } from '../logging';
-
-const ID_LOOP_JS_EXECUTOR = 'loop-js-executor';
-const ID_LOOP_JS_HISTORY = 'loop-js-history';
-const SEL_LOOP_JS_HIST_ITEM = '.loop-js-hist-item';
 
 // eslint-disable-next-line max-lines-per-function
 describe('js-executor', () => {
