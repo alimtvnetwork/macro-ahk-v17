@@ -122,6 +122,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "",
             configId: "",
             urlRuleId: "",
+            version: "",
         });
 
         expect(result).toContain('projectId:""');
