@@ -33,6 +33,7 @@ import { configureUserScriptWorld } from "./csp-fallback";
 import { markInitialized, drainBuffer } from "./message-buffer";
 import { cacheScriptCode, getCachedScriptCode, purgeStaleEntries, syncCacheWithBuildId } from "./injection-cache";
 import { invalidateNamespaceCache } from "./namespace-cache";
+import { logCaughtError } from "./bg-logger";
 
 const BUILD_META_URL = "build-meta.json";
 
@@ -86,7 +87,7 @@ export async function boot(): Promise<void> {
             const result = await seedFromManifest();
             console.log("[Marco] ✓ Manifest seeder: %d scripts, %d configs across %d projects", result.scripts, result.configs, result.projects);
         } catch (err) {
-            console.error("[Marco] Manifest seeder failed (non-fatal):", err);
+            logCaughtError("[boot]", "Manifest seeder failed (non-fatal)", err);
         }
 
         step = "reseed-prompts";
@@ -95,7 +96,7 @@ export async function boot(): Promise<void> {
             await reseedPrompts();
             console.log("[Marco] ✓ Prompts reseeded from dist");
         } catch (err) {
-            console.error("[Marco] Prompt reseed failed (non-fatal):", err);
+            logCaughtError("[boot]", "Prompt reseed failed (non-fatal)", err);
         }
 
         step = "normalize-default-project";
@@ -104,7 +105,7 @@ export async function boot(): Promise<void> {
             await ensureDefaultProjectSingleScript();
             console.log("[Marco] ✓ Default project normalized");
         } catch (err) {
-            console.error("[Marco] Default project normalization failed (non-fatal):", err);
+            logCaughtError("[boot]", "Default project normalization failed (non-fatal)", err);
         }
 
         step = "purge-stale-cache";
@@ -112,7 +113,7 @@ export async function boot(): Promise<void> {
         try {
             await purgeStaleEntries();
         } catch (err) {
-            console.error("[Marco] Cache purge failed (non-fatal):", err);
+            logCaughtError("[boot]", "Cache purge failed (non-fatal)", err);
         }
 
         step = "precache-scripts";
@@ -121,7 +122,7 @@ export async function boot(): Promise<void> {
             await precacheStableScripts();
             console.log("[Marco] Pre-cached stable scripts into IndexedDB");
         } catch (err) {
-            console.error("[Marco] Script pre-cache failed (non-fatal):", err);
+            logCaughtError("[boot]", "Script pre-cache failed (non-fatal)", err);
         }
 
         step = "ready";
@@ -135,7 +136,7 @@ export async function boot(): Promise<void> {
 
         setBootStep(`failed:${step}`);
         finalizeBoot();
-        console.error("[Marco] %s", bootErrorMessage);
+        logCaughtError("[boot]", `Boot failed at step '${step}'`, err);
 
         if (manager === null) {
             bindAllHandlers(createUnavailableDbManager(bootErrorMessage));

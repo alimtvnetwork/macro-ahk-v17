@@ -14,6 +14,7 @@
 import { MessageType } from "../shared/messages";
 import { handleGetToken, handleRefreshToken } from "./handlers/config-auth-handler";
 import { seedTokensIntoTab } from "./handlers/token-seeder";
+import { logCaughtError } from "./bg-logger";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -179,7 +180,7 @@ async function attemptProactiveRefresh(): Promise<string | null> {
 
         return null;
     } catch (refreshError) {
-        console.error("[cookie-watcher] Proactive refresh failed:", refreshError);
+        logCaughtError("[cookie-watcher]", "Proactive refresh failed", refreshError);
         return null;
     }
 }
@@ -210,7 +211,7 @@ async function reseedAllTargetTabs(): Promise<void> {
             console.log("[cookie-watcher] Reseeded tokens into %d tab(s)", tabs.length);
         }
     } catch (reseedError) {
-        console.error("[cookie-watcher] Reseed failed:", reseedError);
+        logCaughtError("[cookie-watcher]", "Reseed failed", reseedError);
     }
 }
 
@@ -247,7 +248,7 @@ async function broadcastToTargetTabs(
 
         console.log(`[cookie-watcher] Broadcast ${type} to ${tabs.length} tab(s)`);
     } catch (broadcastError) {
-        console.error("[cookie-watcher] Broadcast failed:", broadcastError);
+        logCaughtError("[cookie-watcher]", "Broadcast failed", broadcastError);
     }
 }
 
