@@ -675,8 +675,7 @@ async function injectSettingsNamespace(tabId: number, allProjects: StoredProject
             console.log("[injection:settings] Registered RiseupAsiaMacroExt.Settings + docs (port=%d)", settings.broadcastPort);
         }
     } catch (err) {
-        console.error("[injection:settings] Failed to register settings namespace: %s",
-            err instanceof Error ? err.message : String(err));
+        logCaughtError("[injection:settings]", "Failed to register settings namespace", err);
     }
 }
 
