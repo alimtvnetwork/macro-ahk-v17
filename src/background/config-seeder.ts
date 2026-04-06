@@ -148,7 +148,7 @@ export async function seedConfigToDb(
     try {
         parsed = JSON.parse(configJson);
     } catch (e) {
-        console.error(`[config-seeder] Invalid JSON for "${configName}":`, e);
+        logCaughtError("[config-seeder]", `Invalid JSON for "${configName}"`, e);
         return false;
     }
 
