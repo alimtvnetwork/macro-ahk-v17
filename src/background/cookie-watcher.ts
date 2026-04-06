@@ -210,11 +210,7 @@ async function reseedAllTargetTabs(): Promise<void> {
             console.log("[cookie-watcher] Reseeded tokens into %d tab(s)", tabs.length);
         }
     } catch (reseedError) {
-        const errorMessage = reseedError instanceof Error
-            ? reseedError.message
-            : String(reseedError);
-
-        console.warn(`[cookie-watcher] Reseed failed: ${errorMessage}`);
+        console.error("[cookie-watcher] Reseed failed:", reseedError);
     }
 }
 
