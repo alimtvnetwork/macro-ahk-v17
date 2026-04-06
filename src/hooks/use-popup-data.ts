@@ -94,7 +94,11 @@ export function usePopupData() {
     setScripts(enrichedScripts);
     setLoading(false);
 
-    // Tab injections fetched off the critical path — UI is already visible
+    // Non-critical fetches off the critical path — UI is already visible
+    sendMessage<OpfsStatusData>({ type: "GET_OPFS_STATUS" })
+      .then((res) => setOpfsStatus(res))
+      .catch(() => setOpfsStatus(null));
+
     sendMessage<{ injections: Record<number, InjectionStatus> }>({
       type: "GET_TAB_INJECTIONS",
       tabId: 0,
