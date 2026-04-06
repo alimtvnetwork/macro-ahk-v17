@@ -608,12 +608,7 @@ else if(!window.RiseupAsiaMacroExt.Projects){window.RiseupAsiaMacroExt.Projects=
         console.log("[injection:bootstrap] ✅ RiseupAsiaMacroExt root bootstrapped in MAIN world (tab %d)", tabId);
     } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        console.error(
-            "[injection:bootstrap] ❌ CRITICAL — Failed to bootstrap RiseupAsiaMacroExt in MAIN world (tab %d): %s\n" +
-            "  → Developer Guide console access (RiseupAsiaMacroExt.Projects.*) will NOT work.\n" +
-            "  → CSP on this page is blocking inline scripts in the MAIN world.",
-            tabId, msg,
-        );
+        logCaughtError("[injection:bootstrap]", `CRITICAL — Failed to bootstrap RiseupAsiaMacroExt in MAIN world (tab ${tabId}). Developer Guide console access will NOT work. CSP blocking inline scripts.`, err);
         transitionHealth("DEGRADED", "RiseupAsiaMacroExt MAIN world bootstrap blocked by CSP");
 
         // Also inject a visible console warning into the page
