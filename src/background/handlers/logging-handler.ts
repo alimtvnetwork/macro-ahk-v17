@@ -241,7 +241,9 @@ function queryRecentLogs(source?: string, limit?: number): unknown[] {
 export async function handleGetLogStats(): Promise<unknown> {
     const logCount = countTable(getLogsDb(), "Logs");
     const errorCount = countTable(getErrorsDb(), "Errors");
-    const sessionCount = countTable(getLogsDb(), "Sessions");
+    // Defensive: Sessions lives in logs.db — catch startup race where schema may not be ready
+    let sessionCount = 0;
+    try { sessionCount = countTable(getLogsDb(), "Sessions"); } catch { /* schema not ready */ }
 
     return { logCount, errorCount, sessionCount };
 }
