@@ -327,7 +327,7 @@ async function seedConfigsFromManifest(
             } catch (err) {
                 const msg = `[seedConfigsFromManifest→fetchConfigJson] Failed to seed config ${configDef.file} for ${project.name}: ${err}`;
                 errors.push(msg);
-                console.error("[manifest-seeder]", msg);
+                logCaughtError("[manifest-seeder]", msg, err);
             }
         }
     }
