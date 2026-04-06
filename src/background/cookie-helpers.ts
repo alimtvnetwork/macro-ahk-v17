@@ -6,7 +6,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const _chr = globalThis.chrome as any;
+function _chr(): any { return globalThis.chrome as any; }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface ChromeCookie {
