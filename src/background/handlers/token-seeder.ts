@@ -71,7 +71,7 @@ export async function seedTokensIntoTab(tabId: number): Promise<void> {
 
     // Step 3: Check if session cookie exists (for diagnostics only)
     if (sessionLookup.value !== null) {
-        console.error("[token-seeder] Session cookie exists for project %s but no JWT is available — NOT seeding raw cookie", projectId ?? "unknown");
+        logBgWarnError("[token-seeder]", `Session cookie exists for project ${projectId ?? "unknown"} but no JWT is available — NOT seeding raw cookie`);
     } else {
         console.log("[token-seeder] No session cookies found — skipping seed");
     }
