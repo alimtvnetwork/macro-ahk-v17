@@ -282,8 +282,7 @@ async function resolveOneBinding(
     const { code, source: codeSource } = await resolveScriptCode(script!);
 
     if (!code || code.trim().length === 0) {
-        console.error("[injection:resolve] ⚠ Script '%s' (id=%s) resolved with EMPTY code — skipping. filePath=%s, source=%s. Check IndexedDB cache or script store.",
-            script!.name, script!.id, script!.filePath ?? "(none)", codeSource);
+        logBgWarnError("[injection:resolve]", `Script '${script!.name}' (id=${script!.id}) resolved with EMPTY code — skipping. filePath=${script!.filePath ?? "(none)"}, source=${codeSource}`);
         void persistInjectionWarn(
             "SCRIPT_SKIPPED_EMPTY_CODE",
             `[injection:resolve] Script '${script!.name}' (id=${script!.id}) resolved with empty code and was skipped. filePath=${script!.filePath ?? "(none)"}, source=${codeSource}`,
