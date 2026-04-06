@@ -4,6 +4,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { resolve } from 'path';
 import { copyFileSync, mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import { execSync } from 'node:child_process';
+import { generateAutoAliases } from './scripts/vite-plugin-auto-alias';
 
 function resolveDeclaredAssetSource(projectRootDir: string, projectDistDir: string, fileName: string, assetKey?: string): string | null {
   const directCandidates = [
