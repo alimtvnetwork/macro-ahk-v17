@@ -529,7 +529,7 @@ function buildErrorResult(
         ? error.message
         : String(error);
 
-    console.error(`[injection] Script ${scriptId} failed: ${errorMessage}`);
+    logBgWarnError("[injection]", `Script ${scriptId} failed: ${errorMessage}`);
 
     return {
         scriptId,
