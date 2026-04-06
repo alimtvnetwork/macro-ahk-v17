@@ -122,7 +122,7 @@ The **Automator** is a **Chrome Extension + JavaScript** automation tool that co
 
 ### Step 3: Read the Architecture
 
-- [ ] Read this file (`spec/00-master-overview.md`) — you're here
+- [ ] Read this file (`spec/01-overview/00-master-overview.md`) — you're here
 - [ ] Read `/spec/07-chrome-extension/01-overview.md` — extension architecture
 - [ ] Read `/spec/07-chrome-extension/18-message-protocol.md` — message types
 - [ ] Read `/spec/03-data-and-api/data-schema.md` — API response shapes and credit formulas
