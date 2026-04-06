@@ -52,7 +52,7 @@ export async function readCookieFromCandidates(
 
     for (const url of candidateUrls) {
         try {
-            const cookie: ChromeCookie | null = await _chr.cookies.get({ url, name: cookieName });
+            const cookie: ChromeCookie | null = await _chr().cookies.get({ url, name: cookieName });
 
             if (cookie !== null) {
                 return cookie;
