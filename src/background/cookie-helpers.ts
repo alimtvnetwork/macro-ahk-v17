@@ -6,7 +6,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const _chr = globalThis.chrome as any;
+function _chr(): any { return globalThis.chrome as any; }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface ChromeCookie {
@@ -52,7 +52,7 @@ export async function readCookieFromCandidates(
 
     for (const url of candidateUrls) {
         try {
-            const cookie: ChromeCookie | null = await _chr.cookies.get({ url, name: cookieName });
+            const cookie: ChromeCookie | null = await _chr().cookies.get({ url, name: cookieName });
 
             if (cookie !== null) {
                 return cookie;

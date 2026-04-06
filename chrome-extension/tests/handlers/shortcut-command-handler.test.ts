@@ -26,6 +26,7 @@ beforeEach(() => {
                     commandListeners.push(listener);
                 },
             },
+            getAll: vi.fn((cb: any) => cb([])),
         },
         tabs: {
             query: vi.fn().mockResolvedValue([{ id: 42 }]),
@@ -45,6 +46,7 @@ describe("Shortcut Command — Registration", () => {
             onCommand: {
                 addListener: (l: any) => { commandListeners.push(l); },
             },
+            getAll: vi.fn((cb: any) => cb([])),
         };
 
         const { registerShortcutCommands } = await import("../../../src/background/shortcut-command-handler");
@@ -77,6 +79,7 @@ describe("Shortcut Command — Run Scripts", () => {
                 onCommand: {
                     addListener: (l: any) => { commandListeners.push(l); },
                 },
+                getAll: vi.fn((cb: any) => cb([])),
             },
             tabs: {
                 query: vi.fn().mockResolvedValue([{ id: 42 }]),
@@ -116,6 +119,7 @@ describe("Shortcut Command — Run Scripts", () => {
                 onCommand: {
                     addListener: (l: any) => { commandListeners.push(l); },
                 },
+                getAll: vi.fn((cb: any) => cb([])),
             },
             tabs: {
                 query: vi.fn().mockResolvedValue([{ id: 1 }]),
@@ -146,6 +150,7 @@ describe("Shortcut Command — Run Scripts", () => {
                 onCommand: {
                     addListener: (l: any) => { commandListeners.push(l); },
                 },
+                getAll: vi.fn((cb: any) => cb([])),
             },
             tabs: {
                 query: vi.fn().mockResolvedValue([]), // No active tab

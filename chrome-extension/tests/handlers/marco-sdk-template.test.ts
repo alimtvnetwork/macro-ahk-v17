@@ -14,6 +14,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "script-1",
             configId: "cfg-1",
             urlRuleId: "rule-1",
+            version: "1.0.0",
         });
 
         expect(result).toContain("(function(){");
@@ -26,6 +27,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "my-script",
             configId: "my-config",
             urlRuleId: "my-rule",
+            version: "1.0.0",
         });
 
         expect(result).toContain('"my-project"');
@@ -40,6 +42,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "safe",
             configId: "",
             urlRuleId: "",
+            version: "1.0.0",
         });
 
         expect(result).toContain('has\\"quote');
@@ -52,6 +55,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "s",
             configId: "",
             urlRuleId: "",
+            version: "1.0.0",
         });
 
         expect(result).toContain("path\\\\to\\\\project");
@@ -63,6 +67,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "s",
             configId: "",
             urlRuleId: "",
+            version: "1.0.0",
         });
 
         expect(result).toContain("line1\\nline2");
@@ -75,6 +80,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "s",
             configId: "c",
             urlRuleId: "r",
+            version: "1.0.0",
         });
 
         expect(result).toContain("window.marco=");
@@ -89,6 +95,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "s",
             configId: "",
             urlRuleId: "",
+            version: "1.0.0",
         });
 
         // When window.marco exists, should still ensure RiseupAsiaMacroExt then return
@@ -103,6 +110,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "s",
             configId: "",
             urlRuleId: "",
+            version: "1.0.0",
         });
 
         expect(result).toContain("Object.freeze(window.marco)");
@@ -114,6 +122,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "",
             configId: "",
             urlRuleId: "",
+            version: "",
         });
 
         expect(result).toContain('projectId:""');
