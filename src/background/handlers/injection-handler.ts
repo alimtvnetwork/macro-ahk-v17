@@ -881,7 +881,7 @@ async function prependDependencyScripts(callerScripts: unknown[], allProjects: S
     const resolution = resolveInjectionOrder(nodes);
 
     if (!resolution.isSuccess) {
-        console.error("[injection:deps] Dependency resolution failed: %s", resolution.errorMessage);
+        logBgWarnError("[injection:deps]", `Dependency resolution failed: ${resolution.errorMessage}`);
         // Even on failure, still prepend global project scripts
         return [...collectGlobalScripts(globalProjects), ...callerScripts];
     }
