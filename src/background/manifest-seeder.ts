@@ -121,8 +121,7 @@ async function fetchManifest(): Promise<SeedManifest | null> {
     try {
         url = chrome.runtime.getURL(MANIFEST_PATH);
     } catch (err) {
-        console.error("[manifest-seeder::fetchManifest] ❌ chrome.runtime.getURL() failed for '%s': %s",
-            MANIFEST_PATH, err instanceof Error ? err.message : String(err));
+        logCaughtError("[manifest-seeder]", `chrome.runtime.getURL() failed for '${MANIFEST_PATH}'`, err);
         return null;
     }
     console.log("[manifest-seeder] Fetching seed-manifest.json — relative: '%s', absolute: %s", MANIFEST_PATH, url);
