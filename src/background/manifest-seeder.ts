@@ -51,7 +51,7 @@ export async function seedFromManifest(): Promise<SeedResult> {
     // Schema version validation
     const sv = manifest.schemaVersion;
     if (typeof sv !== "number" || !Number.isFinite(sv)) {
-        console.error("[manifest-seeder::seedFromManifest] ❌ Invalid schemaVersion: %o — aborting seed", sv);
+        logBgWarnError("[manifest-seeder]", `Invalid schemaVersion: ${sv} — aborting seed`);
         return { scripts: 0, configs: 0, projects: 0, errors: [`Invalid schemaVersion: ${sv}`] };
     }
     if (sv > SUPPORTED_SCHEMA_VERSIONS.max) {
