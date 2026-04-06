@@ -80,6 +80,7 @@ describe("buildMarcoSdkScript", () => {
             scriptId: "s",
             configId: "c",
             urlRuleId: "r",
+            version: "1.0.0",
         });
 
         expect(result).toContain("window.marco=");
