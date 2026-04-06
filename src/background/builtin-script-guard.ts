@@ -168,7 +168,7 @@ export async function ensureBuiltinScriptsExist(
             return true;
         }
 
-        console.error("[builtin-guard] ❌ Direct fallback also seeded 0 scripts");
+        logBgWarnError("[builtin-guard]", "Direct fallback also seeded 0 scripts");
         await persistInjectionError(
             "BUILTIN_GUARD_DIRECT_SEED_EMPTY",
             `[builtin-guard] Direct instruction.json fallback seeded 0 scripts for: [${missing.join(", ")}]`,
