@@ -15,7 +15,7 @@ import {
 import { MessageType } from "../../src/shared/messages";
 
 // Mock seeder to prevent auto-seeding default projects
-vi.mock("../../src/background/default-project-seeder", () => ({
+vi.mock("../../../src/background/default-project-seeder", () => ({
     ensureDefaultProjectSingleScript: vi.fn(async () => {}),
     registerInstallListener: vi.fn(),
 }));
