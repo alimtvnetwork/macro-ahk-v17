@@ -142,7 +142,7 @@ export async function injectWithCspFallback(
         return buildResult(true, preferredWorld, false, undefined, mainResult.domTarget as CspInjectionResult["domTarget"]);
     }
 
-    console.error("[injection:csp] ❌ %s world failed: %s", preferredWorld, mainResult.errorMessage);
+    logBgWarnError("[injection:csp]", `${preferredWorld} world failed: ${mainResult.errorMessage}`);
 
     const errorMessage = mainResult.errorMessage ?? "";
     const isMainWorld = preferredWorld === "MAIN";
