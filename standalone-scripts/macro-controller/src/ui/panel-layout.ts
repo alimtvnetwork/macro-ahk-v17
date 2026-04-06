@@ -152,17 +152,41 @@ export function createPanelLayoutCtx(ui: HTMLElement, floatW: string, floatSh: s
   };
 }
 
+const LS_BACKDROP_OPACITY = 'marco_backdrop_opacity';
+const BACKDROP_ID = 'marco-panel-backdrop';
+const DEFAULT_BACKDROP_OPACITY = 0.35;
+
+export function getBackdropOpacity(): number {
+  try {
+    const v = localStorage.getItem(LS_BACKDROP_OPACITY);
+    if (v !== null) {
+      const n = parseFloat(v);
+      if (!isNaN(n) && n >= 0 && n <= 1) return n;
+    }
+  } catch { /* ignore */ }
+  return DEFAULT_BACKDROP_OPACITY;
+}
+
+export function setBackdropOpacity(opacity: number): void {
+  const clamped = Math.min(1, Math.max(0, opacity));
+  try { localStorage.setItem(LS_BACKDROP_OPACITY, String(clamped)); } catch { /* ignore */ }
+  const backdrop = document.getElementById(BACKDROP_ID);
+  if (backdrop) {
+    backdrop.style.background = clamped === 0 ? 'none' : 'rgba(0,0,0,' + clamped + ')';
+  }
+}
+
 export function enableFloating(ctx: PanelLayoutCtx) {
   if (ctx.isFloating) return;
   log('Switching MacroLoop panel to floating mode', 'info');
   ctx.isFloating = true;
 
   // Add a dark backdrop behind the panel so the host page's white bg doesn't show through
-  const BACKDROP_ID = 'marco-panel-backdrop';
   if (!document.getElementById(BACKDROP_ID)) {
+    const opacity = getBackdropOpacity();
     const backdrop = document.createElement('div');
     backdrop.id = BACKDROP_ID;
-    backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);z-index:99996;pointer-events:none;';
+    backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:' + (opacity === 0 ? 'none' : 'rgba(0,0,0,' + opacity + ')') + ';z-index:99996;pointer-events:none;';
     document.body.appendChild(backdrop);
   }
 
