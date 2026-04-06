@@ -151,3 +151,4 @@ All diagrams live in `standalone-scripts/macro-controller/diagrams/`.
 | `credit-monitoring-flow.mmd` | Credit fetch flow — auth pre-flight → API polling with timeout → UI success/error states |
 | `data-storage-schema.mmd` | Data storage schema — SQLite, IndexedDB, localStorage, chrome.storage with cross-layer sync |
 | `extension-lifecycle.mmd` | Full extension lifecycle — install → page injection → runtime execution → user interaction |
+| `run-script-flow.mmd` | Run Script end-to-end flow — UI click → dependency resolution → bootstrap/seed → wrap/execute → diagnostics output |
