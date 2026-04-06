@@ -56,6 +56,10 @@ jobs:
         working-directory: chrome-extension
         run: npm ci
 
+      # ── Run test suite ──────────────────────────────────
+      - name: Run tests
+        run: npx vitest run
+
       # ── Build Chrome extension ────────────────────────────
       - name: Build Chrome extension
         working-directory: chrome-extension
