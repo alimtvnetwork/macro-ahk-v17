@@ -147,6 +147,7 @@ export enum MessageType {
     GET_SESSION_LOGS = "GET_SESSION_LOGS",
     GET_SESSION_REPORT = "GET_SESSION_REPORT",
     BROWSE_OPFS_SESSIONS = "BROWSE_OPFS_SESSIONS",
+    GET_OPFS_STATUS = "GET_OPFS_STATUS",
 
     // ─── Injection Chain Diagnostics ───
     GET_INJECTION_CHAIN = "GET_INJECTION_CHAIN",
@@ -375,6 +376,7 @@ export type MessageRequest =
     | { type: MessageType.GET_SESSION_LOGS }
     | { type: MessageType.GET_SESSION_REPORT; sessionId?: string }
     | { type: MessageType.BROWSE_OPFS_SESSIONS }
+    | { type: MessageType.GET_OPFS_STATUS }
     | { type: MessageType.RECORD_CYCLE_METRIC; cycleNumber: number; startTime: string; endTime: string; status: "success" | "error" | "skipped"; errorMessage?: string }
     | { type: MessageType.GET_RUN_STATS }
     | { type: MessageType.CLEAR_RUN_STATS }

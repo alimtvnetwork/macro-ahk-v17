@@ -46,18 +46,26 @@ interface StatusData {
   bootStep?: string;
 }
 
+interface OpfsStatusData {
+  sessionId: string | null;
+  dirExists: boolean;
+  files: Array<{ name: string; absolutePath: string; sizeBytes: number; exists: boolean }>;
+  healthy: boolean;
+}
+
 interface HealthData {
   state: string;
   details: string[];
 }
 
-export type { ActiveProjectData, InjectionStatus, PopupScript, StatusData, HealthData };
+export type { ActiveProjectData, InjectionStatus, PopupScript, StatusData, HealthData, OpfsStatusData };
 
 // eslint-disable-next-line max-lines-per-function
 export function usePopupData() {
   const [projectData, setProjectData] = useState<ActiveProjectData | null>(null);
   const [status, setStatus] = useState<StatusData | null>(null);
   const [health, setHealth] = useState<HealthData | null>(null);
+  const [opfsStatus, setOpfsStatus] = useState<OpfsStatusData | null>(null);
   const [injections, setInjections] = useState<InjectionStatus | null>(null);
   const [scripts, setScripts] = useState<PopupScript[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +94,11 @@ export function usePopupData() {
     setScripts(enrichedScripts);
     setLoading(false);
 
-    // Tab injections fetched off the critical path — UI is already visible
+    // Non-critical fetches off the critical path — UI is already visible
+    sendMessage<OpfsStatusData>({ type: "GET_OPFS_STATUS" })
+      .then((res) => setOpfsStatus(res))
+      .catch(() => setOpfsStatus(null));
+
     sendMessage<{ injections: Record<number, InjectionStatus> }>({
       type: "GET_TAB_INJECTIONS",
       tabId: 0,
@@ -117,6 +129,7 @@ export function usePopupData() {
     projectData,
     status,
     health,
+    opfsStatus,
     injections,
     scripts,
     loading,

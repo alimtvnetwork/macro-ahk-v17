@@ -1,19 +1,20 @@
-import { AlertTriangle, ShieldAlert } from "lucide-react";
+import { AlertTriangle, ShieldAlert, HardDrive } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { StatusData, HealthData } from "@/hooks/use-popup-data";
+import type { StatusData, HealthData, OpfsStatusData } from "@/hooks/use-popup-data";
 
 interface Props {
   status: StatusData;
   health: HealthData;
+  opfsStatus: OpfsStatusData | null;
 }
 
 // eslint-disable-next-line max-lines-per-function, sonarjs/cognitive-complexity
-export function PopupStatusBar({ status, health }: Props) {
+export function PopupStatusBar({ status, health, opfsStatus }: Props) {
   const isOnline = status.connection === "online";
   const tokenStatus = status.token?.status ?? "missing";
   const configSource = status.config?.source ?? "—";
@@ -29,10 +30,15 @@ export function PopupStatusBar({ status, health }: Props) {
   );
   const hasCspIssue = cspDetails.length > 0;
 
+  const opfsHealthy = opfsStatus?.healthy === true;
+  const opfsDirExists = opfsStatus?.dirExists === true;
+  const opfsFileCount = opfsStatus?.files.filter((f) => f.exists).length ?? 0;
+  const opfsTotalFiles = opfsStatus?.files.length ?? 3;
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-2">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {/* Connection */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -104,6 +110,47 @@ export function PopupStatusBar({ status, health }: Props) {
                   ? ` · synced ${new Date(status.config.lastSyncAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
                   : ""}
               </p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* OPFS Status */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-center gap-1.5 rounded-md border border-border bg-card px-2 py-2 cursor-pointer hover:bg-muted/50 transition-colors whitespace-nowrap overflow-hidden">
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${
+                    opfsStatus === null
+                      ? "bg-muted-foreground"
+                      : opfsHealthy
+                        ? "bg-[hsl(var(--success))]"
+                        : "bg-destructive"
+                  }`}
+                />
+                <HardDrive className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <span className="text-xs font-semibold text-foreground truncate">
+                  {opfsStatus === null ? "—" : opfsHealthy ? "OPFS" : "OPFS ✗"}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {opfsStatus === null ? (
+                <p className="text-xs">OPFS status not available</p>
+              ) : (
+                <div className="text-xs space-y-1">
+                  <p className="font-semibold">
+                    Session #{opfsStatus.sessionId ?? "—"} · {opfsHealthy ? "Healthy" : "Unhealthy"}
+                  </p>
+                  <p>Dir: {opfsDirExists ? "exists" : "missing"} · Files: {opfsFileCount}/{opfsTotalFiles}</p>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    {opfsStatus.files.map((f) => (
+                      <li key={f.name} className="font-mono text-[10px]">
+                        {f.exists ? "✓" : "✗"} {f.absolutePath}
+                        {f.exists ? ` (${f.sizeBytes}B)` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </TooltipContent>
           </Tooltip>
         </div>

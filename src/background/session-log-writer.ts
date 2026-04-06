@@ -392,6 +392,47 @@ export async function pruneOldSessionLogs(maxAgeDays = 7): Promise<number> {
     return removed;
 }
 
+/** Checks the health of the current OPFS session directory. */
+export interface OpfsStatusData {
+    sessionId: string | null;
+    dirExists: boolean;
+    files: Array<{ name: string; absolutePath: string; sizeBytes: number; exists: boolean }>;
+    healthy: boolean;
+}
+
+export async function getOpfsSessionStatus(): Promise<OpfsStatusData> {
+    const sid = sessionId;
+    if (!sid) {
+        return { sessionId: null, dirExists: false, files: [], healthy: false };
+    }
+
+    const absBase = `opfs-root/${LOGS_DIR_NAME}/${SESSION_PREFIX}${sid}`;
+    const expectedFiles = [EVENTS_LOG, ERRORS_LOG, SCRIPTS_LOG];
+
+    try {
+        const root = await navigator.storage.getDirectory();
+        const logsRoot = await root.getDirectoryHandle(LOGS_DIR_NAME);
+        const dir = await logsRoot.getDirectoryHandle(`${SESSION_PREFIX}${sid}`);
+
+        const files: OpfsStatusData["files"] = [];
+        for (const fname of expectedFiles) {
+            try {
+                const fh = await dir.getFileHandle(fname);
+                const file = await fh.getFile();
+                files.push({ name: fname, absolutePath: `${absBase}/${fname}`, sizeBytes: file.size, exists: true });
+            } catch {
+                files.push({ name: fname, absolutePath: `${absBase}/${fname}`, sizeBytes: 0, exists: false });
+            }
+        }
+
+        const allExist = files.every((f) => f.exists);
+        return { sessionId: sid, dirExists: true, files, healthy: allExist };
+    } catch {
+        const files = expectedFiles.map((f) => ({ name: f, absolutePath: `${absBase}/${f}`, sizeBytes: 0, exists: false }));
+        return { sessionId: sid, dirExists: false, files, healthy: false };
+    }
+}
+
 /** Lists all available session IDs from OPFS. */
 export async function listSessionIds(): Promise<string[]> {
     const sessions = await listSessionsWithTimestamps();

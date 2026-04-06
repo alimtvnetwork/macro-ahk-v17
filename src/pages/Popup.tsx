@@ -35,6 +35,7 @@ const PopupPage = () => {
     projectData,
     status,
     health,
+    opfsStatus,
     injections,
     scripts,
     loading,
@@ -80,7 +81,7 @@ const PopupPage = () => {
         <BootFailureBanner bootStep={status?.bootStep} />
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
           {status && health ? (
-            <PopupStatusBar status={status} health={health} />
+            <PopupStatusBar status={status} health={health} opfsStatus={opfsStatus} />
           ) : (
             <div className="h-12 rounded-md bg-muted animate-pulse" />
           )}
