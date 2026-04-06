@@ -214,7 +214,7 @@ async function seedMissingBuiltinsDirectly(
     for (const scriptName of missingNames) {
         const meta = BUILTIN_DIST_MAP[scriptName];
         if (!meta) {
-            console.warn("[builtin-guard:fallback] No dist map entry for %s — skipping", scriptName);
+            console.error("[builtin-guard:fallback] No dist map entry for %s — skipping", scriptName);
             continue;
         }
 
