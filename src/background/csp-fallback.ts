@@ -322,7 +322,7 @@ async function attemptUserScriptFallback(
                     ? userScriptError.message
                     : String(userScriptError);
                 userScriptTierLabel = "failed";
-                console.error("[injection:csp] ❌ userScripts.execute() failed: %s — falling back to legacy ISOLATED chain", userScriptTierError);
+                logCaughtError("[injection:csp]", "userScripts.execute() failed — falling back to legacy ISOLATED chain", userScriptError);
             }
         } else {
             userScriptTierLabel = "unavailable";
