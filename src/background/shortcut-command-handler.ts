@@ -9,6 +9,7 @@
 
 import { MessageType } from "../shared/messages";
 import { handleMessage } from "./message-router";
+import { logCaughtError, logBgWarnError } from "./bg-logger";
 
 const RUN_SCRIPTS_COMMAND = "run-scripts";
 

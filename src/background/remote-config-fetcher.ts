@@ -10,6 +10,8 @@
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
+import { logCaughtError, logBgWarnError } from "./bg-logger";
+
 export interface RemoteConfigSettings {
     isEnabled: boolean;
     endpointUrl: string;
