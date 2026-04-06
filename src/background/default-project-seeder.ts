@@ -94,7 +94,7 @@ async function handleInstalled(
         const { invalidateCacheOnDeploy } = await import("./injection-cache");
         await invalidateCacheOnDeploy(details.reason);
     } catch (err) {
-        console.warn("[seeder] Cache invalidation failed:", err);
+        console.error("[seeder] Cache invalidation failed:", err);
     }
 
     // ✅ Manifest-driven seeder (reads seed-manifest.json from dist)
