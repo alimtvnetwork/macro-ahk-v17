@@ -353,12 +353,27 @@ function buildStoredConfig(def: SeedConfigEntry, json: string): StoredConfig {
 
 async function fetchConfigJson(filePath: string): Promise<string> {
     const url = chrome.runtime.getURL(filePath);
-    const resp = await fetch(url);
-    if (!resp.ok) {
-        throw new Error(`Failed to fetch ${filePath}: ${resp.status}`);
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 500;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}`);
+            }
+            const data = await resp.json();
+            return JSON.stringify(data, null, 2);
+        } catch (err) {
+            const isLastAttempt = attempt === MAX_RETRIES;
+            if (isLastAttempt) {
+                throw new Error(`Failed to fetch ${filePath} after ${MAX_RETRIES} attempts: ${err}`);
+            }
+            await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+        }
     }
-    const data = await resp.json();
-    return JSON.stringify(data, null, 2);
+
+    throw new Error(`Failed to fetch ${filePath}: unreachable`);
 }
 
 /* ------------------------------------------------------------------ */
