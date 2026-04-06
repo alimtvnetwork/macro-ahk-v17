@@ -797,8 +797,7 @@ async function injectProjectNamespaces(tabId: number, allProjects: StoredProject
                 console.log("[injection:ns] ✅ Registered %d namespaces in single IPC call", nsScriptParts.length);
             }
         } catch (err) {
-            console.error("[injection:ns] ❌ Batch namespace injection failed, falling back to sequential: %s",
-                err instanceof Error ? err.message : String(err));
+            logCaughtError("[injection:ns]", "Batch namespace injection failed, falling back to sequential", err);
             // Sequential fallback
             for (let i = 0; i < nsScriptParts.length; i++) {
                 try {
