@@ -283,9 +283,8 @@ async function seedMissingBuiltinsDirectly(
                 );
             }
         } catch (fetchErr) {
-            const reason = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
-            console.warn("[builtin-guard:fallback] ❌ Failed to fetch script %s: %s — URL: %s",
-                scriptName, reason, scriptAbsUrl);
+            console.error("[builtin-guard:fallback] ❌ Failed to fetch script %s — URL: %s",
+                scriptName, scriptAbsUrl, fetchErr);
             void persistInjectionError(
                 "BUILTIN_GUARD_SCRIPT_FETCH_FAILED",
                 `[builtin-guard:fallback] Script fetch failed for ${scriptName}: ${reason}. URL: ${scriptAbsUrl}`,
