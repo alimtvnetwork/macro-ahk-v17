@@ -76,8 +76,7 @@ async function resolveScriptCode(script: StoredScript): Promise<ResolvedCode> {
             const fetchT0 = performance.now();
             const response = await fetch(url);
             if (!response.ok) {
-                console.error("[script-resolver] filePath fetch failed (%s %s)",
-                    response.status, candidate.path);
+                logBgWarnError("[script-resolver]", `filePath fetch failed (${response.status} ${candidate.path})`);
                 continue;
             }
             const code = await response.text();
