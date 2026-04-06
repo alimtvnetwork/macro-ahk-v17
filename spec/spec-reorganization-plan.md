@@ -92,14 +92,7 @@ spec/
 
 ---
 
-## Rules for Future Folders
-
-1. All folder names: lowercase, hyphen-separated, numeric prefix.
-2. Numbering must be sequential with no gaps.
-3. New folders append at the end (next available number).
-4. Each topic lives in exactly one folder — no duplication.
-5. Cross-references use relative paths.
-6. Historical/deprecated specs go to `archive/`.
+> **Canonical folder rules**: See [`spec/01-overview/11-folder-policy.md`](01-overview/11-folder-policy.md#rule-spec-folder-creation--numbering).
 
 ---
 
