@@ -80,8 +80,7 @@ async function ensureSessionDir(): Promise<FileSystemDirectoryHandle | null> {
         return sessionDir;
     } catch (err) {
         const absDir = `opfs-root/${LOGS_DIR_NAME}/${SESSION_PREFIX}${sessionId}`;
-        const errDetail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-        console.warn(`[session-log-writer::ensureSessionDir] Failed to access "${absDir}" (${errDetail})`);
+        console.error(`[session-log-writer::ensureSessionDir] Failed to access "${absDir}"`, err);
         sessionDir = null;
         return null;
     }
