@@ -42,6 +42,8 @@ export const DEFAULT_PROMPTS: PromptEntry[] = [
   { name: 'Minor Bump', text: 'Bump all Minor versions for all', category: 'versioning', slug: 'minor-bump', id: 'default-minor-bump' },
   { name: 'Major Bump', text: 'Bump all Major versions for all', category: 'versioning', slug: 'major-bump', id: 'default-major-bump' },
   { name: 'Patch Bump', text: 'Bump all Patch versions for all', category: 'versioning', slug: 'patch-bump', id: 'default-patch-bump' },
+  { name: 'Code Coverage Basic', text: 'Based on low-coverage packages (>1000 lines), plan 200-line segments for coverage tests. Cover branches, logical segments. Follow AAA format, naming conventions, Should Be methods.', category: 'code-coverage', slug: 'code-coverage-basic', id: 'default-code-coverage-basic' },
+  { name: 'Code Coverage Details', text: 'Plan 200-line segments for low-coverage packages. Follow AAA format, naming conventions. Identify packages >1000 lines, segment into 200-line chunks, cover branches and logical flows.', category: 'code-coverage', slug: 'code-coverage-details', id: 'default-code-coverage-details' },
   { name: 'Next Tasks', text: 'Next,\n\nList out the remaining tasks always, if you finish then in future `next` command, find any remaining tasks from memory and suggest', category: 'automation', slug: 'next-tasks', id: 'default-next-tasks' },
 ];
 
