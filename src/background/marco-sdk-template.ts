@@ -128,7 +128,7 @@ getRecentErrors:function(){return _recentErrors.slice();},
 _setStopLoopCallback:function(fn){_stopLoopCb=fn;},
 _setVersion:function(v){_version=v;}
 };
-131: })(),
+})(),
 context:Object.freeze({projectId:__ctx.projectId,scriptId:__ctx.scriptId,configId:__ctx.configId,urlRuleId:__ctx.urlRuleId,version:__ctx.version})
 };
 Object.freeze(window.marco.log);
