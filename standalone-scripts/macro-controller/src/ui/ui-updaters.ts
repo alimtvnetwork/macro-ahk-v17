@@ -31,7 +31,6 @@ export function updateUI(): void {
   updateButtons();
   updateRecordIndicator();
   mc().ui?.populateDropdown();
-  updateProjectNameDisplay();
   updateTitleBarWorkspaceName();
 
   // Persist workspace name to localStorage for instant UI on next load
