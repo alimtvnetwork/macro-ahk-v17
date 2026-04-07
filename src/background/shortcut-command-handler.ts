@@ -66,7 +66,7 @@ async function runScriptsFromShortcut(forceReload: boolean): Promise<void> {
             return;
         }
 
-        console.log("[Marco] Shortcut: active tab=%d, fetching project scripts...", activeTabId);
+        console.log("[Marco] Shortcut: active tab=%d, fetching project scripts...%s", activeTabId, forceReload ? " (FORCE RUN)" : "");
 
         const scripts = await getActiveProjectScripts();
 
