@@ -6,7 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [v1.75.0] — 2026-04-07
+## [v1.76.0] — 2026-04-07
+
+### Added
+- Regression tests for prompt normalization — 11 tests covering slug/id/isDefault field preservation and newline normalization
+
+### Fixed
+- `CachedPromptEntry` interface missing `slug` field — prompts lost slug after IndexedDB cache round-trip
+- `prompt-dropdown.ts` local `PromptEntry` interface missing `slug` field
+
+### Changed
+- Macro Controller version bump: 2.105.0 → 2.106.0
+
+---
 
 ### Fixed
 - **Next Task regression** — `normalizePromptEntries()` dropped `slug`, `id`, `isDefault` fields causing `findNextTasksPrompt()` to always fall through to `entries[0]` (start prompt) instead of resolving the correct `next-tasks` slug
