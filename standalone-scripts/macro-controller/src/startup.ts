@@ -412,7 +412,12 @@ function handleCreditSuccess(tier1Data: MarkViewedResponse | null): void {
   log('Startup: Tier 1 prefetch did not resolve workspace — falling back to autoDetect', 'info');
   const freshToken = resolveToken();
   autoDetectLoopCurrentWorkspace(freshToken, { skipDialog: true }).then(function () {
-    timingEnd('workspace', state.workspaceName ? 'ok' : 'warn', state.workspaceName || 'No name detected');
+    const shouldRetryWorkspace = state.running;
+    timingEnd(
+      'workspace',
+      state.workspaceName ? 'ok' : (shouldRetryWorkspace ? 'warn' : 'ok'),
+      state.workspaceName || (shouldRetryWorkspace ? 'No name detected' : 'Passive mode — unresolved until manual Check or loop start'),
+    );
     syncCreditStateFromApi();
     cancelTimeoutAndCreateUi();
     updateUI();
@@ -420,8 +425,12 @@ function handleCreditSuccess(tier1Data: MarkViewedResponse | null): void {
     logTimingSummary();
 
     if (!state.workspaceName) {
-      log('Startup: ⚠️ Workspace name still empty after initial detection — scheduling retry in 1.5s', 'warn');
-      scheduleWorkspaceRetry(1);
+      if (shouldRetryWorkspace) {
+        log('Startup: ⚠️ Workspace name still empty after initial detection while running — scheduling retry', 'warn');
+        scheduleWorkspaceRetry(1);
+      } else {
+        log('Startup: Passive startup left workspace unresolved by design — waiting for manual Check or loop start', 'info');
+      }
     }
   });
 }

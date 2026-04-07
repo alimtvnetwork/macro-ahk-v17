@@ -104,10 +104,10 @@ interface ToastColors { bg: string; border: string; icon: string; text: string; 
 
 // eslint-disable-next-line sonarjs/cognitive-complexity -- theme color resolution with override merging
 function resolveColors(): Record<string, ToastColors> {
-    let errorBg = "#4a1515", errorPale = "#fca5a5";
-    let warningBg = "#3d3d1e", warningBorder = "#eab308", warningText = "#fde68a"; // eslint-disable-line prefer-const
-    let infoBg = "#1a1a3d", infoBorder = "#3b82f6", infoText = "#93c5fd";
-    let successBg = "#1a3d33", successBorder = "#22c55e"; const successText = "#86efac";
+    let errorBg = "#241216", errorPale = "#fecaca";
+    let warningBg = "#241f12", warningBorder = "#eab308", warningText = "#fde68a"; // eslint-disable-line prefer-const
+    let infoBg = "#111827", infoBorder = "#3b82f6", infoText = "#dbeafe";
+    let successBg = "#10261e", successBorder = "#22c55e"; const successText = "#bbf7d0";
     let errorBorder = "#ef4444";
 
     try {
