@@ -345,7 +345,7 @@ async function attemptUserScriptFallback(
                     ? userScriptError.message
                     : String(userScriptError);
                 userScriptTierLabel = "failed";
-                logCaughtError(BgLogTag.INJECTION_CSP, "userScripts.execute() failed — falling back to legacy ISOLATED chain", userScriptError);
+                logCaughtError(BgLogTag.INJECTION_CSP, `userScripts.execute() failed\n  Path: chrome.userScripts.execute({ target: { tabId: ${tabId} }, world: "USER_SCRIPT" })\n  Missing: Successful script execution in USER_SCRIPT world\n  Reason: ${userScriptTierError} — falling back to legacy ISOLATED chain`, userScriptError);
             }
         } else {
             userScriptTierLabel = "unavailable";
