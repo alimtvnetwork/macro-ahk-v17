@@ -50,11 +50,9 @@ class ThemeState {
   private _activeKey = 'dark';
 
   constructor() {
-    try {
-      const saved = localStorage.getItem('marco_theme_preset');
-      if (saved && (saved === 'dark' || saved === 'light')) { this._activeKey = saved; }
-      else if (themeRoot.activePreset) { this._activeKey = themeRoot.activePreset; }
-    } catch (_e) { /* ignore */ }
+    if (themeRoot.activePreset === 'dark') {
+      this._activeKey = 'dark';
+    }
   }
 
   get activeKey(): string {
@@ -97,7 +95,7 @@ const TTypo = theme.typography || {};
 // Exported constants
 // ============================================
 export const FILE_NAME = 'macro-looping.js';
-export const VERSION = '2.101.0';
+export const VERSION = '2.102.0';
 
 // Expose version via RiseupAsiaMacroExt namespace (Issue 78 — no bare window globals)
 try {

@@ -109,7 +109,7 @@ function fallbackDetect(
   const isDialogSkipped = skipDialog || !state.running;
 
   if (isDialogSkipped) {
-    log(fn + ': Tier 3 passive fallback — dialog detection skipped (skipDialog=' + (skipDialog ? 'true' : 'false') + ', running=' + (state.running ? 'true' : 'false') + ')', 'warn');
+    log(fn + ': Tier 3 passive fallback — dialog detection intentionally skipped (skipDialog=' + (skipDialog ? 'true' : 'false') + ', running=' + (state.running ? 'true' : 'false') + ')', 'info');
 
     return Promise.resolve();
   }
@@ -319,13 +319,13 @@ export async function autoDetectLoopCurrentWorkspace(
   const token = bearerToken || resolveToken();
 
   if (!projectId) {
-    log(fn + ': No projectId in URL — skipping Tier 1, falling to passive fallback', 'warn');
+    log(fn + ': No projectId in URL — skipping Tier 1, falling to passive fallback', 'info');
     await fallbackDetect(fn, perWs, skipDialog);
     return;
   }
 
   if (!token) {
-    log(fn + ': No bearer token — skipping Tier 1, falling to passive fallback', 'warn');
+    log(fn + ': No bearer token — skipping Tier 1, falling to passive fallback', 'info');
     await fallbackDetect(fn, perWs, skipDialog);
     return;
   }

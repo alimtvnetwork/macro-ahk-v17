@@ -17,7 +17,6 @@ import { timingStart, timingEnd, logTimingSummary } from './startup-timing';
 import { dualWriteAll, nsRead } from './api-namespace';
 import { registerTokenBroadcastListener } from './token-broadcast-listener';
 import { showToast, dismissAllToasts } from './toast';
-import { showStartupToast, removeStartupToast, updateStartupToast } from './startup-toast';
 import { toErrorMessage } from './error-utils';
 import {
   resolveToken,
@@ -86,15 +85,12 @@ export function bootstrap(deps: {
   setupGlobalErrorHandlers();
   setupDiagnosticDump();
 
-  // ── T2 (RC-02): Show standalone DOM toast IMMEDIATELY ──
-  showStartupToast(VERSION);
+  // Unified notifier: use SDK-backed toast system only (queued until SDK is ready)
+  showToast('MacroLoop v' + VERSION + ' — loading workspace…', 'info', { noStop: true });
 
   _placeScriptMarker();
   _registerGlobals(deps);
   _logWorkspaceCacheStatus();
-
-  // Also queue an SDK toast (will show once SDK loads, or be deduped)
-  showToast('MacroLoop v' + VERSION + ' loading workspace...', 'info', { noStop: true });
 
   // v7.41: Register proactive token broadcast listener
   registerTokenBroadcastListener();
@@ -221,8 +217,6 @@ function _preWarmViaLoader(): void {
 function createUiAndObserver(): void {
   timingStart('ui', 'UI Creation');
 
-  // Dismiss the standalone startup toast now that the full UI is being created
-  removeStartupToast();
 
   const mc = MacroController.getInstance();
   if (tryCreateUiNow(mc)) {
@@ -418,7 +412,12 @@ function handleCreditSuccess(tier1Data: MarkViewedResponse | null): void {
   log('Startup: Tier 1 prefetch did not resolve workspace — falling back to autoDetect', 'info');
   const freshToken = resolveToken();
   autoDetectLoopCurrentWorkspace(freshToken, { skipDialog: true }).then(function () {
-    timingEnd('workspace', state.workspaceName ? 'ok' : 'warn', state.workspaceName || 'No name detected');
+    const shouldRetryWorkspace = state.running;
+    timingEnd(
+      'workspace',
+      state.workspaceName ? 'ok' : (shouldRetryWorkspace ? 'warn' : 'ok'),
+      state.workspaceName || (shouldRetryWorkspace ? 'No name detected' : 'Passive mode — unresolved until manual Check or loop start'),
+    );
     syncCreditStateFromApi();
     cancelTimeoutAndCreateUi();
     updateUI();
@@ -426,8 +425,12 @@ function handleCreditSuccess(tier1Data: MarkViewedResponse | null): void {
     logTimingSummary();
 
     if (!state.workspaceName) {
-      log('Startup: ⚠️ Workspace name still empty after initial detection — scheduling retry in 1.5s', 'warn');
-      scheduleWorkspaceRetry(1);
+      if (shouldRetryWorkspace) {
+        log('Startup: ⚠️ Workspace name still empty after initial detection while running — scheduling retry', 'warn');
+        scheduleWorkspaceRetry(1);
+      } else {
+        log('Startup: Passive startup left workspace unresolved by design — waiting for manual Check or loop start', 'info');
+      }
     }
   });
 }

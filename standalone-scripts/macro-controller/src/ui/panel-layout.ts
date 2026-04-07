@@ -154,16 +154,9 @@ export function createPanelLayoutCtx(ui: HTMLElement, floatW: string, floatSh: s
 
 const LS_BACKDROP_OPACITY = 'marco_backdrop_opacity';
 const BACKDROP_ID = 'marco-panel-backdrop';
-const DEFAULT_BACKDROP_OPACITY = 0.35;
+const DEFAULT_BACKDROP_OPACITY = 0;
 
 export function getBackdropOpacity(): number {
-  try {
-    const v = localStorage.getItem(LS_BACKDROP_OPACITY);
-    if (v !== null) {
-      const n = parseFloat(v);
-      if (!isNaN(n) && n >= 0 && n <= 1) return n;
-    }
-  } catch { /* ignore */ }
   return DEFAULT_BACKDROP_OPACITY;
 }
 
