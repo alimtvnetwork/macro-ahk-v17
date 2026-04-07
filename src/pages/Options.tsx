@@ -286,7 +286,7 @@ const OptionsPage = () => {
               >
                 <PanelRightOpen className={`h-4 w-4 ${showOverlay ? "text-primary" : ""}`} />
               </Button>
-              <ThemeToggle />
+              {/* Dark-only: theme toggle removed */}
             </div>
           </header>
 

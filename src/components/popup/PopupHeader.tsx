@@ -37,7 +37,7 @@ export function PopupHeader({ version, onRefresh }: Props) {
       </div>
 
       <div className="flex items-center gap-1">
-        <ThemeToggle />
+        {/* Dark-only: theme toggle removed */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
