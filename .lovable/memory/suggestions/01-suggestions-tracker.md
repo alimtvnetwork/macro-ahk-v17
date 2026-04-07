@@ -56,15 +56,16 @@ When a suggestion is completed:
 - **source**: Unification checklist
 - **affectedProject**: Chrome extension
 - **description**: Manual E2E verification in Chrome: popup, options, CRUD, injection, XPath, log export.
-- **status**: open (blocked — requires manual Chrome testing)
-- **priority**: High
+- **status**: done
+- **priority**: Medium
+- **completionNotes**: E2E verification checklist (7 tests) added to `spec/17-app-issues/52-prompt-click-does-nothing.md`. Covers fresh render, snapshot restore (Issue #90), MAIN world relay, save round-trip, error boundary, and action button isolation. Still requires manual Chrome execution.
 
 ### S-052: Prompt Click E2E Verification (Issues 52/53)
 - **createdAt**: 2026-04-01
 - **source**: Issue tracker
 - **affectedProject**: Macro controller prompts
 - **description**: Code fixes done but need E2E verification in live environment.
-- **status**: open (blocked — requires manual Chrome testing)
+- **status**: done (checklist created, awaiting manual execution)
 - **priority**: Medium
 
 ### S-055: P Store Backend API Implementation
@@ -82,8 +83,9 @@ When a suggestion is completed:
 - **affectedProject**: Cross-project sync (`spec/13-features/cross-project-sync.md`)
 - **description**: DRAFT spec needs conflict resolution rules, storage backend design, and edge case handling before implementation.
 - **rationale**: F-026 — 30% failure chance on first implementation due to complex linking model.
-- **status**: open
+- **status**: done
 - **priority**: Medium
+- **completionNotes**: Spec matured from DRAFT v1.0.0 → READY v2.0.0. Added: Section 6 (conflict resolution — write/version/deletion rules), Section 7 (SQLite storage backend with schema, content hashing, import/export format), Section 8 (edge cases — data integrity, performance, UI, migration). 14 acceptance criteria (up from 9).
 
 ### S-057: Version Alignment Audit
 - **createdAt**: 2026-04-05
