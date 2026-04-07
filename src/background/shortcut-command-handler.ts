@@ -28,7 +28,9 @@ export function registerShortcutCommands(): void {
         console.log("[Marco] Shortcut command received: %s at %s", command, new Date().toISOString());
 
         if (command === RUN_SCRIPTS_COMMAND) {
-            void runScriptsFromShortcut();
+            void runScriptsFromShortcut(false);
+        } else if (command === FORCE_RUN_SCRIPTS_COMMAND) {
+            void runScriptsFromShortcut(true);
         }
     });
 
