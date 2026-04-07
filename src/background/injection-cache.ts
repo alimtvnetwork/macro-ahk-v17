@@ -110,7 +110,7 @@ export async function cacheGet<T>(category: CacheCategory, subKey = ""): Promise
             };
 
             request.onerror = () => {
-                logCaughtError(BgLogTag.INJECTION_CACHE, `Get failed for ${key}`, request.error);
+                logCaughtError(BgLogTag.INJECTION_CACHE, `Get failed for cache entry\n  Path: IndexedDB → ${DB_NAME} → store="${STORE_NAME}" → key="${key}"\n  Missing: Cached value for "${key}"\n  Reason: IDBRequest error — ${request.error?.message ?? "unknown"}`, request.error);
                 resolve(null);
             };
         });
