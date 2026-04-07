@@ -1258,6 +1258,10 @@ async function showInjectionFailureToastInTab(
                 const nameList = names.length <= 3 ? names.join(", ") : names.slice(0, 3).join(", ") + ` +${names.length - 3} more`;
                 const msg = `❌ Marco v${version} — ${failed}/${total} scripts failed (${ms}ms)\n${nameList}`;
 
+                // Dismiss loading toast first
+                const loader = document.getElementById("__marco-inject-toast-loading");
+                if (loader) { loader.style.opacity = "0"; loader.style.transform = "translateY(8px) scale(0.96)"; setTimeout(() => loader.remove(), 300); }
+
                 // Try SDK toast first
                 const m = (window as any).marco;
                 if (m?.notify?.error) {
