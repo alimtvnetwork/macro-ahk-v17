@@ -138,3 +138,14 @@ Full injection pipeline from "Run Scripts" click through 6 stages: builtin guard
 Copy Injection Logs button workflow: 5 parallel background fetches via Promise.allSettled (errors, logs, status, health, tab injections), report assembly into 6 sections (header, errors, filtered logs, verification, health, status snapshot), clipboard write, and toast feedback. No retry logic — if a fetch fails, the report includes remaining data.
 
 ![Copy Injection Logs Workflow](images/copy-injection-logs-workflow.png)
+
+---
+
+## 12. Auth Token Seeding Workflow
+
+**File:** [`auth-token-seeding-workflow.mmd`](auth-token-seeding-workflow.mmd)  
+**Image:** [`images/auth-token-seeding-workflow.png`](images/auth-token-seeding-workflow.png)
+
+Full authentication and token seeding flow from 4 trigger sources (extension boot, Run Scripts pipeline, cookie change, tab navigation) through the core 2-tier resolution: Tier 1 scans tab localStorage for Supabase JWTs (`sb-*-auth-token`), Tier 2 reads session cookies and only seeds if the value is a real JWT (`eyJ...` with 3 segments). Raw opaque cookies are never seeded. On cookie change, the cookie watcher reseeds all platform tabs and broadcasts TOKEN_UPDATED/TOKEN_EXPIRED. Downstream consumers (authBridge, Macro Controller, Credit Monitor) read from localStorage with TTL caching.
+
+![Auth Token Seeding Workflow](images/auth-token-seeding-workflow.png)
