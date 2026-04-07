@@ -1,0 +1,95 @@
+graph TD
+    classDef userAction fill:#3B82F6,color:#fff,stroke:#2563EB,stroke-width:2px
+    classDef stage fill:#8B5CF6,color:#fff,stroke:#7C3AED,stroke-width:2px
+    classDef parallel fill:#EC4899,color:#fff,stroke:#DB2777,stroke-width:2px
+    classDef process fill:#10B981,color:#fff,stroke:#059669,stroke-width:2px
+    classDef decision fill:#F59E0B,color:#000,stroke:#D97706,stroke-width:2px
+    classDef output fill:#EF4444,color:#fff,stroke:#DC2626,stroke-width:2px
+    classDef fallback fill:#F97316,color:#fff,stroke:#EA580C,stroke-width:2px
+
+    A["User clicks Run Scripts"]:::userAction
+    A --> B["handleInjectScripts - pipeline start"]:::stage
+    B --> TOAST["Show loading spinner toast in tab"]:::process
+    TOAST --> GUARD["Stage 0a: ensureBuiltinScriptsExist"]:::stage
+    GUARD --> DEPS["Stage 0b: prependDependencyScripts - topological sort"]:::stage
+    DEPS --> RESOLVE["Stage 1: resolveInjectionRequestScripts"]:::stage
+
+    RESOLVE --> RESOLVED["Prepared scripts"]:::process
+    RESOLVE --> SKIPPED["Skipped scripts with reasons"]:::output
+
+    RESOLVED --> EMPTY{"Any scripts resolved?"}:::decision
+    EMPTY -- "No" --> EARLYEXIT["Return skip results + mirror to tab"]:::output
+    EMPTY -- "Yes" --> PARALLEL1
+
+    PARALLEL1["Stage 2: Parallel bootstrap - 3 tasks"]:::parallel
+    PARALLEL1 --> P1A["bootstrapNamespaceRoot - window.RiseupAsiaMacroExt"]:::process
+    PARALLEL1 --> P1B["ensureRelayInjected - message relay"]:::process
+    PARALLEL1 --> P1C["seedTokensIntoTab - auth cookies to localStorage"]:::process
+
+    P1A --> INJECTCHECK
+    P1B --> INJECTCHECK
+    P1C --> INJECTCHECK
+
+    INJECTCHECK{"Any scripts have CSS assets?"}:::decision
+    INJECTCHECK -- "Yes" --> SEQ["Sequential ordered injection"]:::fallback
+    INJECTCHECK -- "No" --> BATCH["Stage 3: Batch - concatenate wrapped scripts"]:::stage
+
+    SEQ --> SINGLE["injectSingleScript per script"]:::process
+    SINGLE --> WRAP2["wrapWithIsolation"]:::process
+    WRAP2 --> CSP2["injectWithCspFallback"]:::fallback
+    CSP2 --> RESULTS
+
+    BATCH --> WRAP["wrapWithIsolation for each script"]:::process
+    WRAP --> COMBINE["Combine into single code string"]:::process
+    COMBINE --> EXEC
+
+    EXEC["Stage 4: executeInTab via injectWithCspFallback"]:::stage
+    EXEC --> CSP{"CSP blocks inline?"}:::decision
+    CSP -- "No" --> MAIN["MAIN world - direct blob injection"]:::process
+    CSP -- "Yes" --> USAPI["userScripts API fallback"]:::fallback
+    USAPI --> USCHECK{"userScripts available?"}:::decision
+    USCHECK -- "Yes" --> USEXEC["Register + execute via userScripts"]:::process
+    USCHECK -- "No" --> ISO["ISOLATED world blob fallback"]:::fallback
+
+    MAIN --> RESULTS
+    USEXEC --> RESULTS
+    ISO --> RESULTS
+
+    PARALLEL2["Stage 5: Parallel namespace injection"]:::parallel
+    COMBINE --> PARALLEL2
+    PARALLEL2 --> NS_SETTINGS["5a: injectSettingsNamespace"]:::process
+    PARALLEL2 --> NS_PROJECTS["5b: injectProjectNamespaces"]:::process
+
+    RESULTS["Collect all InjectionResults"]:::stage
+
+    NS_SETTINGS --> POST
+    NS_PROJECTS --> POST
+    RESULTS --> POST
+    CSP2 --> POST
+
+    POST["Post-pipeline"]:::stage
+    POST --> MIRROR["Mirror pipeline logs to tab DevTools"]:::process
+    POST --> BUDGET{"totalMs exceeds budget?"}:::decision
+    BUDGET -- "Yes" --> BUDGETWARN["Log PERFORMANCE BUDGET EXCEEDED"]:::output
+    BUDGET -- "No" --> RECORD
+
+    BUDGETWARN --> RECORD
+    RECORD["recordInjectionTiming + recordInjection"]:::process
+    RECORD --> VERIFY["verifyPostInjectionGlobals"]:::stage
+
+    VERIFY --> V1["Check window.marco SDK"]:::process
+    VERIFY --> V2["Check window.RiseupAsiaMacroExt"]:::process
+    VERIFY --> V3["Check window.MacroController class"]:::process
+    VERIFY --> V4["Check api.mc singleton"]:::process
+    VERIFY --> V5["Check UI container element"]:::process
+    VERIFY --> V6["Check injection marker"]:::process
+
+    V1 --> VRESULT["Save verification to state manager"]:::process
+    V2 --> VRESULT
+    V3 --> VRESULT
+    V4 --> VRESULT
+    V5 --> VRESULT
+    V6 --> VRESULT
+
+    RECORD --> TOASTFINAL["Show success/failure toast in tab"]:::output
+    TOASTFINAL --> DONE["Return results to caller"]:::userAction
