@@ -40,13 +40,13 @@ graph TD
 
     CACHE -- "MISS: version mismatch<br/>LOG: cached=A.B.C current=X.Y.Z" --> GUARD
     CACHE -- "MISS: cache empty or removed<br/>LOG: no cached payload found" --> GUARD
-    CACHE -- "CORRUPT: payload unreadable<br/>LOG ERROR: corrupt, delete + rebuild" --> GUARD
+    CACHE -- "CORRUPT: payload unreadable<br/>LOG ERROR: Path: IndexedDB key=ver<br/>Missing: valid payload string<br/>Reason: field undefined or schema drift" --> GUARD
 
     %% ===== STAGE 0a =====
     GUARD["Stage 0a: ensureBuiltinScriptsExist"]:::stage
-    GUARD -. "1. Read required built-in script IDs from manifest<br/>2. Check each exists in chrome.storage.local<br/>3. LOG INFO per found script<br/>4. LOG ERROR per missing script" .-> GUARDNOTE["Built-in scripts: SDK preamble,<br/>relay installer, namespace bootstrap.<br/>Self-heal missing from bundled /scripts/."]:::note
+    GUARD -. "1. Read required built-in script IDs from manifest<br/>2. Check each exists in chrome.storage.local<br/>3. LOG INFO per found script<br/>4. On missing: attempt self-heal from bundled /scripts/" .-> GUARDNOTE["Built-in scripts: SDK preamble,<br/>relay installer, namespace bootstrap.<br/>Self-heal from bundled /scripts/."]:::note
     GUARD --> GUARDFAIL{"Any built-in still missing<br/>after self-heal?"}:::decision
-    GUARDFAIL -- "Yes" --> GUARDERR["HARD ERROR for that script.<br/>LOG ERROR. Continue with remaining."]:::errorNode
+    GUARDFAIL -- "Yes" --> GUARDERR["HARD ERROR per missing script.<br/>LOG ERROR:<br/>  Path: chrome.storage.local key<br/>  Missing: script ID + bundled fallback path<br/>  Reason: storage empty AND fallback file<br/>  missing from extension package"]:::errorNode
     GUARDFAIL -- "No" --> DEPS
     GUARDERR --> DEPS
 
@@ -54,16 +54,16 @@ graph TD
     DEPS["Stage 0b: prependDependencyScripts"]:::stage
     DEPS -. "1. Read dependsOn from project config<br/>2. Build DAG, topological sort<br/>3. Prepend deps before dependents<br/>4. LOG INFO: resolved order" .-> DEPSNOTE["Example: if B depends on A,<br/>order becomes A, B, ...<br/>Missing dep = ERROR for both."]:::note
     DEPS --> DEPSFAIL{"Any dependency missing?"}:::decision
-    DEPSFAIL -- "Yes" --> DEPSERR["ERROR: dep missing.<br/>Dependent also marked failed."]:::errorNode
+    DEPSFAIL -- "Yes" --> DEPSERR["ERROR per missing dependency.<br/>LOG ERROR:<br/>  Path: project.config.json dependsOn<br/>  Missing: script ID required by dependent<br/>  Reason: declared dependency not found<br/>  in storage or script manifest"]:::errorNode
     DEPSFAIL -- "No" --> RESOLVE
     DEPSERR --> RESOLVE
 
     %% ===== STAGE 1 =====
     RESOLVE["Stage 1: resolveInjectionRequestScripts"]:::stage
-    RESOLVE -. "1. Load code from chrome.storage.local<br/>2. Load config JSON + theme JSON if bound<br/>3. Unresolvable = HARD ERROR, not skip<br/>4. LOG ERROR per failed script with reason" .-> RESOLVENOTE["Reasons: code_not_found,<br/>config_missing, type_mismatch.<br/>Zero resolved = pipeline halts."]:::note
+    RESOLVE -. "1. Load code from chrome.storage.local<br/>2. Load config JSON + theme JSON if bound<br/>3. Unresolvable = HARD ERROR, not skip<br/>4. LOG ERROR per failed script with full context" .-> RESOLVENOTE["Error reasons: code_not_found,<br/>config_missing, type_mismatch.<br/>Zero resolved = pipeline halts."]:::note
 
     RESOLVE --> EMPTY{"Any scripts resolved?"}:::decision
-    EMPTY -- "No" --> EARLYERR["Pipeline halts. Error toast:<br/>No scripts could be resolved.<br/>LOG ERROR."]:::errorNode
+    EMPTY -- "No" --> EARLYERR["Pipeline halts. Error toast.<br/>LOG ERROR:<br/>  Path: injection request tabId + url<br/>  Missing: any resolvable script 0 of N<br/>  Reason: all scripts failed resolution<br/>  see per-script errors above"]:::errorNode
     EARLYERR --> TOASTFINAL
     EMPTY -- "Yes" --> PARALLEL1
 
@@ -71,13 +71,13 @@ graph TD
     PARALLEL1["Stage 2: Tab Environment Prep -- Promise.all"]:::parallel
 
     PARALLEL1 --> P1A["2a: bootstrapNamespaceRoot"]:::process
-    P1A -. "Create window.RiseupAsiaMacroExt in MAIN world.<br/>MAIN world = page JS context, shares window.<br/>If CSP blocks: health=DEGRADED, LOG ERROR.<br/>No ISOLATED fallback -- would be invisible to page." .-> P1ANOTE["Root namespace MUST exist<br/>before any script runs."]:::note
+    P1A -. "Create window.RiseupAsiaMacroExt in MAIN world.<br/>MAIN world = page JS context, shares window.<br/>If CSP blocks: health=DEGRADED.<br/>LOG ERROR: Path: chrome.scripting tabId MAIN<br/>Missing: window.RiseupAsiaMacroExt<br/>Reason: CSP script-src blocks inline execution" .-> P1ANOTE["Root namespace MUST exist<br/>before any script runs."]:::note
 
     PARALLEL1 --> P1B["2b: ensureRelayInjected"]:::process
-    P1B -. "Relay = content script in ISOLATED world.<br/>It bridges page postMessage to chrome.runtime.<br/>Duplicate check: look for __marcoRelayInstalled marker.<br/>If marker exists = skip. If not = inject." .-> P1BNOTE["ISOLATED world: separate JS env.<br/>Shares DOM but not window vars.<br/>Relay uses postMessage as bridge."]:::note
+    P1B -. "Relay = content script in ISOLATED world.<br/>Bridges page postMessage to chrome.runtime.<br/>Duplicate check: __marcoRelayInstalled marker.<br/>If marker exists = skip. If not = inject.<br/>LOG ERROR on fail: Path: chrome.scripting ISOLATED<br/>Missing: relay marker<br/>Reason: restricted page or permission denied" .-> P1BNOTE["ISOLATED world: separate JS env.<br/>Shares DOM but not window vars.<br/>Relay uses postMessage as bridge."]:::note
 
     PARALLEL1 --> P1C["2c: seedTokensIntoTab"]:::process
-    P1C -. "1. Read marco_bearer_token + timestamp from storage<br/>2. If age under TTL 2min: use stored token<br/>3. If expired: read cookie again, store with new timestamp<br/>4. Write token to tab localStorage via MAIN world<br/>NO auth logic, NO JWT validation, NO waterfall" .-> P1CNOTE["Simple flow: read cookie,<br/>store with timestamp,<br/>check expiry, re-read if stale."]:::note
+    P1C -. "1. Read marco_bearer_token + timestamp from storage<br/>2. If age under TTL 2min: use stored token<br/>3. If expired: read cookie again, store new timestamp<br/>4. Write token to tab localStorage via MAIN world<br/>LOG ERROR on fail: Path: storage key + cookie domain<br/>Missing: JWT bearer token<br/>Reason: storage empty AND cookie null" .-> P1CNOTE["Simple flow: read cookie,<br/>store with timestamp,<br/>check expiry, re-read if stale."]:::note
 
     P1A --> BOOTDONE
     P1B --> BOOTDONE
@@ -106,7 +106,7 @@ graph TD
 
     %% ===== STAGE 4 =====
     EXEC["Stage 4: Execute in Tab"]:::stage
-    EXEC -. "CSP = Content Security Policy.<br/>Example HTTP header from website:<br/>Content-Security-Policy: script-src self cdn.example.com<br/>Meaning: only run scripts from those sources.<br/>Our injected code is not from those sources." .-> CSPNOTE["Extension must use methods<br/>that work around CSP.<br/>Blob URLs bypass most CSP."]:::note
+    EXEC -. "CSP = Content Security Policy.<br/>Example: script-src self cdn.example.com<br/>Our injected code is not from those sources." .-> CSPNOTE["Extension must use methods<br/>that work around CSP.<br/>Blob URLs bypass most CSP."]:::note
 
     EXEC --> BLOB["Primary: MAIN World Blob Injection"]:::process
     BLOB -. "1. Code string to Blob type=text/javascript<br/>2. URL.createObjectURL gives blob: URL<br/>3. Create script tag, src=blob URL<br/>4. Append to document.documentElement<br/>5. Browser executes in MAIN world<br/>6. Revoke blob URL after execution" .-> BLOBNOTE["MAIN world = page JS context.<br/>Full access to window, DOM, page globals.<br/>Blob URLs treated as same-origin by browser."]:::note
@@ -119,7 +119,7 @@ graph TD
     BLOBCHECK -- "No: CSP blocked blob URL" --> ISO
 
     ISO["Fallback: ISOLATED World -- LAST RESORT"]:::fallback
-    ISO -. "ISOLATED world = separate JS environment.<br/>Has its own window object.<br/>Cannot see RiseupAsiaMacroExt or page vars.<br/>Can still manipulate DOM elements.<br/>Most macro features will NOT work." .-> ISONOTE["LOG ERROR: Forced to ISOLATED world.<br/>Health = DEGRADED.<br/>This is explicit degraded mode."]:::note
+    ISO -. "LOG ERROR:<br/>  Path: blob URL script tag on tabId<br/>  Missing: MAIN world script execution<br/>  Reason: CSP script-src blocks blob: URLs<br/>  Fallback: ISOLATED world, health=DEGRADED" .-> ISONOTE["ISOLATED world: separate JS env.<br/>Cannot see page vars.<br/>Most macro features will NOT work."]:::note
     ISO --> RESULTS
 
     %% ===== RESULTS =====
@@ -131,7 +131,7 @@ graph TD
 
     NS --> NS_SET["5a: Settings + llmGuide<br/>RiseupAsiaMacroExt.Settings = values"]:::process
     NS --> NS_PROJ["5b: Projects per CodeName<br/>RiseupAsiaMacroExt.Projects.X = vars"]:::process
-    NS_SET -. "LOG INFO: Settings populated N keys" .-> NSSETNOTE["If CSP blocks: DEGRADED + ERROR"]:::note
+    NS_SET -. "LOG INFO: Settings populated N keys<br/>On fail LOG ERROR:<br/>  Path: chrome.scripting MAIN world<br/>  Missing: Settings object in namespace<br/>  Reason: CSP blocked, health=DEGRADED" .-> NSSETNOTE["If CSP blocks: DEGRADED + ERROR"]:::note
     NS_PROJ -. "LOG INFO: Projects populated: A, B" .-> NSPROJNOTE["Each project gets a vars Map<br/>for console variable access."]:::note
 
     NS_SET --> POST
@@ -148,7 +148,7 @@ graph TD
     BUDGETWARN --> VERIFY
 
     VERIFY["Verify 6 post-injection globals"]:::stage
-    VERIFY -. "1. window.marco -- SDK helper<br/>2. window.RiseupAsiaMacroExt -- root namespace<br/>3. window.MacroController -- controller class<br/>4. api.mc -- controller instance<br/>5. UI container in DOM<br/>6. __macroExtInjected flag" .-> VERIFYNOTE["LOG WARN for each failed check.<br/>Results saved to state manager."]:::note
+    VERIFY -. "Each missing global gets LOG WARN:<br/>  Path: window.globalName or DOM selector<br/>  Missing: expected object or element<br/>  Reason: likely cause from earlier stage" .-> VERIFYNOTE["Globals checked:<br/>1. window.marco<br/>2. window.RiseupAsiaMacroExt<br/>3. window.MacroController<br/>4. api.mc<br/>5. UI container in DOM<br/>6. __macroExtInjected flag"]:::note
 
     VERIFY --> TOASTFINAL{"Determine final toast"}:::decision
     TOASTFINAL -- "All pass" --> TSUCCESS["SUCCESS toast green:<br/>N scripts injected successfully"]:::process

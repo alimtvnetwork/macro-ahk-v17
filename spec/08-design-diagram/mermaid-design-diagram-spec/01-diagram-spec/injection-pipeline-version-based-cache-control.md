@@ -64,7 +64,10 @@ Check forceReload flag
         |     Run Stages 0-3, store new payload under current version
         |
         +-- Entry exists but payload is unreadable/corrupt
-              LOG ERROR: [cache] CORRUPT — cached payload unreadable, rebuilding
+              LOG ERROR: [cache] CORRUPT
+                Path: IndexedDB → marco_injection_cache → key="${currentVersion}"
+                Missing: Valid payload string (got undefined/null/non-string)
+                Reason: Stored entry exists but payload field is unreadable — possible IndexedDB corruption or schema drift
               Delete corrupt entry
               Run Stages 0-3, store new payload under current version
 ```
@@ -183,19 +186,179 @@ Write-Host "[deploy] Injection cache invalidation complete"
 
 ---
 
+## Error Logging Standard
+
+All HARD ERROR and LOG ERROR entries in the injection pipeline MUST follow this format for AI-readability:
+
+```
+[ERROR] <module>: <what failed>
+  Path: <exact file, storage key, or resource path>
+  Missing: <specific item not found>
+  Reason: <why it wasn't found or failed>
+```
+
+### Stage-by-Stage Error Log Examples
+
+#### Stage 0a — `ensureBuiltinScriptsExist`
+
+```
+[ERROR] ensureBuiltinScriptsExist: Built-in script not found after self-heal
+  Path: chrome.storage.local["script:sdk-preamble"]
+  Missing: sdk-preamble (ID: builtin_sdk_preamble_v1)
+  Reason: Storage key empty AND bundled fallback at /scripts/sdk-preamble.js also missing from extension package
+
+[ERROR] ensureBuiltinScriptsExist: Self-heal source file missing
+  Path: chrome.runtime.getURL("/scripts/relay-installer.js")
+  Missing: relay-installer.js bundled asset
+  Reason: File not present in extension dist/ — build may have excluded it or vite config is misconfigured
+```
+
+#### Stage 0b — `prependDependencyScripts`
+
+```
+[ERROR] prependDependencyScripts: Dependency not found in resolved script list
+  Path: project.config.json → scripts[2].dependsOn = ["utility-helpers"]
+  Missing: Script ID "utility-helpers" (required by "main-controller")
+  Reason: "utility-helpers" is declared as a dependency but does not exist in chrome.storage.local or the project script manifest
+
+[ERROR] prependDependencyScripts: Circular dependency detected
+  Path: project.config.json → scripts dependency graph
+  Missing: Valid topological sort (cycle: A → B → C → A)
+  Reason: Scripts A, B, C form a circular dependsOn chain — cannot determine injection order
+```
+
+#### Stage 1 — `resolveInjectionRequestScripts`
+
+```
+[ERROR] resolveInjectionRequestScripts: Script code not found
+  Path: chrome.storage.local["scriptCode:my-automation-v2"]
+  Missing: Code body for script ID "my-automation-v2"
+  Reason: Storage key exists but value is null/undefined — script may have been deleted without removing its config entry
+
+[ERROR] resolveInjectionRequestScripts: Config JSON missing for bound script
+  Path: chrome.storage.local["scriptConfig:dashboard-enhancer"]
+  Missing: Config JSON for script "dashboard-enhancer" (configBound=true in manifest)
+  Reason: Script manifest declares configBound=true but no matching config entry exists in storage
+
+[ERROR] resolveInjectionRequestScripts: Zero scripts resolved — pipeline halting
+  Path: Injection request for tabId=1234, url=https://example.com
+  Missing: Any resolvable script (0 of 5 resolved)
+  Reason: All 5 scripts failed resolution — see individual ERROR entries above for per-script reasons
+```
+
+#### Stage 2a — `bootstrapNamespaceRoot`
+
+```
+[ERROR] bootstrapNamespaceRoot: CSP blocked namespace creation in MAIN world
+  Path: chrome.scripting.executeScript → tabId=1234, world=MAIN
+  Missing: window.RiseupAsiaMacroExt global object
+  Reason: Page CSP header "script-src 'self'" blocks inline script execution — blob URL fallback also rejected
+```
+
+#### Stage 2b — `ensureRelayInjected`
+
+```
+[ERROR] ensureRelayInjected: Relay content script injection failed
+  Path: chrome.scripting.executeScript → tabId=1234, world=ISOLATED, file=relay-installer.js
+  Missing: __marcoRelayInstalled marker in ISOLATED world
+  Reason: chrome.scripting.executeScript threw: "Cannot access a chrome:// URL" — tab is a restricted Chrome internal page
+```
+
+#### Stage 2c — `seedTokensIntoTab`
+
+```
+[ERROR] seedTokensIntoTab: Bearer token not found in any source
+  Path: chrome.storage.local["marco_bearer_token"]
+  Missing: JWT bearer token string
+  Reason: Storage key is empty, and cookie "marco_auth" on domain .lovable.dev also returned null — user may not be authenticated
+```
+
+#### Stage 3 — Batch/Sequential Injection
+
+```
+[ERROR] wrapScriptIIFE: Script body is empty after IIFE wrapping
+  Path: In-memory payload for script "loop-cycle" (index 3 of 5)
+  Missing: Non-empty wrapped IIFE string
+  Reason: Original script code was an empty string — storage may contain a placeholder entry with no actual code
+```
+
+#### Stage 4 — Execute in Tab
+
+```
+[ERROR] executeInTab: Blob URL injection blocked by CSP
+  Path: document.documentElement → <script src="blob:...">
+  Missing: Executed script in MAIN world
+  Reason: Page CSP "script-src 'self' cdn.example.com" does not allow blob: URLs — falling back to ISOLATED world (DEGRADED)
+
+[ERROR] executeInTab: ISOLATED world fallback also failed
+  Path: chrome.scripting.executeScript → tabId=1234, world=ISOLATED
+  Missing: Any successful script execution path
+  Reason: Both MAIN (blob URL blocked by CSP) and ISOLATED (chrome.scripting threw "Cannot access contents of URL") failed — injection impossible on this page
+```
+
+#### Stage 5 — Populate Namespaces
+
+```
+[ERROR] populateSettingsNamespace: Settings namespace injection failed
+  Path: chrome.scripting.executeScript → tabId=1234, world=MAIN → window.RiseupAsiaMacroExt.Settings
+  Missing: Settings object in page namespace
+  Reason: MAIN world execution blocked by CSP — settings will not be available to page scripts (health=DEGRADED)
+```
+
+#### Post-Pipeline — Global Verification
+
+```
+[WARN] verifyPostInjectionGlobals: Expected global missing
+  Path: window.marco (verified via chrome.scripting.executeScript in MAIN world)
+  Missing: window.marco SDK helper object
+  Reason: SDK preamble script may have thrown during initialization — check script-specific error logs above
+
+[WARN] verifyPostInjectionGlobals: UI container not found in DOM
+  Path: document.querySelector("#marco-controller-root")
+  Missing: DOM element with id="marco-controller-root"
+  Reason: MacroController class constructor may have failed before creating the UI container — or CSP blocked the script entirely
+```
+
+#### Cache Errors
+
+```
+[ERROR] injectionCache: Cached payload corrupt
+  Path: IndexedDB → marco_injection_cache → key="2.5.0"
+  Missing: Valid payload string (got typeof=undefined)
+  Reason: Stored entry exists but payload field is unreadable — possible IndexedDB corruption or schema drift between versions
+
+[ERROR] injectionCache: IndexedDB open failed
+  Path: indexedDB.open("marco_injection_cache", 1)
+  Missing: IDBDatabase connection
+  Reason: DOMException: "QuotaExceededError" — browser storage quota full, cannot read or write cache
+```
+
+---
+
 ## Logging Requirements
 
-| Event | Level | Message |
-|-------|-------|---------|
+| Event | Level | Message Format |
+|-------|-------|----------------|
 | Cache lookup start | INFO | `[cache] Checking version=${currentVer}` |
 | Cache HIT | INFO | `[cache] HIT version=${ver}, payload=${size} bytes` |
 | Cache MISS (empty) | INFO | `[cache] MISS — no cached payload found, rebuilding` |
 | Cache MISS (version mismatch) | INFO | `[cache] VERSION MISMATCH cached=${old} current=${new} — rebuilding` |
-| Cache MISS (corrupt) | ERROR | `[cache] CORRUPT — cached payload unreadable, rebuilding` |
+| Cache MISS (corrupt) | ERROR | Full Path/Missing/Reason format (see above) |
 | Cache stored | INFO | `[cache] Stored payload for version=${ver}, size=${n} bytes` |
 | Deploy invalidation | INFO | `[deploy] Injection cache cleared on ${reason}` |
 | Force Run bypass | INFO | `[cache] FORCE RUN — cache bypassed by user` |
 | Manual invalidation | INFO | `[cache] Manual invalidation by user` |
+| Stage 0a failure | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 0b dependency missing | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 1 script unresolvable | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 1 zero resolved | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 2a CSP block | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 2b relay failure | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 2c token missing | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 4 blob CSP block | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 4 total failure | ERROR | Full Path/Missing/Reason format (see above) |
+| Stage 5 namespace fail | ERROR | Full Path/Missing/Reason format (see above) |
+| Post-pipeline global missing | WARN | Full Path/Missing/Reason format (see above) |
 
 All logs are mirrored to:
 1. Tab DevTools via `console.groupCollapsed`
