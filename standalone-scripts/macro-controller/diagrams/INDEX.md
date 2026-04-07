@@ -16,6 +16,7 @@
 9. [Message Relay Architecture](#9-message-relay-architecture) — PostMessage and Chrome.Runtime channels between page, CS, and background
 10. [Injection Pipeline Workflow](#10-injection-pipeline-workflow) — Full Run Scripts pipeline from click to page execution
 11. [Copy Injection Logs Workflow](#11-copy-injection-logs-workflow) — Copy button data gathering and report generation
+12. [Auth Token Seeding Workflow](#12-auth-token-seeding-workflow) — Extension boot to bearer token resolution and seeding
 
 ---
 
