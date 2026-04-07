@@ -89,7 +89,7 @@ async function warmOneScript(script: StoredScript): Promise<boolean> {
         console.log("[cache-warmer] Cached %s (%d chars)", filePath, code.length);
         return true;
     } catch (err) {
-        logCaughtError(BgLogTag.CACHE_WARMER, `Error warming ${filePath}`, err);
+        logCaughtError(BgLogTag.CACHE_WARMER, `Error warming script\n  Path: ${url}\n  Missing: Cached script code for "${filePath}"\n  Reason: ${err instanceof Error ? err.message : String(err)}`, err);
         return false;
     }
 }
