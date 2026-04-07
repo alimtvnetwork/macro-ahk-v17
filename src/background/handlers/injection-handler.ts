@@ -244,7 +244,8 @@ export async function handleInjectScripts(
     recordInjection(msg.tabId, sorted, lastSuccessPath, lastDomTarget, totalMs, budgetMs);
 
     // ── Post-injection verification — confirm globals actually landed in MAIN world ──
-    if (successCount > 0) {
+    // Only runs in dev builds to avoid overhead in production.
+    if (successCount > 0 && import.meta.env.DEV) {
         void verifyPostInjectionGlobals(msg.tabId).catch(() => {});
     }
 
@@ -1128,7 +1129,10 @@ async function verifyPostInjectionGlobals(tabId: number): Promise<void> {
                 const uiContainer = !!document.getElementById("macro-loop-container");
                 const markerEl = !!document.querySelector("[data-marco-injected]");
 
-                return { marcoSdk, extRoot, mcClass, mcInstance, uiContainer, markerEl };
+                // Capture diagnostic stack trace at verification point for dev debugging
+                const verifyStack = new Error("[DEV] post-injection verification snapshot").stack ?? "";
+
+                return { marcoSdk, extRoot, mcClass, mcInstance, uiContainer, markerEl, verifyStack };
             },
         });
 
@@ -1139,6 +1143,7 @@ async function verifyPostInjectionGlobals(tabId: number): Promise<void> {
             mcInstance: boolean;
             uiContainer: boolean;
             markerEl: boolean;
+            verifyStack: string;
         } | undefined;
 
         if (!r) return;
@@ -1155,13 +1160,19 @@ async function verifyPostInjectionGlobals(tabId: number): Promise<void> {
             { msg: `[data-marco-injected] marker  : ${r.markerEl ? "✅" : "⚠️ (not required)"}`, level: "log" },
         ];
 
+        if (!allOk) {
+            lines.push({ msg: `── Stack at verification point ──`, level: "warn" });
+            lines.push({ msg: r.verifyStack, level: "warn" });
+        }
+
         void mirrorPipelineLogsToTab(tabId, lines, `${status} Post-Injection Verification`);
 
         if (!allOk) {
             logBgWarnError(
                 BgLogTag.INJECTION,
                 `Post-injection verification INCOMPLETE on tab ${tabId}: ` +
-                `sdk=${r.marcoSdk} ext=${r.extRoot} mc=${r.mcClass} instance=${r.mcInstance} ui=${r.uiContainer}`,
+                `sdk=${r.marcoSdk} ext=${r.extRoot} mc=${r.mcClass} instance=${r.mcInstance} ui=${r.uiContainer}\n` +
+                `Verify stack: ${r.verifyStack}`,
             );
         }
     } catch {
