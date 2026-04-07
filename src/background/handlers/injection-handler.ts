@@ -246,6 +246,8 @@ export async function handleInjectScripts(
     // ── Post-injection verification — confirm globals actually landed in MAIN world ──
     if (successCount > 0) {
         void verifyPostInjectionGlobals(msg.tabId).catch(() => {});
+        // ── Show injection success toast in the target tab ──
+        void showInjectionToastInTab(msg.tabId, successCount, execResults.length, totalMs).catch(() => {});
     }
 
     return { results };
