@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.110.0] — 2026-04-07
+
+### Added
+- README **Installation (End Users)** section with quick-install one-liners for Linux/macOS (`curl | bash`) and Windows (`irm | iex`)
+- Cross-platform install scripts: `install-extension.sh` (Bash) and `install-extension.ps1` (PowerShell) with `--version` and `--dir` flags
+- Release assets table documenting all `.zip` packages, installer scripts, and metadata files
+- Manual install instructions for loading the unpacked extension in Chromium browsers
+- Automated prompt parity check test (`prompt-parity-check.test.ts`) ensuring `DEFAULT_PROMPTS` ↔ DB seed stay in sync
+- Added missing `Code Coverage Basic`, `Code Coverage Details`, and `Audit Spec v1` entries to both prompt lists
+
+### Changed
+- Version bump: 2.109.0 → 2.110.0 (all version files synced)
+
+---
+
 ## [v2.109.0] — 2026-04-07
 
 ### Fixed
