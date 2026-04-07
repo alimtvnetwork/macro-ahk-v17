@@ -139,7 +139,7 @@ export function logCaughtError(
     context?: BgErrorContext,
 ): void {
     const errorCode = tag
-        .replace(/[\[\]:]/g, "")
+        .replace(/[[\]:]/g, "")
         .replace(/[^a-zA-Z0-9-]/g, "_")
         .toUpperCase() + "_ERROR";
 

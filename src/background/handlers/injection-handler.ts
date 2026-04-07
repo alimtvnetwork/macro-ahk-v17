@@ -822,7 +822,6 @@ else if(!window.RiseupAsiaMacroExt.Projects){window.RiseupAsiaMacroExt.Projects=
  * Injects `window.RiseupAsiaMacroExt.Settings` with current extension
  * settings as a frozen read-only object.
  */
-// eslint-disable-next-line max-lines-per-function
 async function injectSettingsNamespace(tabId: number, allProjects: StoredProject[]): Promise<void> {
     try {
         const activeId = getActiveProjectId();
