@@ -105,7 +105,7 @@ function appendToEditor(editor: HTMLElement, text: string): boolean {
         console.log(`[Marco] Prompt appended (${text.length} chars)`);
         return true;
     } catch (err) {
-        console.error("[Marco] Prompt append failed:", err);
+        console.error(`[Marco] Prompt append failed\n  Path: DOM target element (contenteditable/textarea/ProseMirror)\n  Missing: Successful text insertion of ${text.length} chars\n  Reason: ${err instanceof Error ? err.message : String(err)} — DOM element may not be found or not editable`, err);
         return false;
     }
 }

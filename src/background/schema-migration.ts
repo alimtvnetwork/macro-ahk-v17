@@ -278,9 +278,9 @@ function attemptRollback(
 ): void {
     try {
         migration.down(logsDb, errorsDb);
-        console.error(`[migration] Rolled back v${migration.version}`);
+        console.error(`[migration] Rolled back v${migration.version}\n  Path: SQLite in-memory DB (logs + errors)\n  Missing: Successful migration — rolled back to previous schema\n  Reason: Original migration threw, rollback applied`);
     } catch (rollbackErr) {
-        console.error(`[migration] Rollback of v${migration.version} also failed:`, rollbackErr);
+        console.error(`[migration] Rollback of v${migration.version} also failed\n  Path: SQLite in-memory DB (logs + errors)\n  Missing: Successful rollback of failed migration\n  Reason: ${rollbackErr instanceof Error ? rollbackErr.message : String(rollbackErr)} — database may be in inconsistent state`, rollbackErr);
     }
 }
 
