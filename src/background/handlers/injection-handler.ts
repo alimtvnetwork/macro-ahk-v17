@@ -1284,6 +1284,7 @@ async function showInjectionToastInTab(
 
                 // Dismiss loading toast first
                 const loader = document.getElementById("__marco-inject-toast-loading");
+                // eslint-disable-next-line sonarjs/no-duplicate-string
                 if (loader) { loader.style.opacity = "0"; loader.style.transform = "translateY(8px) scale(0.96)"; setTimeout(() => loader.remove(), 300); }
 
                 // Try SDK toast first
