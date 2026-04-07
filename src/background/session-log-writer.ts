@@ -87,6 +87,7 @@ async function ensureSessionDir(): Promise<FileSystemDirectoryHandle | null> {
 }
 
 /** Creates a new session directory in OPFS and prepares file handles. */
+// eslint-disable-next-line max-lines-per-function
 export async function initSessionLogDir(sid: string, ver: string): Promise<void> {
     sessionId = sid;
     version = ver;
