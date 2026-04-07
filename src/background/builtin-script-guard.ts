@@ -256,7 +256,7 @@ async function seedMissingBuiltinsDirectly(
         }
 
         // Verify the actual script file exists in dist
-        let codeStub = STUB_PREFIX + `console.error("[${scriptName}] STUB: filePath fetch failed.");`;
+        let codeStub = STUB_PREFIX + `console.error("[builtin-guard::fallback] STUB: filePath fetch failed\\n  Path: ${meta.filePath}\\n  Missing: Real script code for \\"${scriptName}\\"\\n  Reason: Stub placeholder — fetch from extension bundle did not succeed");`;
         const scriptAbsUrl = chrome.runtime.getURL(meta.filePath);
         console.log("[builtin-guard:fallback] Fetching script file for %s → %s", scriptName, scriptAbsUrl);
         try {

@@ -22,7 +22,7 @@ const MANIFEST_PATH = "projects/seed-manifest.json";
 const STUB_PREFIX = "// STUB: loaded from seed-manifest. Real code fetched at injection time via filePath.\n";
 
 function buildStubCode(fileName: string): string {
-    return STUB_PREFIX + `console.error("[${fileName}] STUB: filePath fetch failed.");`;
+    return STUB_PREFIX + `console.error("[manifest-seeder::buildStubCode] STUB: filePath fetch failed\\n  Path: projects/scripts/${fileName}\\n  Missing: Real script code for \\"${fileName}\\"\\n  Reason: Stub placeholder was never replaced — fetch at injection time did not succeed or was not attempted");`;
 }
 
 /** Supported schema versions: [min, max] inclusive range this seeder can handle. */

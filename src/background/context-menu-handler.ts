@@ -286,8 +286,8 @@ async function handleCopyLogs(tabId: number): Promise<void> {
             await chrome.scripting.executeScript({
                 target: { tabId },
                 func: (text: string) => {
-                    navigator.clipboard.writeText(text).catch(() => {
-                        console.error("[Marco] Clipboard write failed");
+                    navigator.clipboard.writeText(text).catch((clipErr) => {
+                        console.error("[context-menu::copyLogs] Clipboard write failed\n  Path: navigator.clipboard (browser API)\n  Missing: Successful clipboard write of log text\n  Reason: " + (clipErr && clipErr.message ? clipErr.message : String(clipErr)) + " — page may not have clipboard permission or focus");
                     });
                 },
                 args: [logText],
