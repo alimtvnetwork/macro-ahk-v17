@@ -6,90 +6,148 @@ graph TD
     classDef decision fill:#F59E0B,color:#000,stroke:#D97706,stroke-width:2px
     classDef output fill:#EF4444,color:#fff,stroke:#DC2626,stroke-width:2px
     classDef fallback fill:#F97316,color:#fff,stroke:#EA580C,stroke-width:2px
+    classDef logNode fill:#06B6D4,color:#fff,stroke:#0891B2,stroke-width:2px
+    classDef errorNode fill:#DC2626,color:#fff,stroke:#B91C1C,stroke-width:2px
+    classDef note fill:#334155,color:#CBD5E1,stroke:#475569,stroke-width:1px
 
-    A["User clicks Run Scripts"]:::userAction
-    A --> B["handleInjectScripts - pipeline start"]:::stage
-    B --> TOAST["Show loading spinner toast in tab"]:::process
+    A["User clicks Run Scripts in popup"]:::userAction
+    A --> B["handleInjectScripts - Pipeline Orchestrator"]:::stage
+    B -. "1. Record performance.now start time<br/>2. Query active tab via chrome.tabs<br/>3. Log: pipeline START tabId url scriptCount" .-> BNOTE["Orchestrator initializes timing,<br/>identifies target tab, begins logging"]:::note
+
+    B --> TOAST["Inject loading spinner toast into tab DOM<br/>via chrome.scripting.executeScript"]:::process
+    TOAST -. "Fixed-position overlay: spinner + Injecting scripts..." .-> TOASTNOTE["Visible in tab during entire pipeline.<br/>Replaced by result toast at end."]:::note
+
     TOAST --> GUARD["Stage 0a: ensureBuiltinScriptsExist"]:::stage
-    GUARD --> DEPS["Stage 0b: prependDependencyScripts - topological sort"]:::stage
-    DEPS --> RESOLVE["Stage 1: resolveInjectionRequestScripts"]:::stage
+    GUARD -. "Read required built-in script IDs from manifest.<br/>Check each exists in chrome.storage.local." .-> GUARDNOTE["Built-in scripts: Marco SDK preamble,<br/>relay installer, namespace bootstrap code"]:::note
+    GUARD --> GUARDLOG["LOG each script: found INFO or missing ERROR.<br/>Self-heal missing scripts from bundled /scripts/ assets."]:::logNode
+    GUARDLOG --> GUARDFAIL{"Any built-in still missing after self-heal?"}:::decision
+    GUARDFAIL -- "Yes" --> GUARDERR["HARD ERROR for that script.<br/>Log ERROR. Mark script as failed in results."]:::errorNode
+    GUARDFAIL -- "No" --> DEPS
+    GUARDERR --> DEPS
 
-    RESOLVE --> RESOLVED["Prepared scripts"]:::process
-    RESOLVE --> SKIPPED["Skipped scripts with reasons"]:::output
+    DEPS["Stage 0b: prependDependencyScripts"]:::stage
+    DEPS -. "Build DAG from project dependsOn fields.<br/>Topological sort to determine injection order.<br/>Prepend dependency scripts before dependents." .-> DEPSNOTE["Example: if ScriptB depends on ScriptA,<br/>injection order becomes [A, B, ...]"]:::note
+    DEPS --> DEPSLOG["LOG dependency order: scriptA, scriptB, scriptC<br/>LOG each dependency found or missing with reason"]:::logNode
+    DEPSLOG --> DEPSFAIL{"Any dependency not found?"}:::decision
+    DEPSFAIL -- "Yes" --> DEPSERR["ERROR: dependency missing.<br/>Dependent script also marked failed."]:::errorNode
+    DEPSFAIL -- "No" --> RESOLVE
+    DEPSERR --> RESOLVE
 
-    RESOLVED --> EMPTY{"Any scripts resolved?"}:::decision
-    EMPTY -- "No" --> EARLYEXIT["Return skip results + mirror to tab"]:::output
+    RESOLVE["Stage 1: resolveInjectionRequestScripts"]:::stage
+    RESOLVE -. "Convert ScriptEntry path+order into executable code.<br/>Load code from chrome.storage.local.<br/>Load config JSON and theme JSON if bound." .-> RESOLVENOTE["Two input types:<br/>ScriptEntry = stored path, needs code lookup<br/>InjectableScript = already has code string"]:::note
+
+    RESOLVE --> RESOLVELOG["LOG: Resolved N/total scripts.<br/>LOG ERROR for each unresolvable script with reason:<br/>code_not_found, config_missing, type_mismatch"]:::logNode
+
+    RESOLVELOG --> EMPTY{"Any scripts resolved successfully?"}:::decision
+    EMPTY -- "No: zero scripts" --> EARLYERR["HARD ERROR: No scripts could be resolved.<br/>Show error toast: Check script store integrity.<br/>Log ERROR. Pipeline halts."]:::errorNode
+    EARLYERR --> TOASTFINAL
     EMPTY -- "Yes" --> PARALLEL1
 
-    PARALLEL1["Stage 2: Parallel bootstrap - 3 tasks"]:::parallel
-    PARALLEL1 --> P1A["bootstrapNamespaceRoot - window.RiseupAsiaMacroExt"]:::process
-    PARALLEL1 --> P1B["ensureRelayInjected - message relay"]:::process
-    PARALLEL1 --> P1C["seedTokensIntoTab - auth cookies to localStorage"]:::process
+    PARALLEL1["Stage 2: Parallel Bootstrap via Promise.all"]:::parallel
 
-    P1A --> INJECTCHECK
-    P1B --> INJECTCHECK
-    P1C --> INJECTCHECK
+    PARALLEL1 --> P1A["2a: bootstrapNamespaceRoot<br/>Create window.RiseupAsiaMacroExt in MAIN world<br/>via chrome.scripting.executeScript"]:::process
+    P1A -. "Root namespace MUST be in MAIN world<br/>so page scripts can access it.<br/>If CSP blocks: health=DEGRADED, log ERROR.<br/>No fallback to ISOLATED - would be invisible to page." .-> P1ANOTE["This is the root object, not data.<br/>Data namespaces populated later in Stage 5."]:::note
 
-    INJECTCHECK{"Any scripts have CSS assets?"}:::decision
-    INJECTCHECK -- "Yes" --> SEQ["Sequential ordered injection"]:::fallback
-    INJECTCHECK -- "No" --> BATCH["Stage 3: Batch - concatenate wrapped scripts"]:::stage
+    PARALLEL1 --> P1B["2b: ensureRelayInjected<br/>Install message relay content script<br/>in ISOLATED world"]:::process
+    P1B -. "Checks sentinel global to avoid duplicate install.<br/>Bridges MAIN postMessage to chrome.runtime.sendMessage." .-> P1BNOTE["LOG: Relay injected or Relay already present"]:::note
 
-    SEQ --> SINGLE["injectSingleScript per script"]:::process
-    SINGLE --> WRAP2["wrapWithIsolation"]:::process
-    WRAP2 --> CSP2["injectWithCspFallback"]:::fallback
+    PARALLEL1 --> P1C["2c: seedTokensIntoTab<br/>Write JWT from extension storage<br/>into tab localStorage via MAIN world"]:::process
+    P1C -. "Auth bridge 2-tier waterfall resolves JWT.<br/>Writes to localStorage so page scripts can read bearer tokens." .-> P1CNOTE["LOG: Token seeded key=truncated<br/>or No token available to seed"]:::note
+
+    P1A --> BOOTDONE
+    P1B --> BOOTDONE
+    P1C --> BOOTDONE
+    BOOTDONE["All 3 bootstrap tasks complete"]:::process
+
+    BOOTDONE --> INJECTCHECK{"Any scripts have CSS assets?<br/>Declared in project config cssAssets field"}:::decision
+    INJECTCHECK -- "Yes: CSS detected" --> SEQ["Sequential Injection Mode"]:::fallback
+    INJECTCHECK -- "No CSS" --> BATCH["Stage 3: Batch Mode"]:::stage
+
+    SEQ -. "LOG: CSS asset detected, switching to sequential mode" .-> SEQNOTE["Each script injected individually.<br/>CSS injected BEFORE its JS to ensure<br/>styles are available when script runs."]:::note
+    SEQ --> CSSINJECT["For each script with CSS:<br/>1. chrome.scripting.insertCSS - inject stylesheet<br/>2. LOG: Injecting CSS path for scriptId"]:::process
+    CSSINJECT --> SINGLE["injectSingleScript<br/>wrapWithIsolation then execute per script"]:::process
+    SINGLE --> WRAP2["wrapWithIsolation: IIFE + try/catch + SDK preamble<br/>Example: function try originalCode catch reportError"]:::process
+    WRAP2 --> CSP2["injectWithCspFallback per script<br/>Same 3-tier fallback as Stage 4"]:::fallback
     CSP2 --> RESULTS
 
-    BATCH --> WRAP["wrapWithIsolation for each script"]:::process
-    WRAP --> COMBINE["Combine into single code string"]:::process
-    COMBINE --> EXEC
+    BATCH -. "Performance optimization: one IPC call<br/>instead of N separate executeScript calls" .-> BATCHNOTE["Only used when no scripts have CSS assets"]:::note
+    BATCH --> WRAP["wrapWithIsolation for EACH script:<br/>Wrap in IIFE with try-catch error isolation.<br/>Prepend SDK preamble: const marco = window.RiseupAsiaMacroExt?.sdk<br/>Each script gets own function scope - no variable leaks."]:::process
+    WRAP --> COMBINE["Concatenate all wrapped IIFEs into single string:<br/>Script1 IIFE + newline + Script2 IIFE + newline + ...<br/>LOG: Combined code size N bytes"]:::process
+    COMBINE --> SIZECHECK{"Combined size over 500KB?"}:::decision
+    SIZECHECK -- "Yes" --> SIZEWARN["LOG WARN: Large payload warning N bytes"]:::logNode
+    SIZEWARN --> EXEC
+    SIZECHECK -- "No" --> EXEC
 
-    EXEC["Stage 4: executeInTab via injectWithCspFallback"]:::stage
-    EXEC --> CSP{"CSP blocks inline?"}:::decision
-    CSP -- "No" --> MAIN["MAIN world - direct blob injection"]:::process
-    CSP -- "Yes" --> USAPI["userScripts API fallback"]:::fallback
-    USAPI --> USCHECK{"userScripts available?"}:::decision
-    USCHECK -- "Yes" --> USEXEC["Register + execute via userScripts"]:::process
-    USCHECK -- "No" --> ISO["ISOLATED world blob fallback"]:::fallback
+    EXEC["Stage 4: executeInTab - CSP-Aware Execution"]:::stage
+    EXEC -. "CSP = Content Security Policy.<br/>Websites set HTTP headers like<br/>script-src self https://cdn.example.com<br/>to restrict which scripts can run.<br/>Extension must detect and work around CSP." .-> CSPNOTE["CSP may block inline scripts injected by extensions.<br/>Three injection strategies tried in order."]:::note
 
-    MAIN --> RESULTS
+    EXEC --> MAIN["Strategy 1: MAIN World Blob Injection<br/>1. Convert code string to Blob type text/javascript<br/>2. Create blob: URL via URL.createObjectURL<br/>3. Create script element with src=blob URL<br/>4. Append to document.head - executes in MAIN world<br/>5. Revoke blob URL after execution<br/>LOG: Executing in MAIN world via blob injection"]:::process
+
+    MAIN --> MAINCSP{"Blob injection succeeded?"}:::decision
+    MAINCSP -- "Yes" --> RESULTS
+    MAINCSP -- "No: CSP blocked blob too" --> USAPI
+
+    USAPI["Strategy 2: chrome.userScripts API Fallback<br/>Available in Chrome 120+ with userScripts permission"]:::fallback
+    USAPI -. "LOG WARN: CSP blocked blob injection, trying userScripts" .-> USAPINOTE["userScripts API registers code that runs<br/>in MAIN world bypassing CSP entirely"]:::note
+    USAPI --> USCHECK{"chrome.userScripts API available?"}:::decision
+    USCHECK -- "Yes" --> USEXEC["Register code via chrome.userScripts.register<br/>Execute in MAIN world with full page access.<br/>Clean up registration after execution.<br/>LOG: Executed via userScripts API"]:::process
+    USCHECK -- "No: old Chrome or no permission" --> USNOLOG["LOG ERROR: userScripts unavailable"]:::errorNode
+    USNOLOG --> ISO
+
+    ISO["Strategy 3: ISOLATED World Blob - LAST RESORT<br/>Inject via chrome.scripting.executeScript<br/>into ISOLATED content script sandbox"]:::fallback
+    ISO -. "ISOLATED world does NOT share window with page.<br/>Scripts needing RiseupAsiaMacroExt or page DOM will FAIL.<br/>Only useful for logging-only or self-contained utility scripts." .-> ISONOTE["LOG ERROR: Forced to ISOLATED world -<br/>scripts will have limited page access.<br/>Health set to DEGRADED."]:::note
+
     USEXEC --> RESULTS
     ISO --> RESULTS
 
-    PARALLEL2["Stage 5: Parallel namespace injection"]:::parallel
-    COMBINE --> PARALLEL2
-    PARALLEL2 --> NS_SETTINGS["5a: injectSettingsNamespace"]:::process
-    PARALLEL2 --> NS_PROJECTS["5b: injectProjectNamespaces"]:::process
+    RESULTS["Collect all InjectionResult objects:<br/>scriptId, success boolean, world MAIN or ISOLATED,<br/>durationMs, error message if failed"]:::stage
 
-    RESULTS["Collect all InjectionResults"]:::stage
+    RESULTS --> NS["Stage 5: Populate Data Namespaces - Parallel"]:::parallel
+
+    NS --> NS_SETTINGS["5a: injectSettingsNamespace<br/>Write RiseupAsiaMacroExt.Settings = extension settings<br/>Write RiseupAsiaMacroExt.llmGuide = guide text<br/>LOG: Settings namespace injected N keys"]:::process
+
+    NS --> NS_PROJECTS["5b: injectProjectNamespaces<br/>Write RiseupAsiaMacroExt.Projects per CodeName<br/>Each project gets vars Map for variable access<br/>LOG: Project namespaces injected: ProjectA, ProjectB"]:::process
+
+    NS_SETTINGS -. "These are DATA namespaces, not the root object.<br/>Root RiseupAsiaMacroExt was created in Stage 2a.<br/>Scripts access settings via marco.whenReady<br/>or on user interaction - not synchronously at load." .-> NSNOTE["If CSP blocks namespace injection:<br/>health=DEGRADED, LOG ERROR"]:::note
 
     NS_SETTINGS --> POST
     NS_PROJECTS --> POST
     RESULTS --> POST
-    CSP2 --> POST
 
-    POST["Post-pipeline"]:::stage
-    POST --> MIRROR["Mirror pipeline logs to tab DevTools"]:::process
-    POST --> BUDGET{"totalMs exceeds budget?"}:::decision
-    BUDGET -- "Yes" --> BUDGETWARN["Log PERFORMANCE BUDGET EXCEEDED"]:::output
+    POST["Post-Pipeline Processing"]:::stage
+    POST --> MIRROR["Mirror ALL pipeline logs to tab DevTools<br/>via console.groupCollapsed MacroExt Injection Pipeline Log<br/>Also write to extension SQLite + OPFS session log"]:::logNode
+
+    POST --> BUDGET{"totalMs exceeds budget? Default: 2000ms"}:::decision
+    BUDGET -- "Yes" --> BUDGETWARN["LOG WARN: PERFORMANCE BUDGET EXCEEDED<br/>totalMs ms vs budget 2000ms"]:::logNode
     BUDGET -- "No" --> RECORD
 
     BUDGETWARN --> RECORD
-    RECORD["recordInjectionTiming + recordInjection"]:::process
-    RECORD --> VERIFY["verifyPostInjectionGlobals"]:::stage
+    RECORD["recordInjectionTiming to SQLite:<br/>Pipeline start/end timestamps,<br/>per-stage durations,<br/>total script count and success count"]:::process
 
-    VERIFY --> V1["Check window.marco SDK"]:::process
-    VERIFY --> V2["Check window.RiseupAsiaMacroExt"]:::process
-    VERIFY --> V3["Check window.MacroController class"]:::process
-    VERIFY --> V4["Check api.mc singleton"]:::process
-    VERIFY --> V5["Check UI container element"]:::process
-    VERIFY --> V6["Check injection marker"]:::process
+    RECORD --> VERIFY["verifyPostInjectionGlobals - 6 checks"]:::stage
+    VERIFY --> V1["1. window.marco - SDK helper object"]:::process
+    VERIFY --> V2["2. window.RiseupAsiaMacroExt - root namespace"]:::process
+    VERIFY --> V3["3. window.MacroController - controller class"]:::process
+    VERIFY --> V4["4. api.mc - controller singleton instance"]:::process
+    VERIFY --> V5["5. UI container element in DOM"]:::process
+    VERIFY --> V6["6. __macroExtInjected marker flag"]:::process
 
-    V1 --> VRESULT["Save verification to state manager"]:::process
+    V1 --> VRESULT["Save all verification results to state manager.<br/>LOG WARN for each failed check."]:::logNode
     V2 --> VRESULT
     V3 --> VRESULT
     V4 --> VRESULT
     V5 --> VRESULT
     V6 --> VRESULT
 
-    RECORD --> TOASTFINAL["Show success/failure toast in tab"]:::output
-    TOASTFINAL --> DONE["Return results to caller"]:::userAction
+    VRESULT --> TOASTFINAL
+
+    TOASTFINAL{"Determine final toast type"}:::decision
+    TOASTFINAL -- "All checks pass" --> TSUCCESS["SUCCESS toast green:<br/>N scripts injected successfully"]:::process
+    TOASTFINAL -- "Some warnings" --> TWARN["WARNING toast amber:<br/>N scripts injected, M warnings"]:::fallback
+    TOASTFINAL -- "Critical failure" --> TERROR["ERROR toast red:<br/>Injection failed: reason"]:::errorNode
+
+    TSUCCESS --> DONE
+    TWARN --> DONE
+    TERROR --> DONE
+
+    DONE["Return InjectionResult array to popup caller"]:::userAction
