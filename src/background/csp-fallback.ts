@@ -106,7 +106,7 @@ export async function configureUserScriptWorld(): Promise<void> {
             console.log("[injection:csp] ✅ userScripts world '%s' configured", USER_SCRIPT_WORLD_ID);
             return;
         } catch (namedWorldError) {
-            logCaughtError(BgLogTag.INJECTION_CSP, "Named userScripts world failed, retrying default world", namedWorldError);
+            logCaughtError(BgLogTag.INJECTION_CSP, `Named userScripts world configuration failed\n  Path: chrome.userScripts.configureWorld({ worldId: "${USER_SCRIPT_WORLD_ID}" })\n  Missing: Configured USER_SCRIPT world with custom CSP\n  Reason: ${namedWorldError instanceof Error ? namedWorldError.message : String(namedWorldError)} — retrying with default world`, namedWorldError);
         }
 
         await chrome.userScripts.configureWorld({
