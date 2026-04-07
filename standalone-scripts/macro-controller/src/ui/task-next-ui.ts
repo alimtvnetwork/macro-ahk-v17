@@ -81,6 +81,10 @@ export function findNextTasksPrompt(deps: TaskNextDeps) {
   const entries = promptsCfg.entries || [];
   const targetSlug = taskNextState.settings.promptSlug || NEXT_TASKS;
 
+  // Diagnostic: log slug/id of every entry to confirm fields survived the pipeline
+  const slugMap = entries.map(function(e) { return e.name + ' → slug=' + (e.slug || '⚠️ MISSING') + ', id=' + (e.id || '—'); });
+  log('Task Next: Resolving target="' + targetSlug + '" across ' + entries.length + ' entries:\n  ' + slugMap.join('\n  '), 'info');
+
   // Priority 1: Exact slug field match (from info.json)
   for (const entry of entries) {
     const entrySlug = (entry.slug || '').toLowerCase();
