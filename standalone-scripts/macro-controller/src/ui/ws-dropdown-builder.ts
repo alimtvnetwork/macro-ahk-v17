@@ -46,25 +46,6 @@ export interface WsDropdownResult {
 /**
  * Build the entire workspace dropdown section.
  */
-/** Try to read workspace name from Transfer dialog DOM. */
-function readWorkspaceFromDialog(): string {
-  const selectors = [
-    'div[role="dialog"] p.min-w-0.truncate',
-    'div[role="dialog"] p.truncate'
-  ];
-  for (const sel of selectors) {
-    const domEl = document.querySelector(sel);
-    if (domEl) {
-      const domText = (domEl.textContent || '').trim();
-      if (domText) {
-        state.workspaceName = domText;
-        log('Focus Current: read workspace from Transfer dialog DOM: "' + domText + '"', 'success');
-        return domText;
-      }
-    }
-  }
-  return '';
-}
 
 /** Scroll to and highlight the current workspace item in the list. */
 function scrollToCurrentItem(setLoopWsNavIndex: (v: number) => void, label: string): void {
@@ -88,10 +69,16 @@ function handleFocusCurrent(
   fetchLoopCreditsWithDetect: (silent: boolean) => void,
   autoDetectLoopCurrentWorkspace: (token: string) => Promise<void>,
 ): void {
+  // Priority 1: state.workspaceName (already resolved)
+  // Priority 2: loopCreditState.currentWs (from API)
+  // Priority 3: re-detect via API
   let currentName = state.workspaceName || '';
-  if (!currentName) {
-    try { currentName = readWorkspaceFromDialog(); }
-    catch (ex) { logSub('Focus Current: Transfer dialog DOM read failed — ' + (ex instanceof Error ? ex.message : String(ex)), 1); }
+  if (!currentName && loopCreditState.currentWs) {
+    currentName = loopCreditState.currentWs.fullName || loopCreditState.currentWs.name || '';
+    if (currentName) {
+      state.workspaceName = currentName;
+      log('Focus Current: resolved from loopCreditState.currentWs: "' + currentName + '"', 'success');
+    }
   }
 
   log('Focus Current: looking for "' + currentName + '"', 'check');

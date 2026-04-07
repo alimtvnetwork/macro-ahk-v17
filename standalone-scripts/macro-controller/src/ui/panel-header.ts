@@ -9,7 +9,7 @@ import {
   VERSION,
   cPrimaryLight,
   cNeutral500,
-  
+  loopCreditState,
   tFontTiny,
   state,
 } from '../shared-state';
@@ -68,12 +68,6 @@ function _buildTitleElements(deps: PanelBuilderDeps, plCtx: PanelLayoutCtx) {
   title.style.cssText = 'font-weight:bold;color:#E0E0E0;font-size:14px;flex-shrink:0;white-space:nowrap;transform:translateY(-2px);';
   title.textContent = 'TS Macro';
 
-  const projectNameEl = document.createElement('div');
-  projectNameEl.id = 'loop-project-name';
-  projectNameEl.style.cssText = CSS_FONT_SIZE + tFontTiny + ';color:#ffffff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;';
-  projectNameEl.title = 'Project name (from DOM XPath)';
-  projectNameEl.textContent = getDisplayProjectName();
-
   const wsNameEl = buildWorkspaceNameBadge(deps);
 
   const versionSpan = document.createElement('span');
@@ -98,7 +92,7 @@ function _buildTitleElements(deps: PanelBuilderDeps, plCtx: PanelLayoutCtx) {
   hideBtn.onclick = function(e: Event) { e.stopPropagation(); destroyPanel(); };
 
   return {
-    elements: { title, projectNameEl, wsNameEl, versionSpan, authBadge, panelToggleSpan, hideBtn },
+    elements: { title, wsNameEl, versionSpan, authBadge, panelToggleSpan, hideBtn },
     wsNameEl, authBadge, panelToggleSpan, hideBtn,
   };
 }
@@ -122,11 +116,6 @@ function _assembleTitleRow(titleRow: HTMLElement, els: Record<string, HTMLElemen
   titleSpacer.style.cssText = 'flex:1;';
   titleRow.appendChild(titleSpacer);
   titleRow.appendChild(els.wsNameEl);
-  const titleSep = document.createElement('span');
-  titleSep.style.cssText = CSS_FONT_SIZE + tFontTiny + ';color:' + cNeutral500 + ';margin:0 2px;user-select:none;';
-  titleSep.textContent = '·';
-  titleRow.appendChild(titleSep);
-  titleRow.appendChild(els.projectNameEl);
   titleRow.appendChild(els.versionSpan);
   titleRow.appendChild(els.authBadge);
   titleRow.appendChild(els.panelToggleSpan);
@@ -141,14 +130,21 @@ function _assembleTitleRow(titleRow: HTMLElement, els: Record<string, HTMLElemen
 function buildWorkspaceNameBadge(deps: PanelBuilderDeps): HTMLElement {
   const wsNameEl = document.createElement('div');
   wsNameEl.id = 'loop-title-ws-name';
-  wsNameEl.style.cssText = CSS_FONT_SIZE + tFontTiny + ';color:#fbbf24;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;cursor:pointer;border-bottom:1px dotted rgba(251,191,36,0.4);transition:color 0.15s;';
-  wsNameEl.title = 'Project name — click to re-detect workspace';
+  wsNameEl.style.cssText = CSS_FONT_SIZE + tFontTiny + ';color:#fbbf24;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;cursor:pointer;border-bottom:1px dotted rgba(251,191,36,0.4);transition:color 0.15s;margin-right:4px;';
+  wsNameEl.title = 'Workspace name — click to re-detect';
 
+  const wsName = state.workspaceName
+    || (loopCreditState.currentWs ? (loopCreditState.currentWs.fullName || loopCreditState.currentWs.name) : '');
   const projectName = getDisplayProjectName();
-  if (projectName && projectName !== 'Unknown Project') {
+
+  if (wsName) {
+    wsNameEl.textContent = wsName;
+    wsNameEl.title = 'Workspace: ' + wsName + (projectName ? ' | Project: ' + projectName : '') + ' — click to re-detect';
+  } else if (projectName && projectName !== 'Unknown Project') {
     wsNameEl.textContent = projectName;
+    wsNameEl.title = 'Project: ' + projectName + ' (workspace not yet detected) — click to re-detect';
+    wsNameEl.style.opacity = '0.7';
   } else {
-    // Show inline skeleton shimmer while project name loads
     const wsShimmer = document.createElement('span');
     wsShimmer.className = 'marco-skeleton';
     wsShimmer.setAttribute('data-skeleton', 'ws-name');
@@ -166,12 +162,14 @@ function buildWorkspaceNameBadge(deps: PanelBuilderDeps): HTMLElement {
     state.workspaceFromApi = false;
     deps.autoDetectLoopCurrentWorkspace(token).then(function() {
       wsNameEl.style.color = '#fbbf24';
-      // After workspace detection, update with project name
+      wsNameEl.style.opacity = '1';
+      const ws = state.workspaceName || '';
       const name = getDisplayProjectName();
-      wsNameEl.textContent = name || '❌ unknown';
-      if (state.workspaceName) {
-        log('Title bar: ✅ Workspace re-detected: "' + state.workspaceName + '" (project: "' + name + '")', 'success');
-        showToast('Workspace: ' + state.workspaceName, 'success');
+      wsNameEl.textContent = ws || name || '❌ unknown';
+      wsNameEl.title = (ws ? 'Workspace: ' + ws : '') + (name ? ' | Project: ' + name : '') + ' — click to re-detect';
+      if (ws) {
+        log('Title bar: ✅ Workspace re-detected: "' + ws + '"', 'success');
+        showToast('Workspace: ' + ws, 'success');
       }
       updateUI();
     }).catch(function() {
@@ -179,7 +177,7 @@ function buildWorkspaceNameBadge(deps: PanelBuilderDeps): HTMLElement {
       wsNameEl.textContent = '❌ failed';
       setTimeout(function() {
         wsNameEl.style.color = '#fbbf24';
-        wsNameEl.textContent = getDisplayProjectName() || '⟳ detecting…';
+        wsNameEl.textContent = state.workspaceName || getDisplayProjectName() || '⟳ detecting…';
       }, 2000);
     });
   };

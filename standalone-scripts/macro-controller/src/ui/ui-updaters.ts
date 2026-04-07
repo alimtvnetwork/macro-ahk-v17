@@ -80,19 +80,20 @@ export function updateTitleBarWorkspaceName(): void {
   const syncIcon = document.getElementById('loop-ws-sync-icon');
   if (syncIcon) syncIcon.remove();
 
+  const wsName = state.workspaceName
+    || (loopCreditState.currentWs ? (loopCreditState.currentWs.fullName || loopCreditState.currentWs.name) : '');
   const projectName = getDisplayProjectName();
-  const hasName = projectName && projectName !== 'Unknown Project';
 
-  if (hasName) {
-    el.textContent = projectName;
+  if (wsName) {
+    el.textContent = wsName;
     el.style.color = '#fbbf24';
     el.style.opacity = '1';
-    el.title = 'Project: ' + projectName + (state.workspaceName ? ' | Workspace: ' + state.workspaceName : '') + ' — click to re-detect';
-  } else if (state.workspaceName) {
-    el.textContent = state.workspaceName;
+    el.title = 'Workspace: ' + wsName + (projectName ? ' | Project: ' + projectName : '') + ' — click to re-detect';
+  } else if (projectName && projectName !== 'Unknown Project') {
+    el.textContent = projectName;
     el.style.color = '#fbbf24';
     el.style.opacity = '0.7';
-    el.title = 'Workspace: ' + state.workspaceName + ' (project name unavailable) — click to re-detect';
+    el.title = 'Project: ' + projectName + ' (workspace not yet detected) — click to re-detect';
   } else {
     el.textContent = '⟳ detecting…';
     el.style.color = '#9ca3af';
