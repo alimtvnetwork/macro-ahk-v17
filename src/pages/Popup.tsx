@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
-import { Play, RotateCw, Loader2, Keyboard } from "lucide-react";
+import { Play, RotateCw, Loader2, Keyboard, Zap } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -65,6 +65,7 @@ const PopupPage = () => {
     handleDbImport,
     handleRun,
     handleReinject,
+    handleForceRun,
     lastRunResults,
     handleConfirmImport,
     handleCancelImport,
@@ -133,6 +134,26 @@ const PopupPage = () => {
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <p className="text-xs">Clear existing markers & re-run all scripts fresh</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-9 gap-1 hover:bg-destructive/10 hover:text-destructive shrink-0"
+                  onClick={handleForceRun}
+                  disabled={runLoading || reinjectLoading}
+                >
+                  {runLoading
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <Zap className="h-4 w-4" />}
+                  <span className="hidden sm:inline text-xs">Force</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">Bypass cache — rebuild and inject from scratch</p>
               </TooltipContent>
             </Tooltip>
 

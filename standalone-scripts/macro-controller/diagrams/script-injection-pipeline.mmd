@@ -14,78 +14,94 @@ flowchart TD
     classDef violetSub fill:#2a2a2a,stroke:#8B5CF6,color:#e0e0e0,stroke-width:1px
     classDef cyan fill:#06B6D4,stroke:#06B6D4,color:#fff,stroke-width:2px,font-weight:bold
     classDef cyanSub fill:#2a2a2a,stroke:#06B6D4,color:#e0e0e0,stroke-width:1px
+    classDef coral fill:#FF6B6B,stroke:#FF6B6B,color:#fff,stroke-width:2px,font-weight:bold
+    classDef coralSub fill:#2a2a2a,stroke:#FF6B6B,color:#e0e0e0,stroke-width:1px
+    classDef teal fill:#14B8A6,stroke:#14B8A6,color:#fff,stroke-width:2px,font-weight:bold
+    classDef tealSub fill:#2a2a2a,stroke:#14B8A6,color:#e0e0e0,stroke-width:1px
 
-    %% Legend on the left
+    %% Legend
     subgraph LEGEND ["Color Legend"]
         direction TB
-        L1(["Emerald = Dependency Resolution"]):::emerald
-        L2(["Sky = Script Resolution"]):::sky
-        L3(["Rose = Namespace Bootstrap"]):::rose
-        L4(["Amber = Relay + Token Seeding"]):::amber
-        L5(["Violet = Wrap + Execute"]):::violet
-        L6(["Cyan = Namespace Registration"]):::cyan
-        L7(["Coral = Dynamic Loading"]):::coral
+        L0(["Teal = Cache Gate"]):::teal
+        L1(["Emerald = Stage 0: Guard + Deps"]):::emerald
+        L2(["Sky = Stage 1: Script Resolution"]):::sky
+        L3(["Rose = Stage 2: Env Prep (parallel)"]):::rose
+        L4(["Amber = Stage 3: Wrap + Prepare"]):::amber
+        L5(["Violet = Stage 4: Execute (4-tier CSP)"]):::violet
+        L6(["Cyan = Stage 5: Namespaces (parallel)"]):::cyan
+        L7(["Coral = Post-Pipeline"]):::coral
     end
     style LEGEND fill:#1a1a1a,stroke:#555,color:#e0e0e0,stroke-width:1px
 
-    classDef coral fill:#FF6B6B,stroke:#FF6B6B,color:#fff,stroke-width:2px,font-weight:bold
-    classDef coralSub fill:#2a2a2a,stroke:#FF6B6B,color:#e0e0e0,stroke-width:1px
-
     LEGEND ~~~ ROOT
-
     ROOT(["Script Injection Pipeline"]):::root
 
-    ROOT --> S0 & S1 & S15 & S2 & S34 & S5 & S6
+    ROOT --> PRE & CACHE & S0 & S1 & S2 & S3 & S4 & S5 & POST
 
-    %% Stage 0 - Emerald
-    S0(["Stage 0: Dependency Resolution"]):::emerald
-    S0 --> S0A(["Topological sort of project deps"]):::emeraldSub
-    S0A --> S0B(["Prepend dependency scripts"]):::emeraldSub
+    %% Pre-Pipeline
+    PRE(["Pre-Pipeline: User Trigger + Toast"]):::root
+    PRE --> PRE_RUN(["Run Scripts (normal)"]):::emeraldSub
+    PRE --> PRE_FORCE(["Force Run (forceReload=true)"]):::coralSub
+    PRE_RUN --> PRE_TOAST(["Loading spinner toast"]):::emeraldSub
+    PRE_FORCE --> PRE_TOAST
 
-    %% Stage 1 - Sky
-    S1(["Stage 1: Script Resolution"]):::sky
-    S1 --> S1A(["Resolve script bindings"]):::skySub
-    S1A --> S1B(["Map to injectable code"]):::skySub
+    %% Cache Gate
+    CACHE(["Cache Decision Gate"]):::teal
+    CACHE --> CACHE_HIT(["HIT: skip Stages 0-3, jump to Stage 4"]):::tealSub
+    CACHE --> CACHE_MISS(["MISS: version mismatch or empty"]):::tealSub
+    CACHE --> CACHE_FORCE(["FORCE: delete cache, full rebuild"]):::tealSub
 
-    %% Stage 1.5 - Rose
-    S15(["Stage 1.5: Namespace Bootstrap"]):::rose
-    S15 --> S15A(["bootstrapNamespaceRoot"]):::roseSub
-    S15A --> S15B(["RiseupAsiaMacroExt init"]):::roseSub
-    S15B --> S15C(["MAIN world only - NO fallback"]):::roseSub
-    S15C --> S15D(["CSP blocked -> DEGRADED health"]):::roseSub
+    %% Stage 0
+    S0(["Stage 0: Guard + Dependencies"]):::emerald
+    S0 --> S0A(["0a: ensureBuiltinScriptsExist + self-heal"]):::emeraldSub
+    S0A --> S0B(["0b: prependDependencyScripts (topo sort)"]):::emeraldSub
 
-    %% Stage 2 - Amber
-    S2(["Stage 2: Relay + Token Seeding"]):::amber
-    S2 --> S2A(["Install message relay CS"]):::amberSub
-    S2 --> S2B(["Seed session tokens"]):::amberSub
+    %% Stage 1
+    S1(["Stage 1: resolveInjectionRequestScripts"]):::sky
+    S1 --> S1A(["Load code from chrome.storage.local"]):::skySub
+    S1A --> S1B(["Load config JSON + theme JSON"]):::skySub
+    S1B --> S1C(["Unresolvable = HARD ERROR"]):::skySub
 
-    %% Stage 3-4 - Violet
-    S34(["Stage 3-4: Wrap + Execute"]):::violet
-    S34 --> S3A(["IIFE error isolation wrapper"]):::violetSub
-    S3A --> S3B(["SDK preamble injection"]):::violetSub
-    S3B --> S4A(["injectWithCspFallback MAIN"]):::violetSub
-    S4A --> S4B(["Fallback warning: non-MAIN world"]):::violetSub
+    %% Stage 2
+    S2(["Stage 2: Tab Env Prep -- Promise.all"]):::rose
+    S2 --> S2A(["2a: bootstrapNamespaceRoot (MAIN)"]):::roseSub
+    S2 --> S2B(["2b: ensureRelayInjected (ISOLATED)"]):::roseSub
+    S2 --> S2C(["2c: seedTokensIntoTab"]):::roseSub
 
-    %% Stage 5 - Cyan
-    S5(["Stage 5: Namespace Registration"]):::cyan
+    %% Stage 3
+    S3(["Stage 3: Wrap + Prepare"]):::amber
+    S3 --> S3CSS{"CSS assets detected?"}
+    S3CSS -- "Yes" --> S3SEQ(["Sequential: CSS then JS per script"]):::amberSub
+    S3CSS -- "No" --> S3BATCH(["Batch: IIFE wrap + combine + cache"]):::amberSub
+
+    %% Stage 4
+    S4(["Stage 4: Execute -- 4-Tier CSP Fallback"]):::violet
+    S4 --> S4T1(["Tier 1: MAIN World Blob (primary)"]):::violetSub
+    S4T1 --> S4T2(["Tier 2: USER_SCRIPT (Chrome 135+)"]):::violetSub
+    S4T2 --> S4T3(["Tier 3: ISOLATED Blob"]):::violetSub
+    S4T3 --> S4T4(["Tier 4: ISOLATED Eval (last resort)"]):::violetSub
+
+    %% Stage 5
+    S5(["Stage 5: Namespaces (parallel with 3+4)"]):::cyan
     S5 --> S5A(["5a: Settings + llmGuide"]):::cyanSub
     S5 --> S5B(["5b: Projects per CodeName"]):::cyanSub
-    S5B --> S5C(["Console: Projects.X.vars.get"]):::cyanSub
-    S5A --> S5D(["Fallback -> DEGRADED + error"]):::cyanSub
 
-    %% Stage 6 - Coral (Dynamic Loading)
-    S6(["Stage 6: Dynamic Loading (Runtime)"]):::coral
-    S6 --> S6A(["await RiseupAsiaMacroExt.require"]):::coralSub
-    S6A --> S6B(["postMessage -> relay -> background"]):::coralSub
-    S6B --> S6C(["Validate: allowDynamicRequests"]):::coralSub
-    S6C --> S6D(["Validate: target isGlobal"]):::coralSub
-    S6D --> S6E(["Inject target script into tab"]):::coralSub
-    S6E --> S6F(["Log to SQLite DynamicLoadLog"]):::coralSub
+    %% Post-Pipeline
+    POST(["Post-Pipeline"]):::coral
+    POST --> POST_LOG(["Log mirror: DevTools + SQLite + OPFS"]):::coralSub
+    POST_LOG --> POST_BUDGET(["Performance budget check"]):::coralSub
+    POST_BUDGET --> POST_VERIFY(["Verify 6 post-injection globals"]):::coralSub
+    POST_VERIFY --> POST_TOAST(["Final toast: success / warn / error"]):::coralSub
 
     %% Sequential flow
-    S0B -.->|"resolved scripts"| S1
-    S1B -.->|"injectable code"| S15
-    S15B -.->|"namespace ready"| S2
-    S2B -.->|"tokens seeded"| S34
-    S4A -.->|"scripts live"| S5
-    S5C -.->|"namespace ready"| S6
+    PRE_TOAST -.->|"check cache"| CACHE
+    CACHE_HIT -.->|"cached payload"| S4
+    CACHE_MISS -.->|"full pipeline"| S0
+    CACHE_FORCE -.->|"cleared"| S0
+    S0B -.->|"ordered scripts"| S1
+    S1C -.->|"resolved"| S2
+    S2A & S2B & S2C -.->|"env ready"| S3
+    S3SEQ -.->|"injected"| S4
+    S3BATCH -.->|"combined payload"| S4
+    S4T1 -.->|"results"| S5
+    S5A & S5B -.->|"populated"| POST
