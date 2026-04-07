@@ -105,22 +105,39 @@ graph TD
     STORECACHE --> EXEC
 
     %% ===== STAGE 4 =====
-    EXEC["Stage 4: Execute in Tab"]:::stage
-    EXEC -. "CSP = Content Security Policy.<br/>Example: script-src self cdn.example.com<br/>Our injected code is not from those sources." .-> CSPNOTE["Extension must use methods<br/>that work around CSP.<br/>Blob URLs bypass most CSP."]:::note
+    EXEC["Stage 4: Execute -- 4-Tier CSP Fallback"]:::stage
+    EXEC -. "CSP = Content Security Policy.<br/>Example: script-src self cdn.example.com<br/>Our injected code is not from those sources.<br/>Each tier tried sequentially until one succeeds." .-> CSPNOTE["Extension must use methods<br/>that work around CSP.<br/>4 tiers tried in order."]:::note
 
-    EXEC --> BLOB["Primary: MAIN World Blob Injection"]:::process
-    BLOB -. "1. Code string to Blob type=text/javascript<br/>2. URL.createObjectURL gives blob: URL<br/>3. Create script tag, src=blob URL<br/>4. Append to document.documentElement<br/>5. Browser executes in MAIN world<br/>6. Revoke blob URL after execution" .-> BLOBNOTE["MAIN world = page JS context.<br/>Full access to window, DOM, page globals.<br/>Blob URLs treated as same-origin by browser."]:::note
+    EXEC --> T1["Tier 1: MAIN World Blob (primary)"]:::process
+    T1 -. "1. Code string to Blob type=text/javascript<br/>2. URL.createObjectURL gives blob: URL<br/>3. Create script tag, src=blob URL<br/>4. Append to document.documentElement<br/>5. Browser executes in MAIN world<br/>6. Revoke blob URL after execution" .-> T1NOTE["MAIN world = page JS context.<br/>Full access to window, DOM, page globals.<br/>Blob URLs treated as same-origin by browser."]:::note
 
-    BLOB --> UIINJECT["UI Injection Flow:<br/>Script runs in page context.<br/>MacroController class initializes.<br/>Creates UI container in DOM.<br/>UI becomes visible to user."]:::process
-    UIINJECT -. "The script tag is in the real page DOM.<br/>Executed code has full page access.<br/>LOG INFO: Script executed in MAIN world." .-> UINOTE["This is how the macro UI<br/>appears in the users page."]:::note
+    T1 --> T1UI["UI Injection Flow:<br/>Script runs in page context.<br/>MacroController class initializes.<br/>Creates UI container in DOM.<br/>UI becomes visible to user."]:::process
 
-    UIINJECT --> BLOBCHECK{"Blob injection succeeded?"}:::decision
-    BLOBCHECK -- "Yes" --> RESULTS
-    BLOBCHECK -- "No: CSP blocked blob URL" --> ISO
+    T1UI --> T1CHECK{"Tier 1 succeeded?"}:::decision
+    T1CHECK -- "Yes" --> RESULTS
+    T1CHECK -- "No: CSP blocked blob URL" --> T2
 
-    ISO["Fallback: ISOLATED World -- LAST RESORT"]:::fallback
-    ISO -. "LOG ERROR:<br/>  Path: blob URL script tag on tabId<br/>  Missing: MAIN world script execution<br/>  Reason: CSP script-src blocks blob: URLs<br/>  Fallback: ISOLATED world, health=DEGRADED" .-> ISONOTE["ISOLATED world: separate JS env.<br/>Cannot see page vars.<br/>Most macro features will NOT work."]:::note
-    ISO --> RESULTS
+    T2["Tier 2: USER_SCRIPT (Chrome 135+)"]:::fallback
+    T2 -. "Uses chrome.userScripts.execute API.<br/>Available in Chrome 135 and later.<br/>Runs in USER_SCRIPT world.<br/>LOG WARN: Falling back to USER_SCRIPT tier." .-> T2NOTE["USER_SCRIPT world has near-MAIN<br/>access but bypasses strict CSP.<br/>health=DEGRADED if used."]:::note
+
+    T2 --> T2CHECK{"Tier 2 succeeded?"}:::decision
+    T2CHECK -- "Yes" --> RESULTS
+    T2CHECK -- "No: API unavailable or blocked" --> T3
+
+    T3["Tier 3: ISOLATED World Blob"]:::fallback
+    T3 -. "Same blob technique as Tier 1<br/>but executed in ISOLATED world.<br/>Cannot see page vars.<br/>LOG WARN: Falling back to ISOLATED Blob." .-> T3NOTE["ISOLATED world: separate JS env.<br/>Shares DOM but not window vars.<br/>Most macro features degraded."]:::note
+
+    T3 --> T3CHECK{"Tier 3 succeeded?"}:::decision
+    T3CHECK -- "Yes" --> RESULTS
+    T3CHECK -- "No: ISOLATED blob also blocked" --> T4
+
+    T4["Tier 4: ISOLATED Eval (last resort)"]:::fallback
+    T4 -. "Direct eval in ISOLATED world.<br/>LOG ERROR:<br/>  Path: all prior tiers on tabId<br/>  Missing: any working injection method<br/>  Reason: CSP blocks blob in both worlds<br/>  Fallback: eval -- health=DEGRADED" .-> T4NOTE["Last resort. If this fails,<br/>injection is impossible on this page.<br/>All 4 tiers report in error message."]:::note
+
+    T4 --> T4CHECK{"Tier 4 succeeded?"}:::decision
+    T4CHECK -- "Yes" --> RESULTS
+    T4CHECK -- "No: all 4 tiers failed" --> ALLFAIL["All injection tiers failed.<br/>LOG ERROR: complete tier results.<br/>health=ERROR"]:::errorNode
+    ALLFAIL --> RESULTS
 
     %% ===== RESULTS =====
     RESULTS["Collect InjectionResult per script:<br/>scriptId, success, durationMs,<br/>injectionPath used, error if any"]:::stage
