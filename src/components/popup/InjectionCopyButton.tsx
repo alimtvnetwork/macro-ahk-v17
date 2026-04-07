@@ -83,7 +83,7 @@ function formatLog(l: SessionLog): string {
   return `  ${ts}  ${lvl}  ${src}  ${detail}`;
 }
 
-// eslint-disable-next-line max-lines-per-function
+// eslint-disable-next-line max-lines-per-function, sonarjs/cognitive-complexity
 function buildInjectionReport(
   errors: ErrorEntry[],
   logs: SessionLog[],

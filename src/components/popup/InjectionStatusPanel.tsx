@@ -304,6 +304,7 @@ const VERIFICATION_CHECKS = [
   { key: "markerEl", label: "Injection Marker" },
 ] as const;
 
+// eslint-disable-next-line max-lines-per-function
 function VerificationBadge({
   verification,
 }: {

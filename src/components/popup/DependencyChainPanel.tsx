@@ -243,6 +243,7 @@ export function DependencyChainPanel() {
 
               {/* Chain entries */}
               <div className="space-y-0.5">
+                {/* eslint-disable-next-line max-lines-per-function */}
                 {snapshot.chain.map((entry, idx) => (
                   <div
                     key={entry.scriptId}

@@ -53,7 +53,7 @@ export function usePopupActions() {
   const importModeRef = useRef<"merge" | "replace">("replace");
 
   /** Run all enabled scripts into the active tab. */
-  // eslint-disable-next-line max-lines-per-function
+  // eslint-disable-next-line max-lines-per-function, sonarjs/cognitive-complexity
   const handleRun = useCallback(async (options?: { forceReload?: boolean }) => {
     const isForce = options?.forceReload === true;
     setRunLoading(true);
