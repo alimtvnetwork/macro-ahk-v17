@@ -1278,7 +1278,7 @@ async function showInjectionToastInTab(
         await chrome.scripting.executeScript({
             target: { tabId },
             world: "MAIN",
-            // eslint-disable-next-line max-lines-per-function, sonarjs/no-duplicate-string
+            // eslint-disable-next-line max-lines-per-function
             func: (ok: number, total: number, ms: number, version: string) => {
                 const msg = `✅ Marco v${version} — ${ok}/${total} scripts injected (${ms}ms)`;
 
