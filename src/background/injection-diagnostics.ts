@@ -130,6 +130,7 @@ export async function mirrorPipelineLogsToTab(
         await chrome.scripting.executeScript({
             target: { tabId },
             world: "MAIN",
+            // eslint-disable-next-line sonarjs/cognitive-complexity
             func: (
                 entries: Array<{ msg: string; level: string }>,
                 title: string | undefined,
