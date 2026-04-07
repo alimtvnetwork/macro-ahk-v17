@@ -80,7 +80,7 @@ async function ensureSessionDir(): Promise<FileSystemDirectoryHandle | null> {
         return sessionDir;
     } catch (err) {
         const absDir = `opfs-root/${LOGS_DIR_NAME}/${SESSION_PREFIX}${sessionId}`;
-        console.error(`[session-log-writer::ensureSessionDir] Failed to access "${absDir}"`, err);
+        console.error(`[session-log-writer::ensureSessionDir] Failed to access OPFS directory\n  Path: ${absDir}\n  Missing: Writable OPFS directory handle for session "${sessionId}"\n  Reason: ${err instanceof Error ? err.message : String(err)} — OPFS may not be supported or navigator.storage.getDirectory() failed`, err);
         sessionDir = null;
         return null;
     }
