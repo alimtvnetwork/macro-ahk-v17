@@ -406,11 +406,19 @@ if ($summaryVersionName) {
     Write-Host "  Version:     $summaryVersion" -ForegroundColor White
 }
 
-# Sourcemaps
+# Sourcemaps (extension)
 if ($nosourcemap) {
-    Write-Host "  Sourcemaps:  DISABLED" -ForegroundColor Yellow
+    Write-Host "  Sourcemaps:  DISABLED (extension)" -ForegroundColor Yellow
 } else {
-    Write-Host "  Sourcemaps:  ENABLED" -ForegroundColor Green
+    Write-Host "  Sourcemaps:  ENABLED (extension)" -ForegroundColor Green
+}
+
+# Standalone scripts build mode
+if (-not $skipbuild) {
+    $smMode = if ($deploy) { "development" } else { "production" }
+    $smStatus = if ($deploy) { "INLINE (dev)" } else { "NONE (prod)" }
+    $smColor = if ($deploy) { "Green" } else { "Yellow" }
+    Write-Host "  Standalone:  mode=$smMode | sourcemaps=$smStatus" -ForegroundColor $smColor
 }
 
 # Deploy status
