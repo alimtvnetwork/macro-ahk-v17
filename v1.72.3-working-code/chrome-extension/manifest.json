@@ -42,6 +42,9 @@
         "mac": "Command+Shift+Down"
       },
       "description": "Run all enabled scripts into the active tab"
+    },
+    "force-run-scripts": {
+      "description": "Force run scripts (bypass cache) into the active tab"
     }
   },
   "background": {
