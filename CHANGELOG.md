@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.112.0] — 2026-04-07
+
+### Fixed
+- **ROOT CAUSE**: Hardcoded fallback prompt texts were stale summaries, not matching actual `prompt.md` source files — Unified AI Prompt v4 had unnumbered steps, Issues Tracking had completely wrong text, Audit Spec v1 had different rubric
+- **ROOT CAUSE**: `computeBundledVersion()` only hashed `id:name:version` — text-only changes in `prompt.md` files did NOT trigger DB re-seeding, leaving stale text in SQLite forever
+- Fixed Audit Spec v1 id mismatch: `default-audit` → `default-audit-spec` to match `info.json`
+
+### Changed
+- `computeBundledVersion()` now includes `text.length` in hash signature — any text change forces re-seeding
+- All 14 hardcoded fallback prompts synced with actual `prompt.md` source files
+- Parity test updated with corrected `default-audit-spec` id
+- Version bump: 2.111.0 → 2.112.0 (all version files synced)
+
+---
+
 ## [v2.111.0] — 2026-04-07
 
 ### Fixed
