@@ -163,7 +163,7 @@ function handlePageMessage(event: MessageEvent): void {
     const isWithinRateLimit = checkRateLimit();
 
     if (!isWithinRateLimit) {
-        console.warn("[Marco Relay] Rate limit exceeded, dropping message");
+        console.warn(`[Marco Relay] Rate limit exceeded, dropping message type="${messageType}" from source="${String(data.source ?? "unknown")}". Too many messages in sliding window.`);
         postResponseToPage(requestId, {
             isOk: false,
             errorMessage: "Relay rate limit exceeded",
