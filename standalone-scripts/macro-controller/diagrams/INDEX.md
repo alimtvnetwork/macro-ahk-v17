@@ -115,3 +115,25 @@ Full extension lifecycle from Chrome install through page injection to runtime e
 How page scripts (MAIN world), the relay content script (ISOLATED world), and the background service worker communicate: Window.PostMessage bridges the page↔CS gap, Chrome.Runtime.SendMessage bridges CS↔background, with CorrelationId-based response matching for async request/response patterns.
 
 ![Message Relay Architecture](images/message-relay-architecture.png)
+
+---
+
+## 10. Injection Pipeline Workflow
+
+**File:** [`injection-pipeline-workflow.mmd`](injection-pipeline-workflow.mmd)  
+**Image:** [`images/injection-pipeline-workflow.png`](images/injection-pipeline-workflow.png)
+
+Full injection pipeline from "Run Scripts" click through 6 stages: builtin guard, dependency resolution, parallel bootstrap (namespace + relay + token seeding), script wrapping with isolation, CSP-aware execution (MAIN world blob, userScripts API, or ISOLATED fallback), namespace injection, and post-injection verification of 6 globals.
+
+![Injection Pipeline Workflow](images/injection-pipeline-workflow.png)
+
+---
+
+## 11. Copy Injection Logs Workflow
+
+**File:** [`copy-injection-logs-workflow.mmd`](copy-injection-logs-workflow.mmd)  
+**Image:** [`images/copy-injection-logs-workflow.png`](images/copy-injection-logs-workflow.png)
+
+Copy Injection Logs button workflow: 5 parallel background fetches via Promise.allSettled (errors, logs, status, health, tab injections), report assembly into 6 sections (header, errors, filtered logs, verification, health, status snapshot), clipboard write, and toast feedback. No retry logic — if a fetch fails, the report includes remaining data.
+
+![Copy Injection Logs Workflow](images/copy-injection-logs-workflow.png)
