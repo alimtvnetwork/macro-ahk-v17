@@ -17,6 +17,7 @@
 10. [Injection Pipeline Workflow](#10-injection-pipeline-workflow) — Full Run Scripts pipeline from click to page execution
 11. [Copy Injection Logs Workflow](#11-copy-injection-logs-workflow) — Copy button data gathering and report generation
 12. [Auth Token Seeding Workflow](#12-auth-token-seeding-workflow) — Extension boot to bearer token resolution and seeding
+13. [Message Relay Workflow](#13-message-relay-workflow) — Full request/response and broadcast flow through the 3-tier relay
 
 ---
 
