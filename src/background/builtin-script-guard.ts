@@ -271,10 +271,10 @@ async function seedMissingBuiltinsDirectly(
                     logBgWarnError(BgLogTag.BUILTIN_GUARD_FALLBACK, `Script file returned empty/tiny response\n  Path: ${scriptAbsUrl}\n  Missing: Valid script code for "${scriptName}" (got ${code?.length ?? 0} chars, minimum 10 required)\n  Reason: Server returned near-empty response — build artifact may be corrupt or a placeholder`);
                 }
             } else {
-                logBgWarnError(BgLogTag.BUILTIN_GUARD_FALLBACK, `Script file HTTP ${scriptResp.status} for ${scriptName} — URL: ${scriptAbsUrl}`);
+                logBgWarnError(BgLogTag.BUILTIN_GUARD_FALLBACK, `Script file fetch returned non-OK\n  Path: ${scriptAbsUrl}\n  Missing: Script code for "${scriptName}"\n  Reason: HTTP ${scriptResp.status} — file may not exist in dist/ or web_accessible_resources`);
                 void persistInjectionWarn(
                     "BUILTIN_GUARD_SCRIPT_FILE_MISSING",
-                    `[builtin-guard:fallback] Script file not found for ${scriptName}: HTTP ${scriptResp.status} at ${scriptAbsUrl}`,
+                    `[builtin-guard:fallback] Script file not found\n  Path: ${scriptAbsUrl}\n  Missing: "${scriptName}" built-in script\n  Reason: HTTP ${scriptResp.status}`,
                 );
             }
         } catch (fetchErr) {
