@@ -329,6 +329,7 @@ function formatSkipReason(reason?: string): string {
     handleDbImport,
     handleRun,
     handleReinject,
+    handleForceRun,
     lastRunResults,
     handleConfirmImport,
     handleCancelImport,
