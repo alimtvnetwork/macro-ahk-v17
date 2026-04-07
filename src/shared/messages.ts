@@ -355,7 +355,7 @@ export type MessageRequest =
     | { type: MessageType.SAVE_CONFIG; config: unknown }
     | { type: MessageType.DELETE_CONFIG; id: string }
     | { type: MessageType.GET_SCRIPT_CONFIG; scriptId: string; configId?: string }
-    | { type: MessageType.INJECT_SCRIPTS; tabId: number; scripts: unknown[] }
+    | { type: MessageType.INJECT_SCRIPTS; tabId: number; scripts: unknown[]; forceReload?: boolean }
     | { type: MessageType.GET_TAB_INJECTIONS; tabId: number }
     | { type: MessageType.GET_ACTIVE_ERRORS }
     | { type: MessageType.CLEAR_ERRORS }
