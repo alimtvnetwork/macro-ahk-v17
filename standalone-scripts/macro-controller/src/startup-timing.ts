@@ -101,6 +101,17 @@ export function logTimingSummary(): void {
 
   lines.push('├──────────────────────────┴────────┴────────┴────────┴──────────┤');
   lines.push('│  Total: ' + totalMs + 'ms | Phases: ' + entries.length + '                                       │'.substring(0, 55) + '│');
+
+  // Append version number for quick identification in console
+  try {
+    const ext = (window as unknown as Record<string, Record<string, Record<string, Record<string, Record<string, string>>>>>)
+      ?.RiseupAsiaMacroExt?.Projects?.MacroController?.meta;
+    const ver = ext?.version || '?';
+    lines.push('│  Version: v' + ver + '                                                    │'.substring(0, 55) + '│');
+  } catch {
+    // Version unavailable — skip
+  }
+
   lines.push('└─────────────────────────────────────────────────────────────────┘');
 
   console.log(lines.join('\n'));

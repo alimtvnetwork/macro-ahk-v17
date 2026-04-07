@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.111.0] — 2026-04-07
+
+### Fixed
+- **ROOT CAUSE**: Large prompts (e.g., `Unit Test Issues V2 Enhanced`, 5689 chars) not appearing in dropdown — missing from both `DEFAULT_PROMPTS` (prompt-loader.ts) and `getFallbackDefaultPrompts()` (prompt-handler.ts) fallback lists
+- `normalizePromptEntries()` silently dropped entries with empty name/text — now logs diagnostic warnings with entry id, slug, and reason for drop
+
+### Added
+- `Unit Test Issues V2 Enhanced` prompt added to all fallback prompt lists (14 → 15 entries)
+- Diagnostic warning logs in `normalizePromptEntries()` when entries are dropped (aids future debugging)
+- Version number displayed in startup timing waterfall summary footer (`v2.111.0`)
+- Defensive integration test (`task-next-no-fallback.test.ts`) verifying no `entries[0]` fallback regression
+
+### Changed
+- Version bump: 2.110.0 → 2.111.0 (all version files synced)
+
+---
+
 ## [v2.110.0] — 2026-04-07
 
 ### Added
