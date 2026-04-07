@@ -93,6 +93,12 @@ export async function handleInjectScripts(
 
     console.log("[injection] ── PIPELINE START ── tabId=%d, raw scripts=%d", msg.tabId, msg.scripts.length);
 
+    // Show loading spinner toast at start of injection
+    const toastEnabledEarly = await isInjectionToastEnabled();
+    if (toastEnabledEarly) {
+        void showInjectionLoadingToast(msg.tabId, msg.scripts.length).catch(() => {});
+    }
+
     // ✅ 15.2: Read all projects ONCE, pass to all consumers
     const allProjects = await time("readAllProjects", () =>
         readAllProjects().catch(() => [] as StoredProject[]));
@@ -1147,6 +1153,10 @@ async function showInjectionToastInTab(
             func: (ok: number, total: number, ms: number, version: string) => {
                 const msg = `✅ Marco v${version} — ${ok}/${total} scripts injected (${ms}ms)`;
 
+                // Dismiss loading toast first
+                const loader = document.getElementById("__marco-inject-toast-loading");
+                if (loader) { loader.style.opacity = "0"; loader.style.transform = "translateY(8px) scale(0.96)"; setTimeout(() => loader.remove(), 300); }
+
                 // Try SDK toast first
                 const m = (window as any).marco;
                 if (m?.notify?.success) {
@@ -1247,6 +1257,10 @@ async function showInjectionFailureToastInTab(
             func: (names: string[], failed: number, total: number, ms: number, version: string) => {
                 const nameList = names.length <= 3 ? names.join(", ") : names.slice(0, 3).join(", ") + ` +${names.length - 3} more`;
                 const msg = `❌ Marco v${version} — ${failed}/${total} scripts failed (${ms}ms)\n${nameList}`;
+
+                // Dismiss loading toast first
+                const loader = document.getElementById("__marco-inject-toast-loading");
+                if (loader) { loader.style.opacity = "0"; loader.style.transform = "translateY(8px) scale(0.96)"; setTimeout(() => loader.remove(), 300); }
 
                 // Try SDK toast first
                 const m = (window as any).marco;
@@ -1408,7 +1422,84 @@ async function verifyPostInjectionGlobals(tabId: number): Promise<void> {
                 `sdk=${r.marcoSdk} ext=${r.extRoot} mc=${r.mcClass} instance=${r.mcInstance} ui=${r.uiContainer}\n` +
                 `Verify stack: ${r.verifyStack}`,
             );
-        }
+}
+
+/**
+ * Shows a loading spinner toast while injection is in progress.
+ */
+async function showInjectionLoadingToast(tabId: number, scriptCount: number): Promise<void> {
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            world: "MAIN",
+            func: (count: number, version: string) => {
+                const CONTAINER_ID = "__marco-inject-toast";
+                let container = document.getElementById(CONTAINER_ID);
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = CONTAINER_ID;
+                    container.style.cssText = "position:fixed;bottom:20px;right:20px;z-index:2147483647;pointer-events:none;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;";
+                    (document.body || document.documentElement).appendChild(container);
+                }
+
+                const toast = document.createElement("div");
+                toast.id = "__marco-inject-toast-loading";
+                toast.style.cssText = [
+                    "pointer-events:auto",
+                    "display:flex",
+                    "align-items:center",
+                    "gap:8px",
+                    "padding:10px 16px",
+                    "border-radius:10px",
+                    "font-size:12px",
+                    "font-weight:500",
+                    "color:#bfdbfe",
+                    "background:linear-gradient(135deg,#1e3a5f 0%,#1e293b 100%)",
+                    "border:1px solid rgba(59,130,246,0.3)",
+                    "box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 0 1px rgba(59,130,246,0.1)",
+                    "opacity:0",
+                    "transform:translateY(12px) scale(0.96)",
+                    "transition:all 0.35s cubic-bezier(0.16,1,0.3,1)",
+                    "max-width:380px",
+                    "backdrop-filter:blur(12px)",
+                ].join(";") + ";";
+
+                // CSS spinner
+                const spinner = document.createElement("span");
+                spinner.style.cssText = "display:inline-block;width:14px;height:14px;border:2px solid rgba(147,197,253,0.3);border-top-color:#93c5fd;border-radius:50%;flex-shrink:0;";
+                const spinId = "__marco-spin-" + Date.now();
+                spinner.id = spinId;
+                const style = document.createElement("style");
+                style.textContent = `@keyframes __marco-spin{to{transform:rotate(360deg)}}#${spinId}{animation:__marco-spin 0.7s linear infinite}`;
+                toast.appendChild(style);
+
+                const body = document.createElement("span");
+                body.textContent = `Marco v${version} — injecting ${count} script${count !== 1 ? "s" : ""}…`;
+
+                toast.appendChild(spinner);
+                toast.appendChild(body);
+                container.appendChild(toast);
+
+                requestAnimationFrame(() => {
+                    toast.style.opacity = "1";
+                    toast.style.transform = "translateY(0) scale(1)";
+                });
+
+                // Safety: auto-dismiss after 10s if success/error toast never fires
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.style.opacity = "0";
+                        toast.style.transform = "translateY(8px) scale(0.96)";
+                        setTimeout(() => toast.remove(), 350);
+                    }
+                }, 10000);
+            },
+            args: [scriptCount, EXTENSION_VERSION],
+        });
+    } catch (e) {
+        logCaughtError(BgLogTag.INJECTION, "showInjectionLoadingToast failed", e);
+    }
+}
     } catch {
         // Verification is best-effort — never block the pipeline
     }
