@@ -69,6 +69,13 @@ function createStaticMenuItems(): void {
     });
 
     chrome.contextMenus.create({
+        id: MENU_ID.FORCE_RUN,
+        parentId: MENU_ID.ROOT,
+        title: "⚡ Force Run (bypass cache)",
+        contexts: ["all"],
+    });
+
+    chrome.contextMenus.create({
         id: MENU_ID.REINJECT,
         parentId: MENU_ID.ROOT,
         title: "🔄 Re-inject Scripts",
