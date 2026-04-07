@@ -162,12 +162,16 @@ function buildInjectionReport(
     }
   }
 
-  // Status snapshot
+  // Extension status (version, boot step, persistence mode, etc.)
   sections.push("");
-  sections.push("── STATUS SNAPSHOT ───────────────────────");
+  sections.push("── EXTENSION STATUS ─────────────────────");
   if (status) {
     const { bootTimings, ...rest } = status as Record<string, unknown> & { bootTimings?: unknown };
-    sections.push(`  ${JSON.stringify(rest, null, 2).replace(/\n/g, "\n  ")}`);
+    const keys = Object.entries(rest);
+    for (const [key, value] of keys) {
+      const display = typeof value === "object" ? JSON.stringify(value) : String(value ?? "—");
+      sections.push(`  ${key}: ${display}`);
+    }
   } else {
     sections.push("  (status unavailable)");
   }
