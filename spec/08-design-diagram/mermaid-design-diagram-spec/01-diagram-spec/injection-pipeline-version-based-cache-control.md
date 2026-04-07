@@ -29,34 +29,76 @@ One single cache entry exists at a time. When a new version is stored, the previ
 ## Cache Decision Flow
 
 ```
-Start pipeline
+Start pipeline (mode = normal | forceReload)
   |
   v
-Read current version: chrome.runtime.getManifest().version
+Check forceReload flag
   |
-  v
-Open IndexedDB store: marco_injection_cache
-  |
-  v
-Look up entry by version key
-  |
-  +-- Entry found AND version matches current
-  |     LOG INFO: [cache] HIT version=X.Y.Z, payload=N bytes
-  |     Skip Stages 0-3, jump to Stage 4 (Execute in Tab)
-  |
-  +-- Entry found BUT version does NOT match
-  |     LOG INFO: [cache] VERSION MISMATCH cached=A.B.C current=X.Y.Z — rebuilding
-  |     Delete stale entry
+  +-- forceReload = true (user clicked "Force Run Scripts")
+  |     LOG INFO: [cache] FORCE RUN — cache bypassed by user
+  |     Delete cached entry if exists
   |     Run Stages 0-3, store new payload under current version
   |
-  +-- No entry exists (cache empty or cleared)
-  |     LOG INFO: [cache] MISS — no cached payload found, rebuilding
-  |     Run Stages 0-3, store new payload under current version
-  |
-  +-- Entry exists but payload is unreadable/corrupt
-        LOG ERROR: [cache] CORRUPT — cached payload unreadable, rebuilding
-        Delete corrupt entry
-        Run Stages 0-3, store new payload under current version
+  +-- forceReload = false (user clicked "Run Scripts")
+        |
+        v
+      Read current version: chrome.runtime.getManifest().version
+        |
+        v
+      Open IndexedDB store: marco_injection_cache
+        |
+        v
+      Look up entry by version key
+        |
+        +-- Entry found AND version matches current
+        |     LOG INFO: [cache] HIT version=X.Y.Z, payload=N bytes
+        |     Skip Stages 0-3, jump to Stage 4 (Execute in Tab)
+        |
+        +-- Entry found BUT version does NOT match
+        |     LOG INFO: [cache] VERSION MISMATCH cached=A.B.C current=X.Y.Z — rebuilding
+        |     Delete stale entry
+        |     Run Stages 0-3, store new payload under current version
+        |
+        +-- No entry exists (cache empty or cleared)
+        |     LOG INFO: [cache] MISS — no cached payload found, rebuilding
+        |     Run Stages 0-3, store new payload under current version
+        |
+        +-- Entry exists but payload is unreadable/corrupt
+              LOG ERROR: [cache] CORRUPT — cached payload unreadable, rebuilding
+              Delete corrupt entry
+              Run Stages 0-3, store new payload under current version
+```
+
+---
+
+## Force Run (Manual Cache Bypass)
+
+The popup provides **two buttons**:
+
+| Button | Behavior |
+|--------|----------|
+| **Run Scripts** | Normal path — uses cache if version matches |
+| **Force Run Scripts** | Always bypasses cache, deletes existing entry, rebuilds from Stages 0-3 |
+
+### When to use Force Run
+
+- When the user suspects cached data is stale or incorrect
+- After manual script edits that don't change the extension version
+- For debugging injection issues
+
+### Implementation
+
+```typescript
+// handleInjectScripts accepts a forceReload flag
+async function handleInjectScripts(tabId: number, forceReload = false) {
+  if (forceReload) {
+    await clearInjectionCache();
+    console.log("[cache] FORCE RUN — cache bypassed by user");
+    // Proceed directly to Stage 0a (skip cache gate)
+  } else {
+    // Normal cache decision gate
+  }
+}
 ```
 
 ---
@@ -152,6 +194,7 @@ Write-Host "[deploy] Injection cache invalidation complete"
 | Cache MISS (corrupt) | ERROR | `[cache] CORRUPT — cached payload unreadable, rebuilding` |
 | Cache stored | INFO | `[cache] Stored payload for version=${ver}, size=${n} bytes` |
 | Deploy invalidation | INFO | `[deploy] Injection cache cleared on ${reason}` |
+| Force Run bypass | INFO | `[cache] FORCE RUN — cache bypassed by user` |
 | Manual invalidation | INFO | `[cache] Manual invalidation by user` |
 
 All logs are mirrored to:

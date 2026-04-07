@@ -12,14 +12,26 @@ graph TD
     classDef cache fill:#14B8A6,color:#fff,stroke:#0D9488,stroke-width:2px
 
     A["User clicks Run Scripts in popup"]:::userAction
-    A --> B["handleInjectScripts -- Pipeline Orchestrator"]:::stage
+    AF["User clicks Force Run Scripts in popup"]:::userAction
+
+    A --> B["handleInjectScripts -- Pipeline Orchestrator<br/>mode = normal"]:::stage
+    AF --> BF["handleInjectScripts -- Pipeline Orchestrator<br/>mode = forceReload"]:::stage
+
     B -. "1. Record performance.now start<br/>2. Query active tab via chrome.tabs<br/>3. Log INFO: pipeline START tabId, url, scriptCount" .-> BNOTE["Orchestrator entry point.<br/>All stages sequential except<br/>where marked parallel."]:::note
+    BF -. "Same orchestrator but forceReload=true.<br/>LOG INFO: FORCE RUN -- cache bypassed by user." .-> BFNOTE["Force Run always rebuilds<br/>from scratch. Useful when<br/>cached data seems stale."]:::note
 
     B --> TOAST["Inject loading spinner toast into tab<br/>Fixed overlay: spinner + Injecting scripts..."]:::process
+    BF --> TOAST
     TOAST -. "Visible during entire pipeline.<br/>Replaced by result toast at end." .-> TOASTNOTE["User sees immediate feedback<br/>that injection has started."]:::note
 
+    %% ===== FORCE RUN BYPASS =====
+    TOAST --> FORCECHECK{"forceReload flag set?"}:::decision
+    FORCECHECK -- "Yes: Force Run" --> FORCECLEAR["Delete cached entry if exists<br/>LOG: Force reload -- cache cleared"]:::cache
+    FORCECLEAR --> GUARD
+    FORCECHECK -- "No: Normal Run" --> CACHEVER
+
     %% ===== CACHE GATE =====
-    TOAST --> CACHEVER["Read current version from manifest"]:::cache
+    CACHEVER["Read current version from manifest"]:::cache
     CACHEVER --> CACHE{"Cache Decision Gate<br/>IndexedDB: marco_injection_cache<br/>Lookup by version key"}:::cache
     CACHE -. "Key = manifest version string only.<br/>No hashing. No content comparison.<br/>Single entry for entire payload." .-> CACHENOTE["Version source:<br/>chrome.runtime.getManifest().version<br/>Same as EXTENSION_VERSION constant."]:::note
 
