@@ -884,11 +884,13 @@ async function prependDependencyScripts(callerScripts: unknown[], allProjects: S
         }
     }
 
-    // Safety net: the click-injection path depends on marco-sdk for window.marco
-    // toasts/auth APIs even when project metadata is stale or incomplete.
-    const marcoSdkProject = allProjects.find((p) => p.id === "marco-sdk");
-    if (marcoSdkProject && marcoSdkProject.id !== activeId) {
-        relevantIds.add(marcoSdkProject.id);
+    // Safety net: manual/click injection can still run against stale project metadata.
+    // Ensure the built-in dependency chain is always recoverable for Macro Controller.
+    for (const requiredProjectId of ["marco-sdk", "xpath"]) {
+        const requiredProject = allProjects.find((p) => p.id === requiredProjectId);
+        if (requiredProject && requiredProject.id !== activeId) {
+            relevantIds.add(requiredProject.id);
+        }
     }
 
     // Step 3: Build ProjectNode array for topological sort
@@ -913,6 +915,25 @@ async function prependDependencyScripts(callerScripts: unknown[], allProjects: S
         return [...collectGlobalScripts(globalProjects), ...callerScripts];
     }
 
+    const callerScriptKeys = new Set(
+        callerScripts
+            .map(getScriptIdentity)
+            .filter((value): value is string => value !== null),
+    );
+
+    const projectOrderIndex = new Map<string, number>();
+    for (const [index, projectId] of resolution.order.entries()) {
+        projectOrderIndex.set(projectId, index);
+    }
+
+    const scriptKeyToProjectId = new Map<string, string>();
+    for (const project of allProjects) {
+        if (!relevantIds.has(project.id)) continue;
+        for (const script of project.scripts ?? []) {
+            scriptKeyToProjectId.set(normalizeScriptIdentity(script.path), project.id);
+        }
+    }
+
     // Step 4: Collect scripts in resolved order (skip active project)
     const depScripts: unknown[] = [];
     for (const projectId of resolution.order) {
@@ -921,10 +942,13 @@ async function prependDependencyScripts(callerScripts: unknown[], allProjects: S
         if (!depProject?.scripts?.length) continue;
 
         const baseOrder = -1000 + depScripts.length;
-        for (const script of depProject.scripts) {
+        for (const [scriptIndex, script] of depProject.scripts.entries()) {
+            if (callerScriptKeys.has(normalizeScriptIdentity(script.path))) {
+                continue;
+            }
             depScripts.push({
                 ...script,
-                order: baseOrder + script.order,
+                order: baseOrder + (script.order ?? scriptIndex),
             });
         }
 
@@ -936,10 +960,29 @@ async function prependDependencyScripts(callerScripts: unknown[], allProjects: S
 
     if (depScripts.length === 0) return callerScripts;
 
+    const reorderedCallerScripts = callerScripts.map((script, index) => {
+        if (!isScriptEntryLike(script)) return script;
+
+        const scriptKey = getScriptIdentity(script);
+        if (!scriptKey) return script;
+
+        const projectId = scriptKeyToProjectId.get(scriptKey);
+        const projectRank = projectId !== undefined
+            ? projectOrderIndex.get(projectId)
+            : undefined;
+
+        if (projectRank === undefined) return script;
+
+        return {
+            ...script,
+            order: projectRank * 1000 + (script.order ?? index),
+        };
+    });
+
     console.log("[injection:deps] Total: %d dependency scripts + %d caller scripts",
         depScripts.length, callerScripts.length);
 
-    return [...depScripts, ...callerScripts];
+    return [...depScripts, ...reorderedCallerScripts];
 }
 
 /** Fallback: collects scripts from global projects when topological sort fails. */
@@ -953,6 +996,30 @@ function collectGlobalScripts(globalProjects: StoredProject[]): unknown[] {
         }
     }
     return scripts;
+}
+
+function isScriptEntryLike(value: unknown): value is { path?: string; id?: string; name?: string; order?: number } {
+    return typeof value === "object" && value !== null;
+}
+
+function getScriptIdentity(value: unknown): string | null {
+    if (!isScriptEntryLike(value)) return null;
+
+    const candidate = typeof value.path === "string"
+        ? value.path
+        : typeof value.id === "string"
+            ? value.id
+            : typeof value.name === "string"
+                ? value.name
+                : null;
+
+    return candidate ? normalizeScriptIdentity(candidate) : null;
+}
+
+function normalizeScriptIdentity(value: string): string {
+    const normalized = value.trim().toLowerCase().replace(/\\/g, "/");
+    const fileName = normalized.split("/").pop() ?? normalized;
+    return fileName.split(/[?#]/)[0] ?? fileName;
 }
 
 /* ------------------------------------------------------------------ */

@@ -19,11 +19,12 @@ All critical AHK features implemented. 44 issue write-ups documented. 26 enginee
 
 - Fixed click-injection ordering bug: if any script in the resolved chain has CSS, the injector now preserves full dependency order sequentially instead of executing non-CSS deps out of order.
 - Added marco-sdk as an explicit macro-controller dependency so `window.marco` toast/auth APIs are guaranteed on manual inject.
+- Fixed manual-run dependency recovery so `xpath` is forced ahead of `macro-looping` even when stored project metadata or popup ordering is stale.
 - Improved session log read failures to print the exact missing OPFS path: `session-logs/session-<id>`.
 - Fixed false-positive injection success by restoring macro-controller startup recovery hooks and re-registering the controller singleton in `api.mc`.
 - Fixed cross-database `Sessions` lookups that caused repeated `no such table: Sessions` errors in error/user-script logging paths.
 - Blocked built-in scripts from falling back to stale embedded storage code when bundled recovery fails.
-- Unified extension/runtime script version to `2.97.0`. 
+- Unified extension/runtime script version to `2.98.0`. 
 
 ---
 
