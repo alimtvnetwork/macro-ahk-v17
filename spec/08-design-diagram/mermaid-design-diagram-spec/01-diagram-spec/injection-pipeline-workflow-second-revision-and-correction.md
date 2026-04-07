@@ -50,16 +50,19 @@ When the user clicks **Run Scripts** in the popup:
 
 Before running the full pipeline, check the **IndexedDB injection cache** (`marco_injection_cache` store):
 
-1. Compute a cache key from: extension version + project config hash + script content hashes
-2. Look up the key in IndexedDB
-3. **Cache HIT**: The fully prepared, wrapped, concatenated injection payload is available. Skip Stages 0–3 entirely. Jump directly to Stage 4 (execution). Log: `[cache] HIT — reusing cached payload, key=<hash>` (INFO)
-4. **Cache MISS**: Proceed through Stages 0–3 normally. After Stage 3 produces the final payload, store it in IndexedDB with the cache key. Log: `[cache] MISS — building fresh payload` (INFO)
+1. The cache key is the **extension version string** only (e.g. `"2.5.0"`). No hashing is needed.
+2. Look up the key in IndexedDB.
+3. **Cache HIT**: The fully prepared, wrapped, concatenated injection payload is available. Skip Stages 0–3 entirely. Jump directly to Stage 4 (execution). Log: `[cache] HIT — reusing cached payload, version=<ver>` (INFO)
+4. **Cache MISS**: Either no cache exists or the stored version doesn't match the current extension version. Proceed through Stages 0–3 normally. After Stage 3 produces the final payload, store it in IndexedDB keyed by the current version string. Log: `[cache] MISS — building fresh payload` (INFO)
 5. **Cache INVALIDATION**: The cache is cleared on:
-   - Extension install or update (`chrome.runtime.onInstalled`)
-   - User clicking "Invalidate Cache" in popup
-   - Any `chrome.storage.local` change to script code
+   - **Deploy**: The deploy script (PowerShell `run.ps1`) must clear the IndexedDB `marco_injection_cache` store as part of the deployment process. This ensures the next injection rebuilds with fresh artifacts.
+   - Extension install or update (`chrome.runtime.onInstalled`) — calls `invalidateCacheOnDeploy()` which clears all IndexedDB entries.
+   - User clicking "Invalidate Cache" in popup.
+   - Any extension version change (cache key simply won't match).
 
-This avoids rebuilding the entire wrapped payload on every injection when nothing has changed.
+**Deploy Integration**: The PowerShell deploy script should send an `INVALIDATE_CACHE` message to the extension background or call `chrome.storage.local.remove` for the cache keys, ensuring cached payloads are never stale after a new build is deployed.
+
+This avoids rebuilding the entire wrapped payload on every injection when the version hasn't changed.
 
 ---
 

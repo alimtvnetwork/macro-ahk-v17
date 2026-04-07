@@ -85,8 +85,8 @@ graph TD
     WRAP --> COMBINE["Join all wrapped IIFEs into one string:<br/>IIFE1 + newline + IIFE2 + newline + IIFE3<br/>Single string passed to Stage 4"]:::process
     COMBINE -. "LOG INFO: Combined payload size N bytes<br/>LOG INFO: N scripts prepared" .-> COMBINENOTE["One string = one executeScript call<br/>= one IPC round-trip to tab"]:::note
 
-    COMBINE --> STORECACHE["Store payload in IndexedDB cache<br/>key = version + config + script hashes"]:::cache
-    STORECACHE -. "LOG INFO: Cached payload stored" .-> STORENOTE["Next injection with same inputs<br/>will skip Stages 0-3 entirely."]:::note
+    COMBINE --> STORECACHE["Store payload in IndexedDB cache<br/>key = extension version string"]:::cache
+    STORECACHE -. "LOG INFO: Cached payload stored for version X.Y.Z<br/>Deploy clears this cache automatically." .-> STORENOTE["Next injection with same version<br/>will skip Stages 0-3 entirely.<br/>Deploy or version change = rebuild."]:::note
     STORECACHE --> EXEC
 
     %% ===== STAGE 4 =====
