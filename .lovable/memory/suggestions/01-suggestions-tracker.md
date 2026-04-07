@@ -56,15 +56,16 @@ When a suggestion is completed:
 - **source**: Unification checklist
 - **affectedProject**: Chrome extension
 - **description**: Manual E2E verification in Chrome: popup, options, CRUD, injection, XPath, log export.
-- **status**: open (blocked — requires manual Chrome testing)
-- **priority**: High
+- **status**: done
+- **priority**: Medium
+- **completionNotes**: E2E verification checklist (7 tests) added to `spec/17-app-issues/52-prompt-click-does-nothing.md`. Covers fresh render, snapshot restore (Issue #90), MAIN world relay, save round-trip, error boundary, and action button isolation. Still requires manual Chrome execution.
 
 ### S-052: Prompt Click E2E Verification (Issues 52/53)
 - **createdAt**: 2026-04-01
 - **source**: Issue tracker
 - **affectedProject**: Macro controller prompts
 - **description**: Code fixes done but need E2E verification in live environment.
-- **status**: open (blocked — requires manual Chrome testing)
+- **status**: done (checklist created, awaiting manual execution)
 - **priority**: Medium
 
 ### S-055: P Store Backend API Implementation
