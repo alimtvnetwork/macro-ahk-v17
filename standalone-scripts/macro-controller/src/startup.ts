@@ -87,37 +87,11 @@ export function bootstrap(deps: {
   setupDiagnosticDump();
 
   // ── T2 (RC-02): Show standalone DOM toast IMMEDIATELY ──
-  // This renders before the SDK is available, giving instant user feedback.
   showStartupToast(VERSION);
 
-  // Place marker
-  const marker = document.createElement('div');
-  marker.id = IDS.SCRIPT_MARKER;
-  marker.style.display = 'none';
-  marker.setAttribute('data-version', VERSION);
-  document.body.appendChild(marker);
-
-  // Register window globals + namespace dual-write (Issue 79 Phase 9A)
-  dualWriteAll([
-    ['__loopStart', 'api.loop.start', startLoop as (direction?: string) => void],
-    ['__loopStop', 'api.loop.stop', stopLoop],
-    ['__loopCheck', 'api.loop.check', deps.runCheck],
-    ['__loopState', 'api.loop.state', function () { return state; }],
-    ['__loopSetInterval', 'api.loop.setInterval', deps.setLoopInterval],
-    ['__loopToast', 'api.ui.toast', showToast],
-    ['__delegateComplete', '_internal.delegateComplete', deps.delegateComplete],
-    ['__setProjectButtonXPath', 'api.config.setProjectButtonXPath', deps.updateProjectButtonXPath],
-    ['__setProgressXPath', 'api.config.setProgressXPath', deps.updateProgressXPath],
-  ]);
-
-  // Log workspace cache source for diagnostics
-  const cachedName = getCachedWorkspaceName();
-  const projectId = extractProjectIdFromUrl() || '(unknown)';
-  if (state.workspaceFromCache && cachedName) {
-    log('Startup: 📦 Workspace name loaded from cache: "' + cachedName + '" (project: ' + projectId + ')', 'info');
-  } else {
-    log('Startup: 🔍 No cached workspace — will resolve from API (project: ' + projectId + ')', 'info');
-  }
+  _placeScriptMarker();
+  _registerGlobals(deps);
+  _logWorkspaceCacheStatus();
 
   // Also queue an SDK toast (will show once SDK loads, or be deduped)
   showToast('MacroLoop v' + VERSION + ' loading workspace...', 'info', { noStop: true });
@@ -138,12 +112,51 @@ export function bootstrap(deps: {
   (state as unknown as Record<string, unknown>).__uiTimeoutId = uiCreationTimeout;
 
   // ── Background data loading ──
-  // Pre-warm prompts (populates IndexedDB so dropdown opens instantly)
-  // RC-04 fix: Retry SDK pre-warm if SDK not yet available, with fallback to direct loader
   timingStart(PROMPT_PREWARM, 'Prompt Pre-warm');
   _preWarmPrompts(0);
 
   loadWorkspacesOnStartup();
+}
+
+/** Places the hidden script marker element on the page. */
+function _placeScriptMarker(): void {
+  const marker = document.createElement('div');
+  marker.id = IDS.SCRIPT_MARKER;
+  marker.style.display = 'none';
+  marker.setAttribute('data-version', VERSION);
+  document.body.appendChild(marker);
+}
+
+/** Registers window globals + namespace dual-write (Issue 79 Phase 9A). */
+function _registerGlobals(deps: {
+  runCheck: () => unknown;
+  setLoopInterval: (ms: number) => void;
+  delegateComplete: () => void;
+  updateProjectButtonXPath: (xpath: string) => void;
+  updateProgressXPath: (xpath: string) => void;
+}): void {
+  dualWriteAll([
+    ['__loopStart', 'api.loop.start', startLoop as (direction?: string) => void],
+    ['__loopStop', 'api.loop.stop', stopLoop],
+    ['__loopCheck', 'api.loop.check', deps.runCheck],
+    ['__loopState', 'api.loop.state', function () { return state; }],
+    ['__loopSetInterval', 'api.loop.setInterval', deps.setLoopInterval],
+    ['__loopToast', 'api.ui.toast', showToast],
+    ['__delegateComplete', '_internal.delegateComplete', deps.delegateComplete],
+    ['__setProjectButtonXPath', 'api.config.setProjectButtonXPath', deps.updateProjectButtonXPath],
+    ['__setProgressXPath', 'api.config.setProgressXPath', deps.updateProgressXPath],
+  ]);
+}
+
+/** Logs workspace cache source for diagnostics. */
+function _logWorkspaceCacheStatus(): void {
+  const cachedName = getCachedWorkspaceName();
+  const projectId = extractProjectIdFromUrl() || '(unknown)';
+  if (state.workspaceFromCache && cachedName) {
+    log('Startup: 📦 Workspace name loaded from cache: "' + cachedName + '" (project: ' + projectId + ')', 'info');
+  } else {
+    log('Startup: 🔍 No cached workspace — will resolve from API (project: ' + projectId + ')', 'info');
+  }
 }
 
 /**
