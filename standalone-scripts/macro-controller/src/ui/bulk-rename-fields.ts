@@ -45,6 +45,7 @@ export interface PresetRowResult {
 
 // ── Preset Row ──
 
+// eslint-disable-next-line max-lines-per-function -- DOM builder with select, save, delete buttons
 export function buildPresetRow(
   presetNames: string[],
   activePresetName: string,

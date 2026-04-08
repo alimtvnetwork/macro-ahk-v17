@@ -40,7 +40,7 @@ const HELP_TOOLTIPS: Record<string, string> = {
     "The last token refresh attempt failed. This can happen if the session cookie expired or the target site is unreachable. Try logging in again on the target site.",
 };
 
-// eslint-disable-next-line max-lines-per-function
+// eslint-disable-next-line max-lines-per-function, sonarjs/cognitive-complexity -- auth diagnostics with conditional banners and tooltips
 export function AuthDiagnosticsBar() {
   const [expanded, setExpanded] = useState(false);
   const w = useTokenWatchdog();

@@ -219,7 +219,7 @@ function generateBuildMeta(): Plugin {
 function copyProjectScripts(): Plugin {
     return {
         name: "copy-project-scripts",
-        writeBundle() {
+        writeBundle() { // eslint-disable-line sonarjs/cognitive-complexity -- build plugin with filesystem branching
             const projectsBaseDir = resolve(DIST_DIR, "projects", "scripts");
             mkdirSync(projectsBaseDir, { recursive: true });
 

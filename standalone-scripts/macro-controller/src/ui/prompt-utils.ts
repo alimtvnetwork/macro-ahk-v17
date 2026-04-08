@@ -11,6 +11,7 @@ import { log, logSub } from '../logging';
 import type { PromptEntry, PromptsCfg } from '../types';
 
 // ── Prompt entry normalization ──
+// eslint-disable-next-line sonarjs/cognitive-complexity -- field-by-field validation with optional property copying
 export function normalizePromptEntries(entries: Partial<PromptEntry & { order?: number }>[]): PromptEntry[] {
   if (!Array.isArray(entries)) return [];
   const out: PromptEntry[] = [];

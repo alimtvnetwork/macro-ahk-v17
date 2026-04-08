@@ -977,5 +977,5 @@ function formatJson(input: unknown): string {
   try { return JSON.stringify(input ?? {}, null, 2); } catch { return "{}"; }
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+// eslint-disable-next-line react-refresh/only-export-components -- shared constants/components used by sibling modules
 export { RunAtSelect, RunAtLabel, RUN_AT_OPTIONS, FileDropZone };

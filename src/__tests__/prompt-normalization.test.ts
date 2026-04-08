@@ -19,7 +19,7 @@ interface PromptEntry {
   isDefault?: boolean;
 }
 
-function normalizePromptEntries(entries: Partial<PromptEntry & { order?: number }>[]): PromptEntry[] {
+function normalizePromptEntries(entries: Partial<PromptEntry & { order?: number }>[]): PromptEntry[] { // eslint-disable-line sonarjs/cognitive-complexity -- mirrors production logic for regression coverage
   if (!Array.isArray(entries)) return [];
   const out: PromptEntry[] = [];
   for (const p of entries) {

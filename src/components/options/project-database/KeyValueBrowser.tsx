@@ -40,6 +40,7 @@ interface KvEntry {
   UpdatedAt: string;
 }
 
+// eslint-disable-next-line max-lines-per-function -- CRUD browser with table, dialog, filtering, and inline editing
 export function KeyValueBrowser({ projectSlug }: KeyValueBrowserProps) {
   const [entries, setEntries] = useState<KvEntry[]>([]);
   const [loading, setLoading] = useState(true);

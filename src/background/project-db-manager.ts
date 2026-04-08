@@ -121,7 +121,7 @@ export async function initProjectDb(slug: string, extraSchema?: string): Promise
  * Converts a DefaultDatabaseDef column list into a CREATE TABLE IF NOT EXISTS
  * SQL statement and seeds the ProjectDatabases registry row.
  */
-function ensureDefaultDatabases(db: SqlJsDatabase, slug: string): void {
+function ensureDefaultDatabases(db: SqlJsDatabase, slug: string): void { // eslint-disable-line sonarjs/cognitive-complexity -- nested try/catch for DDL + registry is inherent
     for (const def of DEFAULT_PROJECT_DATABASES) {
         // Create each table from the definition
         for (const tableDef of def.schema.tables) {

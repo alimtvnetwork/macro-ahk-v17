@@ -164,6 +164,7 @@ function writeRenamePresetState(projectKey: string, state: RenamePresetState): v
 let cachedPresetStore: RenamePresetStore | null = null;
 let cachedPresetProjectKey = '';
 
+// eslint-disable-next-line max-lines-per-function -- factory returning store interface with 6 async methods
 export function getRenamePresetStore(): RenamePresetStore {
   const projectKey = resolveRenamePresetProjectKey();
   if (cachedPresetStore && cachedPresetProjectKey === projectKey) {

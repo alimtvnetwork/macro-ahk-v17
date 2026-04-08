@@ -35,6 +35,7 @@ const ICONS: Record<string, typeof KeyRound> = {
   ProjectMeta: Settings2,
 };
 
+// eslint-disable-next-line max-lines-per-function -- status grid with expandable cards and inline browsers
 export function DefaultDatabasesStatus({ projectSlug }: DefaultDatabasesStatusProps) {
   const [statuses, setStatuses] = useState<DbStatus[]>(
     DEFAULT_PROJECT_DATABASES.map((d) => ({
@@ -104,6 +105,7 @@ export function DefaultDatabasesStatus({ projectSlug }: DefaultDatabasesStatusPr
       </div>
 
       <div className="grid grid-cols-2 gap-2">
+        {/* eslint-disable-next-line max-lines-per-function -- card renderer with expandable sections */}
         {statuses.map((status) => {
           const def = DEFAULT_PROJECT_DATABASES.find((d) => d.databaseName === status.name);
           const Icon = ICONS[status.name] ?? KeyRound;

@@ -30,6 +30,7 @@ interface ErrorModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// eslint-disable-next-line max-lines-per-function -- diagnostic modal with collapsible sections and copy actions
 export function ErrorModal({ error, open, onOpenChange }: ErrorModalProps) {
   const [copied, setCopied] = useState(false);
   const [showStack, setShowStack] = useState(false);

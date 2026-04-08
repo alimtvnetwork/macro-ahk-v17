@@ -142,6 +142,7 @@ async function _autoSave(inputs: RenameInputsResult): Promise<void> {
 }
 
 // ── Init preset UI (async) ──
+// eslint-disable-next-line max-lines-per-function -- preset CRUD orchestration with async store + DOM wiring
 async function _initPresetUi(body: HTMLElement, inputs: RenameInputsResult): Promise<void> {
   const store = getRenamePresetStore();
   const presetNames = await store.listPresets();

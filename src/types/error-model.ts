@@ -35,6 +35,7 @@ export interface ErrorModel {
 }
 
 /** Creates an ErrorModel from a caught error and context. */
+// eslint-disable-next-line max-lines-per-function -- flat property mapping, no branching complexity
 export function createErrorModel(
   error: unknown,
   context: {
@@ -82,6 +83,7 @@ function deriveErrorCode(message: string): string {
 }
 
 /** Formats an ErrorModel as a copyable text block for sharing. */
+// eslint-disable-next-line max-lines-per-function -- sequential line assembly, splitting would reduce readability
 export function formatErrorForClipboard(error: ErrorModel): string {
   const lines: string[] = [
     `## ${error.title}`,

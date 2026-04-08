@@ -37,6 +37,7 @@ interface CreateDatabaseFormProps {
   onCancel: () => void;
 }
 
+// eslint-disable-next-line max-lines-per-function -- form with validation, multiple fields, and async submission
 export function CreateDatabaseForm({
   projectSlug,
   userDbCount,

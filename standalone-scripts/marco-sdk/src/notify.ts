@@ -102,7 +102,6 @@ let _dedupTimer: ReturnType<typeof setInterval> | null = null;
 
 interface ToastColors { bg: string; border: string; icon: string; text: string; }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity -- theme color resolution with override merging
 function resolveColors(): Record<string, ToastColors> {
     let errorBg = "#3a1014", errorPale = "#fecaca";
     let warningBg = "#33260f", warningBorder = "#f59e0b", warningText = "#fde68a"; // eslint-disable-line prefer-const
