@@ -56,8 +56,8 @@ curl -fsSL https://github.com/riseup-asia/macro-ahk/releases/latest/download/ins
 
 | Flag | Description | Example |
 |------|-------------|---------|
-| `--version` | Pin a specific release | `--version v2.112.0` |
-| `--dir` | Custom install directory | `--dir ~/marco-extension/v2.112.0` |
+| `--version` | Pin a specific release | `--version v2.115.0` |
+| `--dir` | Custom install directory | `--dir ~/marco-extension/v2.115.0` |
 | `--repo` | Override GitHub repository | `--repo riseup-asia/macro-ahk` |
 
 ### Manual Install
