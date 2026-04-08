@@ -50,9 +50,8 @@ export function createErrorModel(
   const isError = error instanceof Error;
   const message = isError ? error.message : String(error);
   const stackTrace = isError ? error.stack : undefined;
-  const innerError = isError && (error as Record<string, unknown>).cause
-    ? String((error as Record<string, unknown>).cause)
-    : undefined;
+  const causeValue = isError ? (error as unknown as { cause?: unknown }).cause : undefined;
+  const innerError = causeValue ? String(causeValue) : undefined;
 
   return {
     title: context.title ?? `${context.operation} Failed`,
