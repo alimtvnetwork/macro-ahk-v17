@@ -35,7 +35,10 @@ import {
   cancelRename,
   getRenameAvgOpMs,
   getRenameDelayMs,
+  getRenamePresetStore,
+  createDefaultPreset,
   setRenameDelayMs,
+  type RenamePreset,
 } from '../workspace-rename';
 import { populateLoopWorkspaceDropdown } from '../ws-list-renderer';
 import {
@@ -46,11 +49,6 @@ import {
   buildTokenRow,
   buildPresetRow,
 } from './bulk-rename-fields';
-import {
-  getRenamePresetStore,
-  createDefaultPreset,
-  type RenamePreset,
-} from '../rename-preset-store';
 
 /**
  * Render the floating bulk rename dialog for selected workspaces.
