@@ -260,9 +260,50 @@ function _rebindDropdownListeners(
   taskNextDeps: TaskNextDeps,
 ): void {
   _cleanupTaskNextSubs();
+  _rebindHeader(promptsDropdown, ctx, taskNextDeps);
+  _rebindTaskNextSubmenu(promptsDropdown, ctx, taskNextDeps);
   _rebindFilterChips(promptsDropdown, entries, ctx, taskNextDeps);
   _rebindPromptItems(promptsDropdown, entries, promptsCfg, ctx, taskNextDeps);
   _rebindAddButton(promptsDropdown, ctx, taskNextDeps);
+}
+
+/** Re-attach the Load button handler in the dropdown header. */
+function _rebindHeader(container: HTMLElement, ctx: PromptContext, taskNextDeps: TaskNextDeps): void {
+  // Header is the first child — find Load button inside it
+  const header = container.firstElementChild as HTMLElement;
+  if (!header) return;
+  // Replace the old Load button with a fresh one
+  const oldLoadBtn = header.querySelector('span[title="Reload prompts from database"]') as HTMLElement;
+  if (oldLoadBtn) {
+    const newLoadBtn = buildLoadButton(ctx, taskNextDeps);
+    oldLoadBtn.replaceWith(newLoadBtn);
+  }
+}
+
+/** Rebuild the Task Next submenu after snapshot restore. */
+function _rebindTaskNextSubmenu(container: HTMLElement, ctx: PromptContext, taskNextDeps: TaskNextDeps): void {
+  // Find the Task Next item in the dropdown (second child after header)
+  for (const child of Array.from(container.children)) {
+    const el = child as HTMLElement;
+    if (el.textContent?.includes('Task Next')) {
+      // Remove old static item and re-render the submenu in its place
+      const parent = el.parentElement;
+      if (parent) {
+        const idx = Array.from(parent.children).indexOf(el);
+        el.remove();
+        // Build fresh Task Next submenu
+        const tempContainer = document.createElement('div');
+        renderTaskNextSubmenu(tempContainer, ctx, taskNextDeps);
+        const newItem = tempContainer.firstElementChild;
+        if (newItem && parent.children[idx]) {
+          parent.insertBefore(newItem, parent.children[idx]);
+        } else if (newItem) {
+          parent.appendChild(newItem);
+        }
+      }
+      break;
+    }
+  }
 }
 
 /** Remove stale Task Next sub-menus from DOM. */
