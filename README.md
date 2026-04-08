@@ -2,7 +2,7 @@
 
 > **Browser automation for workspace management, credit monitoring, and AI-driven macro execution** — built as a Manifest V3 Chrome extension with a modular standalone script architecture.
 
-**Current Version:** v2.115.0 | **Macro Controller:** v7.41
+**Current Version:** v2.116.1 | **Macro Controller:** v7.41
 
 ---
 
@@ -27,19 +27,19 @@ curl -fsSL https://github.com/alimtvnetwork/macro-ahk-v15/releases/latest/downlo
 **Windows (PowerShell):**
 
 ```powershell
-.\install.ps1 -InstallDir "D:\marco-extension\v2.115.0"
+.\install.ps1 -InstallDir "D:\marco-extension\v2.116.1"
 ```
 
 **Specific version + custom directory:**
 
 ```powershell
-.\install.ps1 -Version v2.115.0 -InstallDir "D:\marco-extension\v2.115.0"
+.\install.ps1 -Version v2.116.1 -InstallDir "D:\marco-extension\v2.116.1"
 ```
 
 **Linux / macOS:**
 
 ```bash
-./install.sh --version v2.115.0 --dir ~/marco-extension/v2.115.0
+./install.sh --version v2.116.1 --dir ~/marco-extension/v2.116.1
 ```
 
 ### Installer Options
@@ -48,22 +48,22 @@ curl -fsSL https://github.com/alimtvnetwork/macro-ahk-v15/releases/latest/downlo
 
 | Flag | Description | Example |
 |------|-------------|---------|
-| `-Version` | Pin a specific release | `-Version v2.115.0` |
-| `-InstallDir` | Custom install directory | `-InstallDir D:\marco-extension\v2.115.0` |
+| `-Version` | Pin a specific release | `-Version v2.116.1` |
+| `-InstallDir` | Custom install directory | `-InstallDir D:\marco-extension\v2.116.1` |
 | `-Repo` | Override GitHub repository | `-Repo alimtvnetwork/macro-ahk-v15` |
 
 **Linux / macOS (Bash):**
 
 | Flag | Description | Example |
 |------|-------------|---------|
-| `--version` | Pin a specific release | `--version v2.115.0` |
-| `--dir` | Custom install directory | `--dir ~/marco-extension/v2.115.0` |
+| `--version` | Pin a specific release | `--version v2.116.1` |
+| `--dir` | Custom install directory | `--dir ~/marco-extension/v2.116.1` |
 | `--repo` | Override GitHub repository | `--repo alimtvnetwork/macro-ahk-v15` |
 
 ### Manual Install
 
 1. Download `marco-extension-v{VERSION}.zip` from [Releases](https://github.com/alimtvnetwork/macro-ahk-v15/releases)
-2. Extract to a folder (e.g., `D:\marco-extension\v2.115.0`)
+2. Extract to a folder (e.g., `D:\marco-extension\v2.116.1`)
 3. Open `chrome://extensions` (or `edge://extensions`)
 4. Enable **Developer mode** (toggle in top-right)
 5. Click **Load unpacked** and select the extracted folder
