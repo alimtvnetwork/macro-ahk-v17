@@ -13,11 +13,12 @@ import { MessageType } from "../../src/shared/messages";
 
 installChromeMock();
 
-/* Mock getCurrentSessionId so queryUnresolvedErrors doesn't short-circuit */
+/* Mock getCurrentSessionId so queryUnresolvedErrors doesn't short-circuit.
+   insertUserScriptError hardcodes SessionId = '' so we return '' to match. */
 vi.spyOn(
     await import("../../src/background/handlers/logging-handler"),
     "getCurrentSessionId",
-).mockReturnValue("test-session");
+).mockReturnValue("");
 
 const {
     bindErrorDbManager,
