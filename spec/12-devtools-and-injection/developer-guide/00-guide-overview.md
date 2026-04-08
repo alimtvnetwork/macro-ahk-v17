@@ -34,6 +34,7 @@ The Rise Up Macro extension injects standalone scripts into web pages via Chrome
 | 08 | `08-config-and-theme.md` | Runtime config injection, theme system, LESS pipeline |
 | 09 | `09-testing-and-debugging.md` | Testing scripts, debugging, common errors |
 | 10 | `10-examples.md` | Complete examples: minimal and full-featured projects |
+| 11 | `11-project-kv-store.md` | Project-scoped IndexedDB persistence for plugins |
 
 ## System Paths
 
