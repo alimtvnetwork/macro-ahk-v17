@@ -6,7 +6,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [v2.113.0] — 2026-04-08
+## [v2.114.0] — 2026-04-08
+
+### Added
+- **Auth diagnostics — Help tooltips**: ❓ icon appears on Bridge FAILED rows with context-aware explanations (e.g. "Extension context invalidated" explains the page needs a refresh)
+- **Toast redesign**: Solid dark minimal style (#1a1a2e) with left accent bar (green/red), stacking (max 3), smooth slide-up animation — replaces old flat colored toasts
+
+### Changed
+- Version bump: 2.113.0 → 2.114.0 (all version files synced)
+
+---
 
 ### Fixed
 - **Prompt dropdown — Task Next submenu**: snapshot restore path cleaned up Task Next sub-menus but never rebuilt them — hover/click stopped working after cache restore
