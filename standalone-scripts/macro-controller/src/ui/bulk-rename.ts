@@ -410,11 +410,15 @@ function _appendDelayAndEta(body: HTMLElement, count: number): { delaySlider: HT
 
   return { delaySlider, etaRow, updateStaticEta };
 }
+// ── Module-scoped inputs ref for auto-save on close ──
+let _currentInputs: RenameInputsResult | null = null;
+
 function _buildRenameButtons(
   body: HTMLElement,
   selected: WorkspaceCredit[],
   inputs: RenameInputsResult,
 ): HTMLElement {
+  _currentInputs = inputs;
   const { prefixRow, tmplRow, suffixRow, getStartNums, etaRow } = inputs;
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;padding:8px 10px;border-top:1px solid rgba(124,58,237,0.2);';
@@ -422,7 +426,7 @@ function _buildRenameButtons(
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
   cancelBtn.style.cssText = 'padding:4px 12px;background:rgba(100,116,139,0.3);color:#94a3b8;border:1px solid #475569;border-radius:4px;font-size:10px;cursor:pointer;';
-  cancelBtn.onclick = function () { removeBulkRenameDialog(); };
+  cancelBtn.onclick = function () { _autoSave(inputs); removeBulkRenameDialog(); };
 
   const stopBtn = document.createElement('button');
   stopBtn.textContent = '⏹ Stop';
@@ -435,6 +439,7 @@ function _buildRenameButtons(
   applyBtn.textContent = '✅ Apply';
   applyBtn.style.cssText = 'padding:4px 12px;background:#059669;color:#fff;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;';
   applyBtn.onclick = function () {
+    _autoSave(inputs);
     _executeRenameApply(selected, tmplRow, prefixRow, suffixRow, getStartNums, applyBtn, stopBtn, cancelBtn, etaRow);
   };
 
