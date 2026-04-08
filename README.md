@@ -2,7 +2,7 @@
 
 > **Browser automation for workspace management, credit monitoring, and AI-driven macro execution** — built as a Manifest V3 Chrome extension with a modular standalone script architecture.
 
-**Current Version:** v2.112.0 | **Macro Controller:** v7.41
+**Current Version:** v2.115.0 | **Macro Controller:** v7.41
 
 ---
 
