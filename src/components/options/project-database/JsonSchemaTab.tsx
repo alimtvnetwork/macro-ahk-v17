@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { sendMessage } from "@/lib/message-client";
+import { ErrorModal } from "./ErrorModal";
+import { createErrorModel, type ErrorModel } from "@/types/error-model";
 
 /* ------------------------------------------------------------------ */
 /*  Example template                                                    */
