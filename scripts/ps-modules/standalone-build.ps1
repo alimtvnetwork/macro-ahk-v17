@@ -102,6 +102,14 @@ function Build-StandaloneScript([string]$ScriptDirPath, [string]$ScriptName, [st
         }
     }
 
+    # ── Clear TypeScript / Vite caches to prevent stale module resolution ──
+    $tsBuildInfo = Join-Path $RootDir "tsconfig.macro.build.tsbuildinfo"
+    if (Test-Path $tsBuildInfo) { Remove-Item $tsBuildInfo -Force -ErrorAction SilentlyContinue }
+    $nodeCacheDir = Join-Path $RootDir "node_modules/.cache"
+    if (Test-Path $nodeCacheDir) { Remove-Item $nodeCacheDir -Recurse -Force -ErrorAction SilentlyContinue }
+    $viteCacheDir = Join-Path $RootDir "node_modules/.vite"
+    if (Test-Path $viteCacheDir) { Remove-Item $viteCacheDir -Recurse -Force -ErrorAction SilentlyContinue }
+
     # ── TypeScript -> JS (npm run build:<name>) ──
     Push-Location $RootDir
     try {
