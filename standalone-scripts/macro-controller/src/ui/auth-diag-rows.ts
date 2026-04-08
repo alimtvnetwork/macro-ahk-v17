@@ -83,6 +83,7 @@ export function updateBridgeRow(deps: AuthDiagDeps, bridgeRow: DiagRowElements):
   if (isNotAttempted) {
     bridgeRow.iconEl.textContent = '⚪';
     bridgeRow.valEl.textContent = 'No bridge attempt yet';
+    _removeHelpIcon(bridgeRow);
     return;
   }
 
@@ -90,11 +91,61 @@ export function updateBridgeRow(deps: AuthDiagDeps, bridgeRow: DiagRowElements):
     bridgeRow.iconEl.textContent = '✅';
     bridgeRow.valEl.textContent = 'OK via ' + bridge.source;
     bridgeRow.valEl.style.color = '#4ade80';
+    _removeHelpIcon(bridgeRow);
   } else {
     bridgeRow.iconEl.textContent = '❌';
     bridgeRow.valEl.textContent = 'FAILED' + (bridge.error ? ' — ' + bridge.error : '');
     bridgeRow.valEl.style.color = '#f87171';
+    _appendHelpIcon(bridgeRow, _getBridgeErrorHelp(bridge.error || ''));
   }
+}
+
+/** Map known bridge errors to user-friendly help text. */
+function _getBridgeErrorHelp(error: string): string {
+  const lower = error.toLowerCase();
+  if (lower.includes('extension context invalidated')) {
+    return 'The Chrome extension was updated or reloaded while this page was open. ' +
+      'The content script lost its connection to the background service worker. ' +
+      'Fix: Refresh this page (F5) to re-establish the connection.';
+  }
+  if (lower.includes('receiving end does not exist')) {
+    return 'The extension background service worker is not running. ' +
+      'This can happen after Chrome suspends it. Fix: Open the extension popup or refresh the page.';
+  }
+  if (lower.includes('could not establish connection')) {
+    return 'Chrome could not reach the extension. It may be disabled, uninstalled, or crashed. ' +
+      'Fix: Check chrome://extensions to verify the extension is enabled and reload it.';
+  }
+  return 'The extension bridge failed to communicate with the background service worker. ' +
+    'Fix: Try refreshing the page or reloading the extension from chrome://extensions.';
+}
+
+/** Append a help ❓ icon with tooltip to a diagnostic row. */
+function _appendHelpIcon(diagRow: DiagRowElements, helpText: string): void {
+  _removeHelpIcon(diagRow);
+  const helpIcon = document.createElement('span');
+  helpIcon.setAttribute('data-help-icon', '1');
+  helpIcon.textContent = '❓';
+  helpIcon.style.cssText = 'cursor:help;font-size:10px;margin-left:4px;opacity:0.7;position:relative;';
+
+  const tooltip = document.createElement('div');
+  tooltip.style.cssText = 'display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);' +
+    'width:280px;padding:8px 10px;background:#1a1a2e;color:#e2e8f0;font-size:9px;line-height:1.4;' +
+    'border:1px solid rgba(124,58,237,0.4);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.5);' +
+    'z-index:100020;pointer-events:none;white-space:normal;';
+  tooltip.textContent = helpText;
+
+  helpIcon.appendChild(tooltip);
+  helpIcon.onmouseover = function() { tooltip.style.display = 'block'; helpIcon.style.opacity = '1'; };
+  helpIcon.onmouseout = function() { tooltip.style.display = 'none'; helpIcon.style.opacity = '0.7'; };
+
+  diagRow.row.appendChild(helpIcon);
+}
+
+/** Remove existing help icon from a row. */
+function _removeHelpIcon(diagRow: DiagRowElements): void {
+  const existing = diagRow.row.querySelector('[data-help-icon]');
+  if (existing) existing.remove();
 }
 
 export function updateSourceRow(deps: AuthDiagDeps, srcRow: DiagRowElements, headerBadge: HTMLElement): void {
