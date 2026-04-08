@@ -1,0 +1,102 @@
+# ──────────────────────────────────────────────────────────────
+# Marco Extension — CI Pipeline (main branch)
+#
+# Runs the same lint → test → build pipeline as release.yml
+# on every push to main.
+#
+# Key difference from release:
+#   - cancel-in-progress: true — a new commit cancels the
+#     previous in-flight build (no wasted runner minutes)
+#   - No GitHub Release or asset packaging
+#
+# NOTE: No email or notification integrations — by design.
+# ──────────────────────────────────────────────────────────────
+
+name: CI Build
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-main-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── Setup Node.js ─────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ── Setup pnpm ────────────────────────────────────────
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # ── Install root dependencies ─────────────────────────
+      - name: Install root dependencies
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile --lockfile=false
+          fi
+
+      # ── Install Chrome extension dependencies ─────────────
+      - name: Install extension dependencies
+        working-directory: chrome-extension
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile --lockfile=false
+          fi
+
+      # ── Run linters ───────────────────────────────────────
+      - name: Run root lint
+        run: pnpm run lint
+
+      - name: Run extension lint
+        working-directory: chrome-extension
+        run: pnpm run lint
+
+      # ── Run test suite ────────────────────────────────────
+      - name: Run tests
+        run: pnpm run test
+
+      # ── Build standalone scripts (SDK first, then others) ─
+      - name: Build Marco SDK
+        run: pnpm run build:sdk
+
+      - name: Build XPath
+        run: pnpm run build:xpath
+
+      - name: Build Macro Controller
+        run: pnpm run build:macro-controller
+
+      # ── Build Chrome extension ────────────────────────────
+      - name: Build Chrome extension
+        run: pnpm run build:extension
+
+      # ── Summary ───────────────────────────────────────────
+      - name: Build summary
+        run: |
+          echo "=== CI Build Complete ==="
+          echo "Commit: ${GITHUB_SHA:0:8}"
+          echo "Lint: OK | Tests: OK | Build: OK"
