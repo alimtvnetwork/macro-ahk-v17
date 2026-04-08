@@ -15,13 +15,9 @@ installChromeMock();
 
 /* Mock getCurrentSessionId so queryUnresolvedErrors doesn't short-circuit.
    insertUserScriptError hardcodes SessionId = '' so we return '' to match. */
-vi.mock("../../src/background/handlers/logging-handler", async (importOriginal) => {
-    const actual = await importOriginal() as Record<string, unknown>;
-    return {
-        ...actual,
-        getCurrentSessionId: () => "",
-    };
-});
+vi.mock("../../src/background/handlers/logging-handler", () => ({
+    getCurrentSessionId: () => "",
+}));
 
 const {
     bindErrorDbManager,
