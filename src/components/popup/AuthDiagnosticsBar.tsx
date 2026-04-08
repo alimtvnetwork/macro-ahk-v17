@@ -23,7 +23,22 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  HelpCircle,
 } from "lucide-react";
+
+/** Help text for common error/status scenarios */
+const HELP_TOOLTIPS: Record<string, string> = {
+  expired:
+    "The JWT token has expired. The extension can no longer authenticate API calls. Click 'Refresh' or reload the target page to get a new token.",
+  expiring:
+    "The token will expire soon. Auto-refresh triggers at <5 minutes remaining. If auto-refresh fails, click 'Refresh' manually.",
+  "context-invalidated":
+    "Extension context invalidated means Chrome severed the connection between this page's content script and the background service worker — usually because the extension was updated, reloaded, or re-enabled. Reload the page to restore the connection.",
+  "no-token":
+    "No auth token found. Make sure you're logged into the target site, then click 'Read' to check again.",
+  refreshFailed:
+    "The last token refresh attempt failed. This can happen if the session cookie expired or the target site is unreachable. Try logging in again on the target site.",
+};
 
 // eslint-disable-next-line max-lines-per-function
 export function AuthDiagnosticsBar() {
@@ -38,6 +53,17 @@ export function AuthDiagnosticsBar() {
         ? "bg-success"
         : "bg-muted-foreground";
 
+  /* Determine the most relevant help topic */
+  const helpKey = w.isExpired
+    ? "expired"
+    : w.isWarning
+      ? "expiring"
+      : w.lastRefreshResult === "failed"
+        ? "refreshFailed"
+        : w.ttlSec === null
+          ? "no-token"
+          : null;
+
   return (
     <div className="rounded-md border border-border bg-card overflow-hidden">
       {/* Summary row */}
@@ -51,6 +77,24 @@ export function AuthDiagnosticsBar() {
         <span className="text-[11px] font-medium truncate flex-1 text-left">
           {w.isExpired ? "Token Expired" : w.isWarning ? "Token Expiring" : "Auth"}
         </span>
+
+        {/* Help icon — visible when there's a problem */}
+        {helpKey && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="shrink-0 cursor-help"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <HelpCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground transition-colors" />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[280px]">
+              <p className="text-xs leading-relaxed">{HELP_TOOLTIPS[helpKey]}</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         <Badge
           variant="outline"
           className={`text-[10px] font-mono px-1.5 py-0 h-4 shrink-0 ${
@@ -114,7 +158,20 @@ export function AuthDiagnosticsBar() {
                 <><CheckCircle2 className="h-3 w-3 text-success" /><span className="text-success">Refreshed</span></>
               )}
               {w.lastRefreshResult === "failed" && (
-                <><XCircle className="h-3 w-3 text-destructive" /><span className="text-destructive">Failed</span></>
+                <>
+                  <XCircle className="h-3 w-3 text-destructive" />
+                  <span className="text-destructive">Failed</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help ml-0.5">
+                        <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[260px]">
+                      <p className="text-xs leading-relaxed">{HELP_TOOLTIPS.refreshFailed}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
               )}
               {w.lastRefreshResult === "pending" && (
                 <><RefreshCw className="h-3 w-3 animate-spin text-primary" /><span className="text-primary">Refreshing…</span></>
@@ -133,8 +190,33 @@ export function AuthDiagnosticsBar() {
             <div className="rounded bg-destructive/10 border border-destructive/20 px-2 py-1 flex items-center gap-1.5">
               <XCircle className="h-3 w-3 text-destructive shrink-0" />
               <span className="text-[10px] text-destructive">Expired — refresh manually</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help ml-auto">
+                    <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-destructive transition-colors" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[260px]">
+                  <p className="text-xs leading-relaxed">{HELP_TOOLTIPS.expired}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
+
+          {/* Context invalidated help — always shown in expanded view */}
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help flex items-center gap-1">
+                  <HelpCircle className="h-3 w-3" />
+                  <span>What is "Extension context invalidated"?</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[280px]">
+                <p className="text-xs leading-relaxed">{HELP_TOOLTIPS["context-invalidated"]}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
 
           {/* Actions */}
           <div className="flex gap-1.5 pt-0.5">
