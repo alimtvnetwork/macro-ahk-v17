@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.117.0] — 2026-04-08
+
+### Fixed
+- **Release CI install failure**: `.github/workflows/release.yml` no longer hard-fails on `pnpm install --frozen-lockfile` when `pnpm-lock.yaml` is absent — both root and `chrome-extension/` now fall back to `pnpm install --no-frozen-lockfile --lockfile=false`
+
+### Added
+- Release pipeline now runs root ESLint plus `chrome-extension` ESLint before tests
+- Generated GitHub release notes now include Bash + PowerShell install commands, manual unpacked-install steps, and explicit `CHANGELOG.md` asset listing
+
+### Changed
+- Version bump: 2.116.0 → 2.117.0 (all version files synced)
+
+---
+
 ## [v2.114.0] — 2026-04-08
 
 ### Added

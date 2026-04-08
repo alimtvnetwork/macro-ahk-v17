@@ -316,16 +316,17 @@ await RiseupAsiaMacroExt.require("Project.Script");
 
 ## CI/CD Release Pipeline
 
-Pushing to a `release/*` branch (e.g., `release/v2.113.0`) automatically:
+Pushing to a `release/*` branch (e.g., `release/v2.117.0`) automatically:
 
-1. Installs dependencies via `pnpm install --frozen-lockfile`
-2. Runs the full test suite
-3. Builds standalone scripts (SDK → XPath → Macro Controller)
-4. Builds the Chrome extension
-5. Copies `README.md` and `VERSION` into the extension dist
-6. Zips `chrome-extension/dist/` into `marco-extension-v{VERSION}.zip`
-7. Generates categorized release notes from commit history
-8. Creates a GitHub Release with all assets attached
+1. Installs dependencies with pnpm; if `pnpm-lock.yaml` is absent it falls back to `pnpm install --no-frozen-lockfile --lockfile=false`
+2. Runs root ESLint and `chrome-extension` ESLint
+3. Runs the full test suite
+4. Builds standalone scripts (SDK → XPath → Macro Controller)
+5. Builds the Chrome extension
+6. Copies `README.md`, `VERSION`, and `CHANGELOG.md` into the release asset set
+7. Zips `chrome-extension/dist/` into `marco-extension-v{VERSION}.zip`
+8. Generates categorized release notes from commit history with Bash + PowerShell install commands
+9. Creates a GitHub Release with all assets attached
 
 **No email or notification is sent** — check the [Releases page](https://github.com/riseup-asia/macro-ahk/releases) for status.
 
@@ -341,6 +342,20 @@ Pushing to a `release/*` branch (e.g., `release/v2.113.0`) automatically:
 | `install-extension.sh` | Bash installer (Linux/macOS) |
 | `VERSION.txt` | Version identifier |
 | `CHANGELOG.md` | Full project changelog |
+
+### Release Install Commands
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/install-extension.ps1 | iex
+```
+
+**Linux / macOS**
+
+```bash
+curl -fsSL https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/install-extension.sh | bash
+```
 
 ---
 

@@ -61,12 +61,30 @@ jobs:
 
       # ── Install root dependencies ─────────────────────────
       - name: Install root dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile --lockfile=false
+          fi
 
       # ── Install Chrome extension dependencies ─────────────
       - name: Install extension dependencies
         working-directory: chrome-extension
-        run: pnpm install --frozen-lockfile
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile --lockfile=false
+          fi
+
+      # ── Run linters ───────────────────────────────────────
+      - name: Run root lint
+        run: pnpm run lint
+
+      - name: Run extension lint
+        working-directory: chrome-extension
+        run: pnpm run lint
 
       # ── Run test suite ────────────────────────────────────
       - name: Run tests
@@ -194,6 +212,7 @@ jobs:
             echo "| Asset | Description |"
             echo "|-------|-------------|"
             echo "| \`marco-extension-${VER}.zip\` | Chrome extension — load unpacked in \`chrome://extensions\` |"
+             echo "| \`CHANGELOG.md\` | Full project changelog for this release |"
             echo "| \`install-extension.ps1\` | PowerShell installer (Windows) |"
             echo "| \`install-extension.sh\` | Bash installer (Linux/macOS) |"
             echo "| \`VERSION.txt\` | Version identifier |"
@@ -219,6 +238,14 @@ jobs:
             echo "\`\`\`bash"
             echo "./install-extension.sh --dir ~/marco-extension/${VER}"
             echo "\`\`\`"
+             echo ""
+             echo "### Manual Install (Chromium)"
+             echo ""
+             echo "1. Download \`marco-extension-${VER}.zip\` from this release."
+             echo "2. Extract it to a local folder."
+             echo "3. Open \`chrome://extensions\`."
+             echo "4. Enable **Developer mode**."
+             echo "5. Click **Load unpacked** and select the extracted folder."
           } > release-assets/RELEASE_NOTES.md
 
           cat release-assets/RELEASE_NOTES.md
