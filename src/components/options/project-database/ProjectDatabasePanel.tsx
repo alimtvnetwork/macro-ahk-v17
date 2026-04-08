@@ -291,7 +291,7 @@ export function ProjectDatabasePanel({ projectId, projectSlug }: ProjectDatabase
           {showCreateDbForm && (
             <CreateDatabaseForm
               projectSlug={projectSlug}
-              userDbCount={0}
+              userDbCount={userDbCount}
               onCreated={() => { setShowCreateDbForm(false); void refreshTables(); }}
               onCancel={() => setShowCreateDbForm(false)}
             />
