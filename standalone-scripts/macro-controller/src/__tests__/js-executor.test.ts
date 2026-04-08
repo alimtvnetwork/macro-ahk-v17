@@ -22,7 +22,7 @@ vi.mock('../logging', () => ({
 import { addLoopJsHistoryEntry, navigateLoopJsHistory, executeJs } from '../ui/js-executor';
 import { log } from '../logging';
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe('js-executor', () => {
   beforeEach(() => {
     vi.clearAllMocks();

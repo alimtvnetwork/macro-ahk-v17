@@ -36,7 +36,7 @@ Object.defineProperty(globalThis, 'localStorage', { value: mockLocalStorage, wri
 
 import { applyRenameTemplate, getRenameDelayMs, setRenameDelayMs, cancelRename, isRenameCancelled, getRenameHistory, getRenameAvgOpMs } from '../workspace-rename';
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe('workspace-rename', () => {
   describe('applyRenameTemplate', () => {
     it('applies $ numbering with index', () => {

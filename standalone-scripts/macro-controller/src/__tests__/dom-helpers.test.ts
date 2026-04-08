@@ -29,7 +29,7 @@ vi.mock('../logging', () => ({
 import { isOnProjectPage, isUserTypingInPrompt, checkSystemBusy, highlightElement } from '../dom-helpers';
 import { findElement, getByXPath } from '../xpath-utils';
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe('dom-helpers', () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -198,7 +198,7 @@ function makeMockDeps(): PanelBuilderDeps {
   };
 }
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe('panel-builder', () => {
   beforeEach(() => {
     document.body.innerHTML = '';

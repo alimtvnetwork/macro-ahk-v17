@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { pollUntil } from '../async-utils';
 
-// eslint-disable-next-line max-lines-per-function
+ 
 describe('pollUntil', () => {
   beforeEach(() => {
     vi.useFakeTimers();
