@@ -1,130 +1,329 @@
-# Contributing Guide
+# Contributing to Marco Chrome Extension
 
-Guidelines for contributing to the Marco Chrome Extension.
+Thank you for your interest in contributing to Marco. This guide covers the
+development workflow, coding standards, and pull-request requirements.
 
 ---
 
-## Branch Conventions
+## Getting Started
 
-| Branch | Purpose |
+### Prerequisites
+
+- **Node.js** 20+
+- **pnpm** 9+
+- **PowerShell** 7+ (Windows build orchestration only)
+
+### Setup
+
+```bash
+git clone https://github.com/riseup-asia/macro-ahk.git
+cd macro-ahk
+pnpm install
+cd chrome-extension && pnpm install && cd ..
+```
+
+### First Build
+
+```bash
+pnpm run build:sdk              # 1. Marco SDK
+pnpm run build:xpath            # 2. XPath utility
+pnpm run build:macro-controller # 3. Macro Controller
+pnpm run build:extension        # 4. Chrome extension
+```
+
+Load `chrome-extension/dist/` as an unpacked extension in `chrome://extensions` (Developer mode).
+
+### Windows (PowerShell)
+
+```powershell
+.\run.ps1 -d    # Full pipeline: build all + deploy to Chrome profile
+```
+
+---
+
+## Development Workflow
+
+### 1. Create a Branch
+
+Branch from the latest `main`. Use the correct prefix:
+
+| Prefix | Purpose |
 |--------|---------|
-| `main` | Stable release branch — always deployable |
-| `release/v*` | Release candidates, tagged and versioned |
-| `feat/<name>` | New features (`feat/smart-workspace-switch`) |
-| `fix/<name>` | Bug fixes (`fix/injection-focus-steal`) |
-| `refactor/<name>` | Code restructuring, no behavior change |
-| `docs/<name>` | Documentation-only changes |
+| `feature/<desc>` | New functionality |
+| `bugfix/<desc>` | Non-urgent fix |
+| `hotfix/<desc>` | Urgent production fix |
+| `refactor/<desc>` | Code restructuring |
+| `chore/<desc>` | Build, CI, or tooling |
+| `docs/<desc>` | Documentation only |
 
-- Branch from `main` for all work.
-- Keep branches short-lived — merge or rebase within a few days.
-- Delete branches after merge.
+Names are lowercase, hyphen-separated, 2-4 words (e.g. `feature/add-prompt-caching`).
 
----
+### 2. Write Code
 
-## Versioning
+Follow the project coding standards (26 rules in `spec/06-coding-guidelines/engineering-standards.md`):
 
-Versions are strictly aligned across:
-- Chrome extension manifest (`manifest.json`)
-- All standalone macro-controller scripts
-
-Any code change must bump at least a minor version everywhere. See the [Version History](spec/00-overview/10-version-history-summary.md) and [CHANGELOG](CHANGELOG.md) for release notes.
-
-> ⚠️ The `.release` folder must remain unmodified.
-
----
-
-## Code Style
-
-### TypeScript / React
+**TypeScript / React:**
 
 - **Strict TypeScript** — no `any` unless absolutely necessary (document why).
 - **Functional components** with hooks. No class components.
 - **Named exports** preferred over default exports.
+- **No magic strings** — use constants with prefixes: `ID_`, `SEL_`, `CLS_`, `MSG_` in SCREAMING_SNAKE_CASE.
 - Use **semantic Tailwind tokens** (`bg-primary`, `text-foreground`) — never raw colors (`bg-blue-500`, `text-white`).
 - Components go in `src/components/`, grouped by feature.
 - Hooks go in `src/hooks/`.
 - Keep files under ~200 lines. Extract when they grow.
 
-### Naming
+**General:**
+
+- **Positive conditionals** — `if ready` not `if !notReady`.
+- **Boolean names** start with `is` or `has`.
+- **Blank line before `return`** (except single-line bodies).
+- **All errors include exact file path, missing item, and reasoning** — optimized for AI diagnosis.
+- **Dark-only theme** — never add light mode or theme toggles.
+- **ASCII-safe console output** — use `[OK]`, `[FAIL]`, `[WARN]`, `[INFO]` prefixes, no Unicode symbols in build output.
+- **ESLint + SonarJS** — zero warnings, zero errors enforced.
+- **BgLogTag imports** — any background module using BgLogTag must explicitly import it from `bg-logger`.
+
+**Naming Conventions:**
 
 | Item | Convention | Example |
 |------|-----------|---------|
 | Components | PascalCase | `WorkspaceDropdown.tsx` |
 | Hooks | camelCase, `use` prefix | `useWorkspaceCredits.ts` |
 | Utilities | camelCase | `formatCredits.ts` |
-| Constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| Constants | UPPER_SNAKE_CASE with prefix | `ID_AUTH_PANEL`, `SEL_WORKSPACE_DROPDOWN` |
 | CSS classes | kebab-case via Tailwind | `text-muted-foreground` |
 
-### PowerShell (Build Scripts)
+**PowerShell (Build Scripts):**
 
 - Use approved verbs (`Get-`, `Set-`, `Invoke-`).
 - Parameters with `[CmdletBinding()]` and typed params.
 - Verbose output behind `-Verbose` or project `-v` flag.
 
----
+See [`spec/06-coding-guidelines/`](spec/06-coding-guidelines) for the full ruleset.
 
-## Pull Request Process
+### 3. Run Checks Locally
 
-1. **Create a branch** from `main` using the naming convention above.
-2. **Make focused changes** — one feature or fix per PR.
-3. **Test locally**:
-   ```sh
-   pnpm lint
-   pnpm test
-   .\run.ps1 -q    # quick build to verify extension compiles
-   ```
-4. **Update docs** if your change affects:
-   - Build flags → update `readme.md`
-   - Version bump → update `CHANGELOG.md` and version strings
-   - Specs → update relevant file in `spec/`
-5. **Open PR** with a clear title and description:
-   - What changed and why
-   - How to test
-   - Screenshots for UI changes
-6. **Address review feedback** promptly.
-7. **Squash merge** into `main` — keep history clean.
+Run these before pushing:
 
----
-
-## Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <short summary>
-
-[optional body]
+```bash
+pnpm run lint                   # ESLint + SonarJS (zero warnings)
+pnpm run test                   # Vitest test suite
+pnpm run build:extension        # Full extension build with validation
+pnpm run lint:macro             # Const reassignment lint for standalone scripts
 ```
 
-| Type | When |
-|------|------|
+Or on Windows:
+
+```powershell
+.\run.ps1 -q    # Quick build to verify extension compiles
+```
+
+### 4. Commit Messages
+
+Format: `<type>(<scope>): <subject>`
+
+| Type | Usage |
+|------|-------|
 | `feat` | New feature |
 | `fix` | Bug fix |
-| `refactor` | Code change, no new behavior |
+| `refactor` | Restructuring (no behavior change) |
 | `docs` | Documentation only |
-| `build` | Build system or dependencies |
 | `test` | Adding or updating tests |
-| `chore` | Maintenance, config changes |
+| `chore` | Build, CI, tooling, dependency updates |
+| `perf` | Performance improvement |
+| `style` | Formatting (no logic change) |
+| `build` | Build system or dependencies |
 
-Examples:
+Rules:
+
+- Subject <= 72 characters, imperative mood, no trailing period.
+- One logical change per commit.
+- No `WIP` commits — squash before opening a PR.
+
 ```
 feat(workspace): add smart switching to skip depleted
 fix(injection): resolve focus-steal on detached console
 docs(readme): add build flag reference table
+refactor(auth): extract waterfall into AuthBridge class
 build(ps1): add -q quick mode flag
 ```
 
 ---
 
+## Pull Request Requirements
+
+### Before Opening
+
+- [ ] Code compiles and all tests pass locally (`pnpm run test`).
+- [ ] Self-reviewed the diff — no debug code, commented-out blocks, or orphan TODOs.
+- [ ] Commit messages follow the `<type>(<scope>): <subject>` convention.
+- [ ] New or changed behavior has corresponding tests.
+- [ ] Documentation updated where applicable.
+- [ ] No unrelated changes bundled into the PR.
+- [ ] Version bumped (at least minor) if code changed — manifest, `constants.ts`, standalone scripts must stay in sync.
+
+### PR Size Limits
+
+| Metric | Target | Hard Limit |
+|--------|--------|------------|
+| Changed lines | <= 200 | <= 400 |
+| Files changed | <= 5 | <= 10 |
+| Commits | <= 3 | <= 5 |
+
+PRs exceeding hard limits must be split before review. Exceptions: generated
+code, migrations, or vendor updates (with justification).
+
+### Description Template
+
+```markdown
+## What
+
+One-sentence summary of the change.
+
+## Why
+
+Link to spec, issue, or business rationale.
+
+## How to Test
+
+1. Step-by-step manual verification.
+2. Or: `pnpm run test`.
+
+## Screenshots (if UI)
+
+Before/after screenshots or screen recordings.
+```
+
+### Branch Rules
+
+- Rebased onto current `main` before requesting review.
+- No merge commits in the PR branch.
+
+---
+
+## Review Process
+
+### Standard Flow
+
+1. Author opens PR with the completed checklist.
+2. Assign at least one reviewer with domain knowledge.
+3. Reviewer approves or requests changes within **one business day**.
+4. Author resolves all comments — nothing deferred.
+5. Final approval required before merge.
+6. Merge via **squash merge** (default).
+
+### Critical Path Flow
+
+Changes to authentication, injection pipeline, storage layers, CI/CD pipelines,
+or the seeding system require:
+
+- **Two approving reviews**, including the lead architect.
+- Security-sensitive changes tagged for security review.
+- Schema or storage changes require data-layer review.
+
+### Review Etiquette
+
+- Be specific: _"Rename `d` to `duration` for clarity"_ not _"naming is unclear."_
+- Prefix with `nit:`, `suggestion:`, or `blocker:` to distinguish severity.
+- Explain _why_ — link to a guideline or explain the risk.
+- Acknowledge good work.
+
+---
+
+## CI Checks
+
+All PRs must pass these automated gates before merge:
+
+| Check | Tool | Blocks Merge |
+|-------|------|:------------:|
+| Lint | ESLint + SonarJS | Yes |
+| Unit tests | Vitest | Yes |
+| Build | Vite (extension + standalone) | Yes |
+| Version sync | `check-version-sync.mjs` | Yes |
+| Const reassign | `lint-const-reassign.mjs` | Yes |
+
+**No email or notification is sent for CI results** — check the Actions tab for status.
+
+---
+
+## Release Process
+
+Releases follow semantic versioning (`vMAJOR.MINOR.PATCH`):
+
+1. Create a `release/v{VERSION}` branch from `main`.
+2. Push the branch — CI automatically:
+   - Runs tests and builds all standalone scripts + extension
+   - Copies `README.md` + `VERSION` into the extension dist
+   - Zips `chrome-extension/dist/` and creates a GitHub Release
+3. The release includes install scripts (`.ps1` and `.sh`) as downloadable assets.
+
+> The `.release` folder must remain unmodified at all times.
+
+### Version Sync
+
+All version numbers must be identical across:
+
+- `chrome-extension/src/manifest.json` -> `version`
+- `chrome-extension/src/constants.ts` -> `EXTENSION_VERSION`
+- `.gitmap/release/latest.json` -> `version`
+- Standalone script `instruction.ts` files
+
+The `check-version-sync.mjs` script validates this at build time.
+
+---
+
+## Adding a New Standalone Script
+
+1. Create `standalone-scripts/{name}/src/index.ts` and `src/instruction.ts`
+2. Add a TypeScript config: `tsconfig.{name}.json`
+3. Add a Vite config: `vite.config.{name}.ts`
+4. Add `build:{name}` script in root `package.json`
+5. The build pipeline auto-discovers and deploys it
+
+The `instruction.ts` is the sole manifest — it declares metadata, dependencies,
+files, and injection behavior. No separate config files needed.
+
+---
+
 ## Project Structure Rules
 
-- **`src/`** — React options UI and shared modules only.
-- **`chrome-extension/`** — MV3 extension code (background, content scripts, popup).
+- **`chrome-extension/`** — MV3 extension code (background, content scripts, popup, options).
 - **`standalone-scripts/`** — Injectable scripts, independent of React build.
 - **`spec/`** — All documentation. One topic per folder, no duplicates.
-- **`scripts/ps-modules/`** — PowerShell build modules.
+- **`build/ps-modules/`** — PowerShell build modules.
+- **`scripts/`** — Build helpers and install scripts.
 
 Do not add backend server code (Node.js, Python, etc.) to the project — this is a client-side extension.
+
+---
+
+## Specs and Architecture
+
+For significant features or architectural changes, create or update a
+specification in [`spec/`](spec/) for review **before** implementation. The spec
+directory follows a numeric hierarchy:
+
+| Directory | Purpose |
+|-----------|---------|
+| `00-standards` | Project overviews |
+| `01-app-issues` | Root cause analyses |
+| `02-data-and-storage` | Storage layer specs |
+| `06-coding-guidelines` | Engineering standards |
+| `12-devtools-and-injection` | Developer guide and build pipeline |
+
+Files use numbered prefixes: `01-name-of-file.md`.
+
+---
+
+## References
+
+- [Engineering Standards](spec/06-coding-guidelines/engineering-standards.md)
+- [Build Pipeline](spec/12-devtools-and-injection/developer-guide/03-build-pipeline.md)
+- [Extension README](chrome-extension/README.md)
+- [Root README](README.md)
+- [CHANGELOG](CHANGELOG.md)
+- [Version History](spec/00-overview/10-version-history-summary.md)
 
 ---
 
