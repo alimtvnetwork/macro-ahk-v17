@@ -1,13 +1,15 @@
 /**
  * MacroLoop Controller — Bulk Rename Dialog
  * Phase 5A: Extracted from ws-selection-ui.ts
+ * Phase 7:  Persistent rename presets via project-scoped IndexedDB
  *
- * Orchestrator: builds the floating draggable dialog, preview list,
- * delay slider, and apply/stop/cancel buttons.
+ * Orchestrator: builds the floating draggable dialog, preset selector,
+ * preview list, delay slider, and apply/stop/cancel/save buttons.
  *
- * Sub-modules: bulk-rename-fields.
+ * Sub-modules: bulk-rename-fields, rename-preset-store.
  *
- * @see spec/04-macro-controller/ts-migration-v2/05-module-splitting.md
+ * @see spec/10-macro-controller/ts-migration-v2/05-module-splitting.md
+ * @see spec/10-macro-controller/ts-migration-v2/07-rename-persistence-indexeddb.md
  */
 
 import type {
@@ -26,6 +28,7 @@ import {
   cPrimaryBorderA,
 } from '../shared-state';
 import { log } from '../logging';
+import { showToast } from '../toast';
 import {
   applyRenameTemplate,
   bulkRenameWorkspaces,
@@ -41,10 +44,17 @@ import {
   buildTemplateRow,
   buildStartNumInput,
   buildTokenRow,
+  buildPresetRow,
 } from './bulk-rename-fields';
+import {
+  getRenamePresetStore,
+  createDefaultPreset,
+  type RenamePreset,
+} from '../rename-preset-store';
 
 /**
  * Render the floating bulk rename dialog for selected workspaces.
+ * Loads saved presets from IndexedDB and auto-populates fields.
  */
 export function renderBulkRenameDialog(): void {
   removeBulkRenameDialog();
@@ -57,7 +67,7 @@ export function renderBulkRenameDialog(): void {
   const perWs = loopCreditState.perWorkspace || [];
   const selected: WorkspaceCredit[] = [];
   for (const ws of perWs) {
-    if (getLoopWsCheckedIds()[ws.id]) selected.push(ws);
+    if (getLoopWsCheckedIds()[ws.id]) { selected.push(ws); }
   }
 
   const panel = _createRenamePanel();
@@ -67,12 +77,147 @@ export function renderBulkRenameDialog(): void {
   const body = document.createElement('div');
   body.style.cssText = 'padding:10px;';
 
+  // Build inputs first, then async-load presets
   const inputsResult = _buildRenameInputs(body, selected);
   const btnRow = _buildRenameButtons(body, selected, inputsResult);
 
   panel.appendChild(body);
   panel.appendChild(btnRow);
   document.body.appendChild(panel);
+
+  // Async: load presets and insert preset row at top of body
+  _initPresetUi(body, inputsResult).catch(function (err) {
+    log('[Rename] Preset UI init failed: ' + String(err), 'error');
+  });
+}
+
+// ── Current active preset name (panel-scoped) ──
+let _activePresetName = 'Default';
+
+// ── Read current UI values into a RenamePreset ──
+function _readUiToPreset(inputs: RenameInputsResult): RenamePreset {
+  return {
+    name: _activePresetName,
+    template: inputs.tmplRow.input.value,
+    prefix: inputs.prefixRow.input.value,
+    prefixEnabled: inputs.prefixRow.cb ? inputs.prefixRow.cb.checked : false,
+    suffix: inputs.suffixRow.input.value,
+    suffixEnabled: inputs.suffixRow.cb ? inputs.suffixRow.cb.checked : false,
+    startDollar: inputs.getStartNums().dollar,
+    startHash: inputs.getStartNums().hash,
+    startStar: inputs.getStartNums().star,
+    delayMs: getRenameDelayMs(),
+    createdAt: 0,
+    updatedAt: Date.now(),
+  };
+}
+
+// ── Populate UI fields from a preset ──
+function _populateUiFromPreset(preset: RenamePreset, inputs: RenameInputsResult): void {
+  inputs.tmplRow.input.value = preset.template || '';
+  inputs.prefixRow.input.value = preset.prefix || '';
+  if (inputs.prefixRow.cb) { inputs.prefixRow.cb.checked = !!preset.prefixEnabled; }
+  inputs.suffixRow.input.value = preset.suffix || '';
+  if (inputs.suffixRow.cb) { inputs.suffixRow.cb.checked = !!preset.suffixEnabled; }
+  if (preset.delayMs > 0) {
+    setRenameDelayMs(preset.delayMs);
+    const slider = document.querySelector('#ahk-loop-rename-dialog input[type="range"]') as HTMLInputElement | null;
+    if (slider) {
+      slider.value = String(preset.delayMs);
+      slider.dispatchEvent(new Event('input'));
+    }
+  }
+  // Start numbers are populated via the variable detection on updatePreview
+  inputs.updatePreview();
+  inputs.updateStaticEta();
+}
+
+// ── Auto-save current config ──
+async function _autoSave(inputs: RenameInputsResult): Promise<void> {
+  try {
+    const store = getRenamePresetStore();
+    const preset = _readUiToPreset(inputs);
+    await store.savePreset(_activePresetName, preset);
+  } catch {
+    // Silent — auto-save is best-effort
+  }
+}
+
+// ── Init preset UI (async) ──
+async function _initPresetUi(body: HTMLElement, inputs: RenameInputsResult): Promise<void> {
+  const store = getRenamePresetStore();
+  const presetNames = await store.listPresets();
+  _activePresetName = await store.getActivePresetName();
+
+  // Load and populate active preset
+  const activePreset = await store.loadPreset(_activePresetName);
+  if (activePreset) {
+    _populateUiFromPreset(activePreset, inputs);
+  }
+
+  // Build preset row and insert at top of body
+  const presetRow = buildPresetRow(
+    presetNames,
+    _activePresetName,
+    // onSwitch
+    function (name: string) {
+      _activePresetName = name;
+      store.setActivePresetName(name);
+      store.loadPreset(name).then(function (p) {
+        if (p) { _populateUiFromPreset(p, inputs); }
+      });
+    },
+    // onNew
+    function () {
+      const name = prompt('Enter preset name:');
+      if (!name || !name.trim()) { return; }
+      const trimmed = name.trim();
+      _activePresetName = trimmed;
+      const newPreset = createDefaultPreset();
+      newPreset.name = trimmed;
+      store.savePreset(trimmed, newPreset).then(function () {
+        store.setActivePresetName(trimmed);
+        // Add to dropdown
+        const opt = document.createElement('option');
+        opt.value = trimmed;
+        opt.textContent = trimmed;
+        const sel = presetRow.select;
+        sel.insertBefore(opt, sel.querySelector('option[value="__new__"]'));
+        sel.value = trimmed;
+        _populateUiFromPreset(newPreset, inputs);
+        showToast('Created preset "' + trimmed + '"', 'success');
+      });
+    },
+    // onDelete
+    function (name: string) {
+      if (name === 'Default') {
+        showToast('Cannot delete Default preset', 'warn');
+
+        return;
+      }
+      if (!confirm('Delete preset "' + name + '"?')) { return; }
+      store.deletePreset(name).then(function () {
+        // Remove from dropdown
+        const opt = presetRow.select.querySelector('option[value="' + name.replace(/"/g, '\\"') + '"]');
+        if (opt) { opt.remove(); }
+        _activePresetName = 'Default';
+        presetRow.select.value = 'Default';
+        store.loadPreset('Default').then(function (p) {
+          if (p) { _populateUiFromPreset(p, inputs); }
+        });
+        showToast('Deleted preset "' + name + '"', 'info');
+      });
+    },
+    // onSave
+    function () {
+      const preset = _readUiToPreset(inputs);
+      store.savePreset(_activePresetName, preset).then(function () {
+        showToast('Saved preset "' + _activePresetName + '"', 'success');
+      });
+    },
+  );
+
+  body.insertBefore(presetRow.row, body.firstChild);
 }
 
 // ── Panel Shell ──
@@ -100,7 +245,7 @@ function _createRenameTitleBar(panel: HTMLElement, count: number): HTMLElement {
   const closeBtnTitle = document.createElement('span');
   closeBtnTitle.style.cssText = 'cursor:pointer;color:#94a3b8;font-size:14px;padding:0 4px;';
   closeBtnTitle.textContent = '✕';
-  closeBtnTitle.onclick = function () { removeBulkRenameDialog(); };
+  closeBtnTitle.onclick = function () { if (_currentInputs) { _autoSave(_currentInputs); } removeBulkRenameDialog(); };
   titleBar.appendChild(titleText);
   titleBar.appendChild(closeBtnTitle);
 
@@ -269,11 +414,15 @@ function _appendDelayAndEta(body: HTMLElement, count: number): { delaySlider: HT
 
   return { delaySlider, etaRow, updateStaticEta };
 }
+// ── Module-scoped inputs ref for auto-save on close ──
+let _currentInputs: RenameInputsResult | null = null;
+
 function _buildRenameButtons(
   body: HTMLElement,
   selected: WorkspaceCredit[],
   inputs: RenameInputsResult,
 ): HTMLElement {
+  _currentInputs = inputs;
   const { prefixRow, tmplRow, suffixRow, getStartNums, etaRow } = inputs;
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:6px;justify-content:flex-end;padding:8px 10px;border-top:1px solid rgba(124,58,237,0.2);';
@@ -281,7 +430,7 @@ function _buildRenameButtons(
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
   cancelBtn.style.cssText = 'padding:4px 12px;background:rgba(100,116,139,0.3);color:#94a3b8;border:1px solid #475569;border-radius:4px;font-size:10px;cursor:pointer;';
-  cancelBtn.onclick = function () { removeBulkRenameDialog(); };
+  cancelBtn.onclick = function () { _autoSave(inputs); removeBulkRenameDialog(); };
 
   const stopBtn = document.createElement('button');
   stopBtn.textContent = '⏹ Stop';
@@ -294,6 +443,7 @@ function _buildRenameButtons(
   applyBtn.textContent = '✅ Apply';
   applyBtn.style.cssText = 'padding:4px 12px;background:#059669;color:#fff;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;';
   applyBtn.onclick = function () {
+    _autoSave(inputs);
     _executeRenameApply(selected, tmplRow, prefixRow, suffixRow, getStartNums, applyBtn, stopBtn, cancelBtn, etaRow);
   };
 
@@ -386,6 +536,7 @@ function handleRenameProgress(
  */
 export function removeBulkRenameDialog(): void {
   cancelRename();
+  _currentInputs = null;
   const d = document.getElementById('ahk-loop-rename-dialog');
   if (d) {
     if (typeof (d as DraggableElement).__cleanupDrag === 'function') {

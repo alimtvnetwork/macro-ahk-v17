@@ -1,25 +1,43 @@
-## Root Cause Analysis
+## Rename Preset Persistence — Implementation Plan
 
-### Problem: Large/missing prompts not appearing in dropdown
+**Spec**: `spec/10-macro-controller/ts-migration-v2/07-rename-persistence-indexeddb.md`
 
-**Root Cause (3 layers):**
+### Task 1: Create generic `ProjectKvStore` module
+- **File**: `standalone-scripts/macro-controller/src/project-kv-store.ts`
+- IndexedDB wrapper with DB name `RiseUpAsia.Projects.<ProjectName>.IndexDb`
+- Object store `kv` with keyPath `key`
+- API: `get(section, key)`, `set(section, key, value)`, `delete(section, key)`, `list(section)`, `getAll(section)`
+- Compound key: `${section}::${key}`
+- Each record: `{ key, section, value, updatedAt }`
+- Error logs with exact DB name, store, key, reason
 
-1. **Missing prompt entry**: `Unit Test Issues V2 Enhanced` (5689 chars, the largest prompt) is present in the bundled `macro-prompts.json` (aggregated from `standalone-scripts/prompts/14-unit-test-issues-v2-enhanced/`) but is **missing from both fallback lists**:
-   - `DEFAULT_PROMPTS` in `prompt-loader.ts` (13 entries, missing #14)
-   - `getFallbackDefaultPrompts()` in `prompt-handler.ts` (13 entries, missing #14)
+### Task 2: Create `RenamePresetStore` module
+- **File**: `standalone-scripts/macro-controller/src/rename-preset-store.ts`
+- Wraps `ProjectKvStore` with section `MacroController.Rename`
+- API: `listPresets()`, `getActivePresetName()`, `setActivePresetName()`, `loadPreset()`, `savePreset()`, `deletePreset()`
+- `RenamePreset` type added to `types.ts`
 
-2. **Silent filtering**: `normalizePromptEntries()` in `prompt-utils.ts` silently drops entries where `name` or `text` is falsy (`if (name && text)`), with **no diagnostic logging** — making it impossible to identify why prompts disappear.
+### Task 3: Add `buildPresetRow()` UI helper
+- **File**: `standalone-scripts/macro-controller/src/ui/bulk-rename-fields.ts`
+- Dropdown showing all saved presets + "➕ New..." option
+- Small "🗑" delete button next to dropdown
+- Styled consistently with existing rename fields
 
-3. **Fallback chain fragility**: When the extension bridge or SDK is unavailable, the hardcoded `DEFAULT_PROMPTS` is used. Any prompt not in this list simply vanishes with no trace.
+### Task 4: Integrate persistence into `bulk-rename.ts`
+- **File**: `standalone-scripts/macro-controller/src/ui/bulk-rename.ts`
+- On open: resolve project → load presets → populate dropdown → load active preset → fill fields
+- Add "💾 Save" button to button row
+- Auto-save on Apply (before executing rename)
+- Auto-save on Close/Cancel (before removing dialog)
+- Pattern switch loads selected preset values
+- "➕ New..." prompts for name, creates preset
+- Delete removes preset (cannot delete last one)
 
-### Fix Plan
+### Task 5: Update barrel exports and docs
+- **File**: `standalone-scripts/macro-controller/src/workspace-rename.ts` — re-export preset store
+- Update LLM guide / developer guide with ProjectKvStore usage pattern
+- Update rename system memory docs
 
-| # | File | Change |
-|---|------|--------|
-| 1 | `prompt-loader.ts` | Add `Unit Test Issues V2 Enhanced` to `DEFAULT_PROMPTS` |
-| 2 | `prompt-handler.ts` | Add `Unit Test Issues V2 Enhanced` to `getFallbackDefaultPrompts()` |
-| 3 | `prompt-utils.ts` | Add warning log in `normalizePromptEntries` when entries are dropped (name or text missing) |
-| 4 | `startup-timing.ts` | Append version number to the timing summary footer |
-| 5 | Version files | Bump 2.110.0 → 2.111.0 |
-| 6 | `CHANGELOG.md` | Add v2.111.0 entry |
-| 7 | Memory | Write RCA to memory |
+### Task 6: Version bump
+- Bump macro controller version (at least minor)
+- Update all version sync files

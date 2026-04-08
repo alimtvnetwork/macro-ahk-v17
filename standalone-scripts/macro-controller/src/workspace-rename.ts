@@ -35,3 +35,16 @@ export {
   bulkRenameWorkspaces,
   undoLastRename,
 } from './rename-bulk';
+
+export {
+  getProjectKvStore,
+  type ProjectKvStore,
+  type KvRecord,
+} from './project-kv-store';
+
+export {
+  getRenamePresetStore,
+  createDefaultPreset,
+  type RenamePreset,
+  type RenamePresetStore,
+} from './rename-preset-store';
