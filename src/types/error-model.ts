@@ -1,0 +1,112 @@
+/**
+ * Marco Extension — Reusable Error Model
+ *
+ * Standardized structure for capturing and displaying runtime errors
+ * across the extension (database, storage, namespace operations, etc.).
+ *
+ * @see spec/11-chrome-extension/55-storage-ui-redesign.md
+ */
+
+export interface ErrorModel {
+  /** Short error label */
+  title: string;
+  /** Main human-readable error message */
+  message: string;
+  /** Optional machine-readable code (e.g. "DB_LOAD_FAILED") */
+  errorCode?: string;
+  /** Originating module or component (e.g. "Storage", "Database") */
+  source: string;
+  /** Current action (e.g. "LoadDb", "ApplySchema", "CreateTable") */
+  operation: string;
+  /** Stack trace if available */
+  stackTrace?: string;
+  /** Nested error details if present */
+  innerError?: string;
+  /** Serialized context payload (safe request params) */
+  contextJson?: string;
+  /** Active namespace if relevant */
+  namespace?: string;
+  /** Current project slug */
+  projectName?: string;
+  /** ISO 8601 error timestamp */
+  createdAt: string;
+  /** Suggested next action if available */
+  suggestedAction?: string;
+}
+
+/** Creates an ErrorModel from a caught error and context. */
+export function createErrorModel(
+  error: unknown,
+  context: {
+    title?: string;
+    source: string;
+    operation: string;
+    projectName?: string;
+    namespace?: string;
+    contextJson?: string;
+    suggestedAction?: string;
+  },
+): ErrorModel {
+  const isError = error instanceof Error;
+  const message = isError ? error.message : String(error);
+  const stackTrace = isError ? error.stack : undefined;
+  const causeValue = isError ? (error as unknown as { cause?: unknown }).cause : undefined;
+  const innerError = causeValue ? String(causeValue) : undefined;
+
+  return {
+    title: context.title ?? `${context.operation} Failed`,
+    message,
+    errorCode: deriveErrorCode(message),
+    source: context.source,
+    operation: context.operation,
+    stackTrace,
+    innerError,
+    contextJson: context.contextJson,
+    namespace: context.namespace,
+    projectName: context.projectName,
+    createdAt: new Date().toISOString(),
+    suggestedAction: context.suggestedAction,
+  };
+}
+
+/** Derives a machine-readable error code from the message. */
+function deriveErrorCode(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("missing") && lower.includes("project")) return "MISSING_PROJECT_SLUG";
+  if (lower.includes("missing") && lower.includes("slug")) return "MISSING_PROJECT_SLUG";
+  if (lower.includes("db") || lower.includes("database")) return "DB_ERROR";
+  if (lower.includes("schema")) return "SCHEMA_ERROR";
+  if (lower.includes("timeout")) return "TIMEOUT";
+  if (lower.includes("network")) return "NETWORK_ERROR";
+  return "UNKNOWN_ERROR";
+}
+
+/** Formats an ErrorModel as a copyable text block for sharing. */
+export function formatErrorForClipboard(error: ErrorModel): string {
+  const lines: string[] = [
+    `## ${error.title}`,
+    "",
+    `**Message:** ${error.message}`,
+    `**Error Code:** ${error.errorCode ?? "N/A"}`,
+    `**Source:** ${error.source}`,
+    `**Operation:** ${error.operation}`,
+    `**Project:** ${error.projectName ?? "N/A"}`,
+    `**Namespace:** ${error.namespace ?? "N/A"}`,
+    `**Timestamp:** ${error.createdAt}`,
+  ];
+
+  if (error.innerError) {
+    lines.push(`**Inner Error:** ${error.innerError}`);
+  }
+  if (error.suggestedAction) {
+    lines.push(`**Suggested Action:** ${error.suggestedAction}`);
+  }
+  if (error.contextJson) {
+    lines.push("", "### Context", "```json", error.contextJson, "```");
+  }
+  if (error.stackTrace) {
+    lines.push("", "### Stack Trace", "```", error.stackTrace, "```");
+  }
+
+  return lines.join("\n");
+}

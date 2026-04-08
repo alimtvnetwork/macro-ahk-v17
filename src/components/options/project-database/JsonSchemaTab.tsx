@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { sendMessage } from "@/lib/message-client";
+import { ErrorModal } from "./ErrorModal";
+import { createErrorModel, type ErrorModel } from "@/types/error-model";
 
 /* ------------------------------------------------------------------ */
 /*  Example template                                                    */
@@ -189,6 +191,8 @@ export function JsonSchemaTab({ projectSlug, onMigrationComplete }: Props) {
   const [dbSchemaJson, setDbSchemaJson] = useState<string | null>(null);
   const [loadingDiff, setLoadingDiff] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [modalError, setModalError] = useState<ErrorModel | null>(null);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
 
   /* ---- Load from MetaTables ---- */
   // eslint-disable-next-line max-lines-per-function
@@ -251,6 +255,15 @@ export function JsonSchemaTab({ projectSlug, onMigrationComplete }: Props) {
       setDocsOutput(null);
       toast.success(`Loaded ${tableDefs.length} table(s) from MetaTables`);
     } catch (err) {
+      const errModel = createErrorModel(err, {
+        source: "Database",
+        operation: "LoadFromDB",
+        projectName: projectSlug,
+        contextJson: JSON.stringify({ type: "GENERATE_SCHEMA_DOCS", project: projectSlug, format: "meta" }),
+        suggestedAction: "Ensure the project slug is set. Try selecting a project from the project list first.",
+      });
+      setModalError(errModel);
+      setErrorModalOpen(true);
       toast.error(`Failed to load: ${String(err)}`);
     } finally {
       setLoadingMeta(false);
@@ -316,6 +329,15 @@ export function JsonSchemaTab({ projectSlug, onMigrationComplete }: Props) {
       setDiffMode(true);
       toast.success("Diff view loaded");
     } catch (err) {
+      const errModel = createErrorModel(err, {
+        source: "Database",
+        operation: "LoadDiff",
+        projectName: projectSlug,
+        contextJson: JSON.stringify({ type: "GENERATE_SCHEMA_DOCS", project: projectSlug, format: "meta" }),
+        suggestedAction: "Ensure the project database is initialized before loading diff.",
+      });
+      setModalError(errModel);
+      setErrorModalOpen(true);
       toast.error(`Failed to load DB schema: ${String(err)}`);
     } finally {
       setLoadingDiff(false);
@@ -689,6 +711,7 @@ export function JsonSchemaTab({ projectSlug, onMigrationComplete }: Props) {
           )}
         </div>
       )}
+      <ErrorModal error={modalError} open={errorModalOpen} onOpenChange={setErrorModalOpen} />
     </div>
   );
 }

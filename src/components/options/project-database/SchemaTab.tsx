@@ -23,6 +23,8 @@ import { SchemaDiffPreview } from "./SchemaDiffPreview";
 import { SchemaVersionHistory } from "./SchemaVersionHistory";
 import { sendMessage } from "@/lib/message-client";
 import { toast } from "sonner";
+import { ErrorModal } from "./ErrorModal";
+import { createErrorModel, type ErrorModel } from "@/types/error-model";
 import {
   Plus, Trash2, ChevronDown, ChevronRight,
   Layers, Save, Loader2, CheckCircle2, AlertCircle,
@@ -67,6 +69,8 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
   const [loadingExisting, setLoadingExisting] = useState(false);
   const [lastResult, setLastResult] = useState<ApplyResult | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
+  const [modalError, setModalError] = useState<ErrorModel | null>(null);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
 
   const allTableNames = tables.map((t) => t.name).filter(Boolean);
 
@@ -152,6 +156,15 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
       setTables(loaded);
       toast.success(`Loaded ${loaded.length} table(s) from DB`);
     } catch (err) {
+      const errModel = createErrorModel(err, {
+        source: "Database",
+        operation: "LoadFromDB",
+        projectName: projectSlug,
+        contextJson: JSON.stringify({ type: "GENERATE_SCHEMA_DOCS", project: projectSlug, format: "meta" }),
+        suggestedAction: "Ensure the project slug is set. Try selecting a project from the project list first.",
+      });
+      setModalError(errModel);
+      setErrorModalOpen(true);
       toast.error(err instanceof Error ? err.message : "Load failed");
     } finally {
       setLoadingExisting(false);
@@ -530,6 +543,7 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
           </Collapsible>
         </Card>
       ))}
+      <ErrorModal error={modalError} open={errorModalOpen} onOpenChange={setErrorModalOpen} />
     </div>
   );
 }

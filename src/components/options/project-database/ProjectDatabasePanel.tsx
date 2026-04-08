@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Database, RefreshCw, Table2, Code, FileDown, Loader2, Layers } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Database, RefreshCw, Table2, Code, FileDown, Loader2, Layers, KeyRound, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -22,6 +23,9 @@ import { sendMessage } from "@/lib/message-client";
 import { JsonSchemaTab } from "./JsonSchemaTab";
 import { ColumnEditor, type ColumnDefinition } from "./ColumnEditor";
 import { SchemaTab } from "./SchemaTab";
+import { ErrorModal } from "./ErrorModal";
+import { createErrorModel, type ErrorModel } from "@/types/error-model";
+import { DEFAULT_PROJECT_DATABASES, DATABASE_KINDS, validateNamespace, type NamespaceDatabaseRequest } from "@/types/default-databases";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -62,6 +66,20 @@ export function ProjectDatabasePanel({ projectId, projectSlug }: ProjectDatabase
   const [newColumns, setNewColumns] = useState<ColumnDefinition[]>([
     { name: "", type: "TEXT" },
   ]);
+  const [modalError, setModalError] = useState<ErrorModel | null>(null);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+
+  const showError = useCallback((err: unknown, operation: string, context?: Record<string, unknown>) => {
+    const errModel = createErrorModel(err, {
+      source: "Database",
+      operation,
+      projectName: projectSlug,
+      contextJson: context ? JSON.stringify(context) : undefined,
+      suggestedAction: "Ensure the project slug is set. Try selecting a project from the project list first.",
+    });
+    setModalError(errModel);
+    setErrorModalOpen(true);
+  }, [projectSlug]);
 
   const refreshTables = useCallback(async () => {
     setLoading(true);
@@ -76,8 +94,8 @@ export function ProjectDatabasePanel({ projectId, projectSlug }: ProjectDatabase
       if (result.isOk && result.tables) {
         setTables(result.tables);
       }
-    } catch {
-      // DB may not be initialized yet — show empty
+    } catch (err) {
+      showError(err, "RefreshTables", { type: "PROJECT_API", project: projectSlug });
       setTables([]);
     } finally {
       setLoading(false);
@@ -333,6 +351,7 @@ export function ProjectDatabasePanel({ projectId, projectSlug }: ProjectDatabase
           />
         </TabsContent>
       </Tabs>
+      <ErrorModal error={modalError} open={errorModalOpen} onOpenChange={setErrorModalOpen} />
     </div>
   );
 }
