@@ -140,9 +140,9 @@ jobs:
           cd ../..
 
           # ── Install scripts ──
-          cp scripts/install-extension.sh  release-assets/install-extension.sh
-          cp scripts/install-extension.ps1 release-assets/install-extension.ps1
-          chmod +x release-assets/install-extension.sh
+          cp scripts/install.sh  release-assets/install.sh
+          cp scripts/install.ps1 release-assets/install.ps1
+          chmod +x release-assets/install.sh
 
           # ── VERSION.txt ──
           echo "${VER}" > release-assets/VERSION.txt
@@ -213,30 +213,30 @@ jobs:
             echo "|-------|-------------|"
             echo "| \`marco-extension-${VER}.zip\` | Chrome extension — load unpacked in \`chrome://extensions\` |"
              echo "| \`CHANGELOG.md\` | Full project changelog for this release |"
-            echo "| \`install-extension.ps1\` | PowerShell installer (Windows) |"
-            echo "| \`install-extension.sh\` | Bash installer (Linux/macOS) |"
+             echo "| \`install.ps1\` | PowerShell installer (Windows) |"
+             echo "| \`install.sh\` | Bash installer (Linux/macOS) |"
             echo "| \`VERSION.txt\` | Version identifier |"
             echo ""
             echo "### Quick Install"
             echo ""
             echo "**Windows (PowerShell):**"
             echo "\`\`\`powershell"
-            echo "irm https://github.com/${REPO}/releases/download/${VER}/install-extension.ps1 | iex"
+             echo "irm https://github.com/${REPO}/releases/download/${VER}/install.ps1 | iex"
             echo "\`\`\`"
             echo ""
             echo "**Custom directory (Windows):**"
             echo "\`\`\`powershell"
-            echo ".\\install-extension.ps1 -InstallDir \"D:\\marco-extension\\${VER}\""
+             echo ".\\install.ps1 -InstallDir \"D:\\marco-extension\\${VER}\""
             echo "\`\`\`"
             echo ""
             echo "**Linux / macOS:**"
             echo "\`\`\`bash"
-            echo "curl -fsSL https://github.com/${REPO}/releases/download/${VER}/install-extension.sh | bash"
+             echo "curl -fsSL https://github.com/${REPO}/releases/download/${VER}/install.sh | bash"
             echo "\`\`\`"
             echo ""
             echo "**Custom directory (Linux / macOS):**"
             echo "\`\`\`bash"
-            echo "./install-extension.sh --dir ~/marco-extension/${VER}"
+             echo "./install.sh --dir ~/marco-extension/${VER}"
             echo "\`\`\`"
              echo ""
              echo "### Manual Install (Chromium)"

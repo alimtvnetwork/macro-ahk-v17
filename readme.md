@@ -338,8 +338,8 @@ Pushing to a `release/*` branch (e.g., `release/v2.117.0`) automatically:
 | `macro-controller-v{VER}.zip` | Standalone macro controller scripts |
 | `marco-sdk-v{VER}.zip` | Marco SDK |
 | `xpath-v{VER}.zip` | XPath utility scripts |
-| `install-extension.ps1` | PowerShell installer (Windows) |
-| `install-extension.sh` | Bash installer (Linux/macOS) |
+| `install.ps1` | PowerShell installer (Windows) |
+| `install.sh` | Bash installer (Linux/macOS) |
 | `VERSION.txt` | Version identifier |
 | `CHANGELOG.md` | Full project changelog |
 
@@ -348,13 +348,13 @@ Pushing to a `release/*` branch (e.g., `release/v2.117.0`) automatically:
 **Windows (PowerShell)**
 
 ```powershell
-irm https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/install-extension.ps1 | iex
+irm https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/install.ps1 | iex
 ```
 
 **Linux / macOS**
 
 ```bash
-curl -fsSL https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/install-extension.sh | bash
+curl -fsSL https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/install.sh | bash
 ```
 
 ---
@@ -379,8 +379,8 @@ curl -fsSL https://github.com/riseup-asia/macro-ahk/releases/download/v{VER}/ins
 │   │   └── dist/               # Compiled IIFE + assets
 │   └── prompts/                # AI prompt markdown files
 ├── scripts/                    # Build helpers & install scripts
-│   ├── install-extension.ps1   # Windows installer
-│   ├── install-extension.sh    # Linux/macOS installer
+│   ├── install.ps1             # Windows installer
+│   ├── install.sh              # Linux/macOS installer
 │   ├── compile-instruction.mjs # instruction.ts → instruction.json
 │   ├── aggregate-prompts.mjs   # Prompt .md → macro-prompts.json
 │   └── check-version-sync.mjs  # Version consistency validation
