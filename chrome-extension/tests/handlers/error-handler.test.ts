@@ -5,7 +5,7 @@
  * real sql.js databases with a mock DbManager.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { installChromeMock, resetMockStorage } from "../mocks/chrome-storage";
 import initSqlJs from "sql.js";
 import type { DbManager } from "../../src/background/db-manager";
@@ -14,10 +14,6 @@ import { MessageType } from "../../src/shared/messages";
 installChromeMock();
 
 /* Mock getCurrentSessionId so queryUnresolvedErrors doesn't short-circuit */
-const { getCurrentSessionId: _origGetCurrentSessionId } = await import(
-    "../../src/background/handlers/logging-handler"
-);
-import { vi } from "vitest";
 vi.spyOn(
     await import("../../src/background/handlers/logging-handler"),
     "getCurrentSessionId",
