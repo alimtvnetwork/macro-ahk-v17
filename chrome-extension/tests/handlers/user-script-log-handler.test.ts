@@ -122,7 +122,7 @@ describe("handleUserScriptLog", () => {
         await handleUserScriptLog(buildLogMessage({ metadata: null }));
 
         const insertArgs = mockLogsDb.run.mock.calls[0];
-        expect(insertArgs[1][6]).toBeNull();
+        expect(insertArgs[1][7]).toBeNull();
     });
 
     it("handles non-JSON metadata gracefully", async () => {
