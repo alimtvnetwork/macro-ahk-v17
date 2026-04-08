@@ -251,6 +251,31 @@ rm -f pnpm-workspace.yaml
 **Prevention:** Add `pnpm-workspace.yaml` to `.gitignore` for subdirectories,
 or never commit workspace configs with absolute paths.
 
+## 11. ESLint — `react-refresh/only-export-components` False Positive
+
+**Error signature:**
+```
+warning  Fast refresh only works when a file only exports components.
+         Use a new file to share constants or functions between components
+```
+
+**Root cause:** A component file also exports non-component values (constants,
+utility functions, types). React Refresh requires files to export only components
+for hot module replacement to work correctly.
+
+**Common scenario:** Removing an `eslint-disable` directive for this rule causes
+the warning to reappear. Adding it back with a different comment style may also
+trigger "unused directive" warnings if the export pattern changes.
+
+**Fix:**
+```typescript
+// eslint-disable-next-line react-refresh/only-export-components -- shared constants used by sibling modules
+export { MyComponent, MY_CONSTANT, helperFunction };
+```
+
+**Important:** If you remove the directive and the warning returns, you must
+re-add it — the warning is real, not a false positive.
+
 ---
 
 ## General Debugging Checklist
