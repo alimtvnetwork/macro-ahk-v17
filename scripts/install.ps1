@@ -20,7 +20,7 @@
 param(
     [string]$Version = "",
     [string]$InstallDir = "",
-    [string]$Repo = "riseup-asia/macro-ahk"
+    [string]$Repo = "alimtvnetwork/macro-ahk-v15"
 )
 
 $ErrorActionPreference = "Stop"

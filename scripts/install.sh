@@ -21,7 +21,7 @@
 set -euo pipefail
 
 # ── Defaults ──
-REPO="riseup-asia/macro-ahk"
+REPO="alimtvnetwork/macro-ahk-v15"
 INSTALL_DIR=""
 VERSION=""
 

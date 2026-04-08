@@ -16,8 +16,8 @@ development workflow, coding standards, and pull-request requirements.
 ### Setup
 
 ```bash
-git clone https://github.com/riseup-asia/macro-ahk.git
-cd macro-ahk
+git clone https://github.com/alimtvnetwork/macro-ahk-v15.git
+cd macro-ahk-v15
 pnpm install
 cd chrome-extension && pnpm install && cd ..
 ```
