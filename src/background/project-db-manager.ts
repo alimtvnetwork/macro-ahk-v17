@@ -10,6 +10,7 @@ import type { Database as SqlJsDatabase } from "sql.js";
 import initSqlJs from "./sqljs-loader";
 import { loadOrCreateFromOpfs, saveToOpfs, loadFromStorage } from "./db-persistence";
 import { ensureMetaTables, META_TABLES_SCHEMA } from "./schema-meta-engine";
+import { DEFAULT_PROJECT_DATABASES, type DefaultDatabaseDef } from "../types/default-databases";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
