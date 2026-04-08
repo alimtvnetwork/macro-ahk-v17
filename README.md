@@ -13,7 +13,7 @@
 **Windows (PowerShell):**
 
 ```powershell
-irm https://github.com/riseup-asia/macro-ahk/releases/latest/download/install-extension.ps1 | iex
+irm https://github.com/riseup-asia/macro-ahk/releases/latest/download/install.ps1 | iex
 ```
 
 **Linux / macOS (Bash):**
