@@ -9,6 +9,7 @@ import { toErrorMessage, logError } from '../error-utils';
 
 import { log, logSub } from '../logging';
 import type { PromptEntry, PromptsCfg } from '../types';
+import { showToast } from '../toast';
 
 // ── Prompt entry normalization ──
 // eslint-disable-next-line sonarjs/cognitive-complexity -- field-by-field validation with optional property copying
@@ -57,6 +58,7 @@ export function parseWithRecovery(content: string): unknown {
   try {
     return JSON.parse(content);
   } catch (e) {
+    logError('parseWithRecovery', 'JSON parse failed, attempting recovery', e);
     const trimmed = String(content || '').trim();
     const lastBrace = trimmed.lastIndexOf('}');
     if (lastBrace > 0) {
@@ -265,6 +267,8 @@ export function pasteIntoEditor(rawText: string, promptsCfg: PromptsCfg, getByXP
     navigator.clipboard.writeText(text).then(function() {
       showPasteToast('⚠️ Inject failed — copied to clipboard, try Ctrl+V', true);
     }).catch(function() {
+      logError('copyPrompt', 'Prompt copy to clipboard failed', function);
+      showToast('❌ Prompt copy to clipboard failed', 'error');
       showPasteToast('❌ Inject and clipboard both failed', true);
     });
     return false;
