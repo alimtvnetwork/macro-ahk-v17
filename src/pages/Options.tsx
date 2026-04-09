@@ -112,7 +112,7 @@ const OptionsPage = () => {
     const validSections: SidebarSection[] = [
       "projects", "scripts", "prompts", "activity", "logging",
       "automation", "updaters", "timing", "data", "network",
-      "storage", "api", "settings", "about",
+      "storage", "api", "library", "settings", "about",
     ];
     if (hash && validSections.includes(hash as SidebarSection)) {
       return hash as SidebarSection;
