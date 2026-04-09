@@ -117,9 +117,10 @@ interface ProjectGroup {
 interface SyncBadgeProps {
   state: LinkState;
   pinnedVersion?: string | null;
+  updateAvailable?: boolean;
 }
 
-export function SyncBadge({ state, pinnedVersion }: SyncBadgeProps) {
+export function SyncBadge({ state, pinnedVersion, updateAvailable }: SyncBadgeProps) {
   const config: Record<LinkState, { label: string; className: string; icon: typeof RefreshCw }> = {
     synced: {
       label: "Synced",
@@ -144,14 +145,23 @@ export function SyncBadge({ state, pinnedVersion }: SyncBadgeProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 gap-1 ${className}`}>
-            <Icon className="h-2.5 w-2.5" />
-            {label}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 gap-1 ${className}`}>
+              <Icon className="h-2.5 w-2.5" />
+              {label}
+            </Badge>
+            {updateAvailable && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 bg-amber-500/20 text-amber-300 border-amber-400/40 animate-pulse">
+                <ArrowUpCircle className="h-2.5 w-2.5" />
+                Update Available
+              </Badge>
+            )}
+          </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
           {state === "synced" && "Auto-updates when library version changes"}
-          {state === "pinned" && `Locked to version ${pinnedVersion ?? "unknown"}. Manual update only.`}
+          {state === "pinned" && !updateAvailable && `Locked to version ${pinnedVersion ?? "unknown"}. Manual update only.`}
+          {state === "pinned" && updateAvailable && `Pinned at ${pinnedVersion} — a newer version is available in the library`}
           {state === "detached" && "Independent copy — no longer linked to library"}
         </TooltipContent>
       </Tooltip>
