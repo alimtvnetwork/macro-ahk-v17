@@ -93,6 +93,7 @@ export default tseslint.config(
   // --- Background handlers & content scripts — raise to 40 ---
   {
     files: ["src/background/**/*.ts", "src/content-scripts/**/*.ts", "src/hooks/**/*.ts", "src/lib/**/*.ts", "src/platform/**/*.ts"],
+    ignores: ["**/__tests__/**"],
     rules: {
       "max-lines-per-function": ["warn", { max: 40, skipBlankLines: true, skipComments: true }],
     },
