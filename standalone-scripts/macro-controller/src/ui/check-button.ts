@@ -4,6 +4,7 @@
  */
 
 import { log } from '../logging';
+import { logError } from '../error-utils';
 import { showToast } from '../toast';
 import { refreshBearerTokenFromBestSource, resolveToken, getLastTokenSource } from '../auth';
 import { isOnProjectPage } from '../dom-helpers';

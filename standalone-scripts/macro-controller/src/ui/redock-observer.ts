@@ -11,6 +11,7 @@
  */
 
 import { log } from '../logging';
+import { logError } from '../error-utils';
 import { getByXPath } from '../xpath-utils';
 import { CONFIG, IDS, TIMING } from '../shared-state';
 import { pollUntil } from '../async-utils';

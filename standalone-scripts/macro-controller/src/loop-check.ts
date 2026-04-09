@@ -10,6 +10,7 @@
  */
 
 import { log } from './logging';
+import { logError } from './error-utils';
 import { type WorkspaceCredit } from './types';
 import { findElement, ML_ELEMENTS } from './xpath-utils';
 import { fetchLoopCreditsAsync, syncCreditStateFromApi } from './credit-fetch';

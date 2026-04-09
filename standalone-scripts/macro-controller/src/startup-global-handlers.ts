@@ -8,6 +8,7 @@
  */
 
 import { log } from './logging';
+import { logError } from './error-utils';
 import { dualWrite } from './api-namespace';
 import { showToast } from './toast';
 import { VERSION, loopCreditState, state } from './shared-state';

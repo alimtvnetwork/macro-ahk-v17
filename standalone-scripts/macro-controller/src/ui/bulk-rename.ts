@@ -28,6 +28,7 @@ import {
   cPrimaryBorderA,
 } from '../shared-state';
 import { log } from '../logging';
+import { logError } from '../error-utils';
 import { showToast } from '../toast';
 import {
   applyRenameTemplate,
