@@ -71,9 +71,9 @@ Downloads `sdk-dist`, uploads `macro-controller-dist`.
 
 Uploads `prompts-dist`. No SDK dependency.
 
-### 4. `release` — Build Extension + Package + Release
+### 4. `release` — Build Extension + Verify + Package + Release
 
-Downloads all 4 artifacts, builds the Chrome extension, then packages and publishes.
+Downloads all 4 artifacts, builds the Chrome extension, verifies no source maps remain, then packages and publishes.
 
 ## Artifact Passing Between Jobs
 
@@ -86,12 +86,13 @@ Downloads all 4 artifacts, builds the Chrome extension, then packages and publis
 
 All artifacts have 1-day retention.
 
-## Source Map Removal
+## Source Map Policy
 
-Source maps are **never shipped in release assets**. This is enforced at two levels:
+Source maps are **never shipped in release assets**. This is enforced at three levels:
 
 1. **Build config** — `vite.config.extension.ts` sets `sourcemap: false` in production mode
-2. **Release safety net** — The workflow runs `find chrome-extension/dist -name '*.map' -delete` before zipping, logging the count of removed files
+2. **Verification gate** — After build, the workflow scans `chrome-extension/dist` for `.map` files and **fails the pipeline** if any are found
+3. **Safety-net deletion** — Before packaging, the workflow runs `find chrome-extension/dist -name '*.map' -delete`, logging the count of removed files
 
 Standalone scripts (SDK, XPath, Macro Controller) also default to `sourcemap: false` in production mode via their respective Vite configs.
 

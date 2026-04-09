@@ -6,7 +6,7 @@
 
 ## Pipeline Architecture
 
-The CI pipeline is structured as **5 parallel-capable jobs** with dependency edges:
+The CI pipeline is structured as **6 jobs** with dependency edges:
 
 ```
 ┌──────────┐
@@ -103,6 +103,8 @@ Build command chain:
 check-axios-version → lint-const-reassign → compile-instruction (×3)
 → check-standalone-dist → check-version-sync → vite build
 ```
+
+After build, a **source map verification** step scans `chrome-extension/dist` for any `.map` files and **fails the pipeline** if any are found.
 
 ## Concurrency Strategy
 
