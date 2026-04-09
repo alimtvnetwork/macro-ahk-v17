@@ -23,7 +23,7 @@ const EXTENSION_BRIDGE = 'Extension bridge ';
 // Bridge Constants & Outcome Tracking
 // ============================================
 
-const BRIDGE_TIMEOUT_MS = 5000;
+import { BRIDGE_TIMEOUT_MS } from './constants';
 
 // CQ11: Encapsulate bridge outcome in singleton class
 class BridgeOutcomeState {

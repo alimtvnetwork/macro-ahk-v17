@@ -12,7 +12,7 @@ import type { ExtensionCallbackResponse } from '../types';
 import type { JsonSchema, JsonMigration } from './database-json-types';
 import { appendLog } from './database-json-tab';
 
-const MACRO_CONTROLLER = 'macro-controller';
+import { MACRO_CONTROLLER_NS } from '../constants';
 
 /* ------------------------------------------------------------------ */
 /*  Validate                                                           */
@@ -144,7 +144,7 @@ export function applySchema(raw: string, logEl: HTMLElement, statusBar: HTMLElem
       }));
 
       sendToExtension('PROJECT_DB_CREATE_TABLE', {
-        project: MACRO_CONTROLLER,
+        project: MACRO_CONTROLLER_NS,
         tableName: t.name,
         columns: colDefs,
       }).then((resp: ExtensionCallbackResponse) => {
@@ -195,7 +195,7 @@ function applyMigration(m: JsonMigration, cb: (ok: boolean, msg: string) => void
       const nullable = col.nullable !== false ? '' : ' NOT NULL';
       const def = col.default ? ` DEFAULT ${col.default}` : '';
       sendToExtension('PROJECT_API', {
-        project: MACRO_CONTROLLER,
+        project: MACRO_CONTROLLER_NS,
         method: 'SCHEMA',
         endpoint: 'rawSql',
         params: {
@@ -217,7 +217,7 @@ function applyMigration(m: JsonMigration, cb: (ok: boolean, msg: string) => void
     }
     case 'dropColumn': {
       sendToExtension('PROJECT_API', {
-        project: MACRO_CONTROLLER,
+        project: MACRO_CONTROLLER_NS,
         method: 'SCHEMA',
         endpoint: 'rawSql',
         params: {
@@ -235,7 +235,7 @@ function applyMigration(m: JsonMigration, cb: (ok: boolean, msg: string) => void
     }
     case 'renameColumn': {
       sendToExtension('PROJECT_API', {
-        project: MACRO_CONTROLLER,
+        project: MACRO_CONTROLLER_NS,
         method: 'SCHEMA',
         endpoint: 'rawSql',
         params: {

@@ -13,11 +13,7 @@ import { PANEL_DEFAULT_WIDTH, PANEL_DEFAULT_HEIGHT } from '../shared-state';
 // LocalStorage keys for panel state persistence
 // See: spec/17-app-issues/63-button-layout-collapse-reload.md
 // ============================================
-const LS_PANEL_STATE = 'ml_panel_state';
-const LS_PANEL_GEOMETRY = 'ml_panel_geometry';
-const PANEL_EDGE_MARGIN = 8;
-const PANEL_MIN_VISIBLE_HEIGHT = 220;
-const PANEL_MIN_VISIBLE_WIDTH = 360;
+import { LS_PANEL_STATE, LS_PANEL_GEOMETRY, PANEL_EDGE_MARGIN, PANEL_MIN_VISIBLE_HEIGHT, PANEL_MIN_VISIBLE_WIDTH, LS_BACKDROP_OPACITY, ID_MARCO_PANEL_BACKDROP, DEFAULT_BACKDROP_OPACITY } from '../constants';
 
 function savePanelState(state: string): void {
   try { localStorage.setItem(LS_PANEL_STATE, state); } catch (_e) { logSub('Failed to save panel state: ' + (_e instanceof Error ? _e.message : String(_e)), 1); }
@@ -152,9 +148,7 @@ export function createPanelLayoutCtx(ui: HTMLElement, floatW: string, floatSh: s
   };
 }
 
-const LS_BACKDROP_OPACITY = 'marco_backdrop_opacity';
-const BACKDROP_ID = 'marco-panel-backdrop';
-const DEFAULT_BACKDROP_OPACITY = 0;
+const BACKDROP_ID = ID_MARCO_PANEL_BACKDROP;
 
 export function getBackdropOpacity(): number {
   return DEFAULT_BACKDROP_OPACITY;

@@ -31,14 +31,8 @@ import {
 import { showWsContextMenu } from './ws-context-menu';
 import { logError } from './error-utils';
 
-// ── Extracted string constants (sonarjs/no-duplicate-string) ──
-const ATTR_DATA_ACTIVE = 'data-active';
-const ID_LOOP_WS_SELECTED = 'loop-ws-selected';
-const ATTR_SELECTED_ID = 'data-selected-id';
-const ATTR_WS_ID = 'data-ws-id';
-const ATTR_WS_NAME = 'data-ws-name';
-const ATTR_WS_CURRENT = 'data-ws-current';
-const SEL_LOOP_WS_ITEM = '.loop-ws-item';
+// ── Centralized constants ──
+import { ATTR_DATA_ACTIVE, ID_LOOP_WS_SELECTED, ATTR_SELECTED_ID, ATTR_WS_ID, ATTR_WS_NAME, ATTR_WS_CURRENT, SEL_LOOP_WS_ITEM } from './constants';
 
 // ============================================
 // CQ11/CQ17: Encapsulated view-filter state

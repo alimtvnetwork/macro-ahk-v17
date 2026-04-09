@@ -14,10 +14,9 @@ import type { ExtensionCallbackResponse } from '../types';
 import { buildFilterBar } from './database-data-filter';
 import { escapeHtml, buildPagination, buildDataTableElement } from './database-data-table';
 
-const MACRO_CONTROLLER = 'macro-controller';
-const ID_MARCO_DB_EMPTY = 'marco-db-empty';
+import { MACRO_CONTROLLER_NS, ID_MARCO_DB_EMPTY, DB_PAGE_SIZE } from '../constants';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = DB_PAGE_SIZE;
 
 /** Filter state for a single table. */
 export interface FilterState {
@@ -45,7 +44,7 @@ export function loadTables(
   existingTables?: Array<{ name: string }>,
 ): void {
   sendToExtension('PROJECT_DB_LIST_TABLES', {
-    project: MACRO_CONTROLLER,
+    project: MACRO_CONTROLLER_NS,
     method: 'SCHEMA',
     endpoint: 'listTables',
   }).then((response: ExtensionCallbackResponse) => {
@@ -179,7 +178,7 @@ export function loadTableData(
   const whereClause = buildWhereClause(tableName);
 
   sendToExtension('PROJECT_API', {
-    project: MACRO_CONTROLLER,
+    project: MACRO_CONTROLLER_NS,
     method: 'GET',
     endpoint: tableName,
     params: {
@@ -256,7 +255,7 @@ function fetchCountAndRender(
   statusBar: HTMLElement,
 ): void {
   sendToExtension('PROJECT_API', {
-    project: MACRO_CONTROLLER,
+    project: MACRO_CONTROLLER_NS,
     method: 'GET',
     endpoint: tableName,
     params: { count: true, ...(whereClause ? { where: whereClause } : {}) },

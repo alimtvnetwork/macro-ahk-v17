@@ -21,7 +21,7 @@ import { showChangelogModal } from './changelog-modal';
 import { resolveAutoAttachConfig, runAutoAttachGroup } from './auto-attach';
 import { logError } from '../error-utils';
 
-const SECTION_DIVIDER = '// ============================================\n';
+import { SECTION_DIVIDER } from '../constants';
 
 export interface MenuBuilderDeps {
   btnStyle: string;

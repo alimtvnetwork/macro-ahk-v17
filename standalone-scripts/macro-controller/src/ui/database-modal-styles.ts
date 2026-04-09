@@ -25,7 +25,8 @@ import {
   lModalShadow,
 } from '../shared-state';
 
-const STYLE_ID = 'marco-database-styles';
+import { STYLE_ID_DB_MODAL } from '../constants';
+const STYLE_ID = STYLE_ID_DB_MODAL;
 
 /** Inject scoped CSS for the database modal (idempotent). */
 export function injectDatabaseStyles(): void {

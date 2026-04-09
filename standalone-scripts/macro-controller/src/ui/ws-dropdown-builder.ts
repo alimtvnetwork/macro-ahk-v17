@@ -19,8 +19,7 @@ import { resolveToken } from '../auth';
 import type { RenameHistoryEntry, UndoRenameResults } from '../types';
 import { logError } from '../error-utils';
 
-const ID_LOOP_WS_LIST = 'loop-ws-list';
-const ATTR_DATA_ACTIVE = 'data-active';
+import { ID_LOOP_WS_LIST, ATTR_DATA_ACTIVE } from '../constants';
 
 export interface WsDropdownDeps {
   populateLoopWorkspaceDropdown: () => void;

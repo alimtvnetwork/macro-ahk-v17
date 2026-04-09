@@ -15,9 +15,9 @@ import { SAMPLE_SCHEMA } from './database-json-types';
 import { applySchema, validateSchema } from './database-json-migrate';
 import { downloadSchemaDocs } from './database-json-docs';
 
-const ID_MARCO_JSON_BTN = 'marco-json-btn';
+import { ID_MARCO_JSON_BTN, STYLE_ID_DB_JSON } from '../constants';
 
-const STYLE_ID = 'marco-db-json-styles';
+const STYLE_ID = STYLE_ID_DB_JSON;
 
 /* ------------------------------------------------------------------ */
 /*  Styles                                                             */

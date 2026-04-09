@@ -11,8 +11,7 @@ import { logError } from './error-utils';
  * Ref: .lovable/fixes/macro-controller-toast-crash-and-slow-startup.md
  */
 
-const WS_CACHE_PREFIX = 'marco_ws_cache_';
-const WS_LAST_PROJECT_KEY = 'marco_last_project_id';
+import { WS_CACHE_PREFIX, WS_LAST_PROJECT_KEY } from './constants';
 
 /** Extract project ID from the current URL (lovable.dev/projects/{id} or {id}-preview--{uuid}). */
 function resolveProjectId(): string {

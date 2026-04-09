@@ -9,11 +9,7 @@
 
 import { el } from './database-schema-helpers';
 
-const ID_MARCO_SCHEMA_VAL_ROW = 'marco-schema-val-row';
-const ID_MARCO_SCHEMA_VAL_LABEL = 'marco-schema-val-label';
-const ID_MARCO_SCHEMA_SELECT = 'marco-schema-select';
-const ID_MARCO_SCHEMA_VAL_INPUT = 'marco-schema-val-input';
-const ID_MARCO_SCHEMA_FK_ROW = 'marco-schema-fk-row';
+import { ID_MARCO_SCHEMA_VAL_ROW, ID_MARCO_SCHEMA_VAL_LABEL, ID_MARCO_SCHEMA_SELECT, ID_MARCO_SCHEMA_VAL_INPUT, ID_MARCO_SCHEMA_FK_ROW } from '../constants';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

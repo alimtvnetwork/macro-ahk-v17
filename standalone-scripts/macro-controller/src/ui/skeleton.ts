@@ -1,5 +1,5 @@
 
-const ATTR_DATA_SKELETON = 'data-skeleton';
+import { ATTR_DATA_SKELETON } from '../constants';
 /**
  * Skeleton UI — Shimmer loading placeholders for macro controller panel.
  *
