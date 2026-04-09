@@ -678,6 +678,7 @@ export function LibraryView() {
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<SharedAsset | null>(null);
   const [importExportLoading, setImportExportLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"assets" | "groups">("assets");
 
   const loadData = useCallback(async () => {
     setLoading(true);
