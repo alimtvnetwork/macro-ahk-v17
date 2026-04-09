@@ -17,16 +17,20 @@ All critical AHK features implemented. 44 issue write-ups documented. 26 enginee
 
 ### 2026-04-09 Session
 
-- **SDK AuthTokenUtils extraction**: Moved pure token utilities (`normalizeBearerToken`, `isJwtToken`, `isUsableToken`, `extractBearerTokenFromUnknown`, `scanSupabaseLocalStorage`, `extractSupabaseTokenFromRaw`) from `macro-controller/src/auth-resolve.ts` to `marco-sdk/src/auth-token-utils.ts` as a static class. Exposed on `window.marco.authUtils`. Controller delegates at runtime with inline fallback for early boot.
-- **Error logging cleanup**: All swallowed `catch` blocks in auth-resolve.ts now log with context via `toErrorMessage()`. JSON parse fallbacks log at debug level.
-- **Code quality**: Inverted nested ifs to guard clauses throughout auth-resolve.ts. Extracted `findTokenInCookies()` and `extractSessionNamesFromProject()` helpers.
-- **Backward compatibility**: auth-resolve.ts still exports all original functions as thin wrappers — 12+ consumer files unaffected.
-- **Cross-Project Sync Phase 1 (data layer)**: Added 4 new SQLite tables (`SharedAsset`, `AssetLink`, `ProjectGroup`, `ProjectGroupMember`), migration v7, 22 `LIBRARY_*` message types, library handler with sync engine, content hasher (SHA-256), and version manager. Wired into boot sequence.
-- **Cross-Project Sync Phase 2 (Library UI)**: Built `LibraryView.tsx` with `AssetCard` grid, `SyncBadge` (synced/pinned/detached states), `PromoteDialog` with conflict resolution (Replace/Fork/Cancel), `AssetDetailPanel` with content preview and linked projects. Added "Library" sidebar entry, lazy-loaded in Options page. Full mock data in preview adapter.
-- **Unit tests**: 45 tests across 3 files — `library-handler.test.ts` (26 tests: full CRUD + sync engine + import/export), `library-content-hasher.test.ts` (6 tests: SHA-256), `library-version-manager.test.ts` (13 tests: semver ops).
-- **Error logging spec**: Created `spec/10-macro-controller/ts-migration-v2/08-error-logging-and-type-safety.md` — 16 swallowed errors inventoried, `any` elimination plan (66 occurrences in 7 files), NamespaceLogger design.
-- **CI/CD pipeline spec**: Updated `spec/14-ci-cd/01-ci-cd-pipeline.md` and `spec/14-ci-cd/02-release-pipeline.md` to accurately reflect all build steps including source map verification, axios version guard, lint steps, and release asset packaging.
-- **Pipeline spec docs**: Added source map verification step to `release.yml` after build, before packaging. Reviewed and aligned all CI/CD spec docs with actual workflow files.
+- **Error Logging Spec Implementation (T1–T5) — COMPLETE**:
+  - **T1 — NamespaceLogger**: Created `marco-sdk/src/logger.ts` with `error()`, `warn()`, `info()`, `debug()`, `console()`, `stackTrace()` methods. Exposed on `RiseupAsiaMacroExt.Logger`. Always-capture stack traces via `captureStack()`.
+  - **T2 — globals.d.ts typing**: Full `RiseupAsiaMacroExtNamespace` interface with typed `Logger` (6 methods), `Projects`, `RiseupAsiaProject`, `CookieBinding`, `MacroControllerNamespace` on `window`.
+  - **T3 — Swallowed error fixes (S1–S16)**: All 16 swallowed errors across 8 files replaced with structured `NamespaceLogger.error()` calls including file path, missing item, and reasoning.
+  - **T4 — `any` elimination**: All 11 `any` occurrences removed from `macro-controller/src/` (excluding `__tests__/`). Replaced with `unknown`, explicit types, or typed generics.
+  - **T5 — Error-level log migration**: All 86 `log(msg, 'error')` calls migrated to `logError(fn, msg, error?)` across 33 files. Zero `log(*, 'error')` remaining.
+- **Silent catch block fixes (48 blocks)**: All swallowed catch blocks in SDK + Controller now log via `logError()` + `showToast()` (controller) or `NamespaceLogger.error()` (SDK). Zero silent catches remaining.
+- **Controller error-utils expansion**: Added `logDebug()`, `logConsole()`, `logStackTrace()` wrappers alongside `logError()`. Each delegates to `RiseupAsiaMacroExt.Logger` when available, falls back to console with `[RiseupAsia] [fn]` prefix.
+- **API namespace explicit typing**: Replaced all `Record<string, unknown>` in `MacroControllerNamespace` with 8 explicit interfaces: `LoopApi`, `CreditsApi`, `AuthApi`, `WorkspaceApi`, `UiApi`, `ConfigApi`, `AutoAttachApi`, `MacroControllerInternal`. Zero `unknown` in API surface. `getNamespace()` uses typed casts instead of `Record<string, Record<string, unknown>>`.
+- **SDK AuthTokenUtils extraction**: Moved pure token utilities from `macro-controller/src/auth-resolve.ts` to `marco-sdk/src/auth-token-utils.ts` as a static class. Exposed on `window.marco.authUtils`. Controller delegates at runtime with inline fallback.
+- **Cross-Project Sync Phase 1 (data layer)**: Added 4 new SQLite tables, migration v7, 22 `LIBRARY_*` message types, library handler with sync engine, content hasher, and version manager.
+- **Cross-Project Sync Phase 2 (Library UI)**: Built `LibraryView.tsx` with `AssetCard` grid, `SyncBadge`, `PromoteDialog`, `AssetDetailPanel`. Added "Library" sidebar entry. Full mock data in preview adapter.
+- **Unit tests**: 45 tests across 3 files — library handler, content hasher, version manager.
+- **CI/CD pipeline spec**: Updated to reflect all build steps including source map verification, axios version guard, lint steps, and release asset packaging.
 
 ### 2026-04-08 Session
 
@@ -100,7 +104,7 @@ Spec: `spec/13-features/cross-project-sync.md`
 | **Cross-Project Sync** | Phase 1: data layer (4 tables, migration v7, 22 message types, sync engine). Phase 2: Library UI (AssetCard, SyncBadge, PromoteDialog). 45 unit tests. |
 | **UI Polish** | Tailwind hover micro-interactions (Task 4.1), direction-aware view transitions (Task 4.2) |
 | **Build & Docs** | Build verification (Task 2.1), CDP injection docs (Task 3.1), AI onboarding checklist (Task 3.2), LLM guide updated |
-| **Code Quality** | ESLint 1390 → 0 issues, SonarJS integration, TS migration v2 (6 phases), error logging spec (16 swallowed errors inventoried) |
+| **Code Quality** | ESLint 1390 → 0 issues, SonarJS integration, TS migration v2 (6 phases), error logging T1–T5 complete (86 log migrations, 48 silent catches fixed, 11 `any` eliminated, 8 explicit API interfaces), `logError`/`logDebug`/`logConsole`/`logStackTrace` helpers |
 | **Specs Matured** | S-056 Cross-Project Sync (READY v2.0.0), S-052 Prompt Click verification checklist, error logging & type safety spec |
 | **Issues Resolved** | #76–#90: cookie binding, hot-reload, globals migration, auth bridge, injection pipeline, IndexedDB cache, prompt click fix |
 
