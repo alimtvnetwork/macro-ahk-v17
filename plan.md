@@ -1,6 +1,6 @@
 # Automator — Future Work Roadmap
 
-**Last Updated**: 2026-04-07
+**Last Updated**: 2026-04-09
 **Active Codebase**: `marco-script-ahk-v7.latest/` (v7.23)
 **Chrome Extension**: v2.117.0
 **Detailed Plan**: `.lovable/plan.md`
@@ -14,6 +14,16 @@
 ## Current Status: v7.23 AHK + Extension v2.117.0 — Stable
 
 All critical AHK features implemented. 44 issue write-ups documented. 26 engineering standards established. Chrome Extension at v2.117.0 with full React UI unification, session-bridge auth, SQLite bundles, User Script API, Context Menu, relative scaling, view transitions, hover micro-interactions, 7-stage injection pipeline with cache gate, and 4-tier CSP fallback. ESLint zero errors/warnings. All immediate workstream items complete.
+
+### 2026-04-09 Session
+
+- **SDK AuthTokenUtils extraction**: Moved pure token utilities (`normalizeBearerToken`, `isJwtToken`, `isUsableToken`, `extractBearerTokenFromUnknown`, `scanSupabaseLocalStorage`, `extractSupabaseTokenFromRaw`) from `macro-controller/src/auth-resolve.ts` to `marco-sdk/src/auth-token-utils.ts` as a static class. Exposed on `window.marco.authUtils`. Controller delegates at runtime with inline fallback for early boot.
+- **Error logging cleanup**: All swallowed `catch` blocks in auth-resolve.ts now log with context via `toErrorMessage()`. JSON parse fallbacks log at debug level.
+- **Code quality**: Inverted nested ifs to guard clauses throughout auth-resolve.ts. Extracted `findTokenInCookies()` and `extractSessionNamesFromProject()` helpers.
+- **Backward compatibility**: auth-resolve.ts still exports all original functions as thin wrappers — 12+ consumer files unaffected.
+- **Cross-Project Sync Phase 1 (data layer)**: Added 4 new SQLite tables (`SharedAsset`, `AssetLink`, `ProjectGroup`, `ProjectGroupMember`), migration v7, 22 `LIBRARY_*` message types, library handler with sync engine, content hasher (SHA-256), and version manager. Wired into boot sequence.
+- **CI/CD pipeline spec**: Updated `spec/14-ci-cd/01-ci-cd-pipeline.md` and `spec/14-ci-cd/02-release-pipeline.md` to accurately reflect all build steps including source map verification, axios version guard, lint steps, and release asset packaging.
+- **Pipeline spec docs**: Added source map verification step to `release.yml` after build, before packaging. Reviewed and aligned all CI/CD spec docs with actual workflow files.
 
 ### 2026-04-08 Session
 
