@@ -26,6 +26,7 @@ import {
 } from "./migration-v4-sql";
 import { getV5Statements } from "./migration-v5-sql";
 import { getV6Statements } from "./migration-v6-sql";
+import { getV7Statements } from "./migration-v7-sql";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
