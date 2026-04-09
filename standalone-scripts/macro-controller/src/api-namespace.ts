@@ -16,27 +16,105 @@ import { log } from './logging';
 import { logError } from './error-utils';
 import { showToast } from './toast';
 
+import type { MacroController } from './core/MacroController';
+import type { ControllerState } from './types/config-types';
+import type { DiagnosticDump } from './types/credit-types';
+import type { RenameHistoryEntry } from './types/workspace-types';
+import type { AutoAttachGroupRuntime } from './types/ui-types';
+
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
+/** Functions exposed on `api.loop` — loop lifecycle and diagnostics. */
+export interface LoopApi {
+  start: (direction?: string) => boolean;
+  stop: () => boolean;
+  check: () => void;
+  state: () => ControllerState;
+  setInterval: (ms: number) => void;
+  diagnostics: () => DiagnosticDump;
+}
+
+/** Functions exposed on `api.credits` — credit fetch operations. */
+export interface CreditsApi {
+  fetch: (isRetry?: boolean) => void;
+}
+
+/** Functions exposed on `api.auth` — authentication token access. */
+export interface AuthApi {
+  getToken: () => string;
+}
+
+/** Functions exposed on `api.workspace` — workspace navigation and rename. */
+export interface WorkspaceApi {
+  moveTo: (wsId: string, wsName: string) => Promise<void>;
+  forceSwitch: (direction: string) => void;
+  bulkRename: (template: string, prefix: string, suffix: string, startNum?: number | Record<string, number>) => void;
+  getRenameDelay: () => number;
+  setRenameDelay: (ms: number) => void;
+  cancelRename: () => void;
+  undoRename: () => void;
+  renameHistory: () => RenameHistoryEntry[];
+}
+
+/** Functions exposed on `api.ui` — UI lifecycle and refresh. */
+export interface UiApi {
+  refreshStatus: () => void;
+  startStatusRefresh: () => void;
+  stopStatusRefresh: () => void;
+  destroy: () => void;
+  toast: (message: string, level?: string) => void;
+}
+
+/** Functions exposed on `api.config` — runtime configuration setters. */
+export interface ConfigApi {
+  setProjectButtonXPath: (xpath: string) => void;
+  setProgressXPath: (xpath: string) => void;
+}
+
+/** Functions exposed on `api.autoAttach` — auto-attach group runner. */
+export interface AutoAttachApi {
+  runGroup: (group: AutoAttachGroupRuntime) => void;
+}
+
+/** The public console API surface of the MacroController namespace. */
+export interface MacroControllerApi {
+  loop: LoopApi;
+  credits: CreditsApi;
+  auth: AuthApi;
+  workspace: WorkspaceApi;
+  ui: UiApi;
+  config: ConfigApi;
+  autoAttach: AutoAttachApi;
+  mc: MacroController;
+  [key: string]: unknown;
+}
+
+/** Internal callbacks NOT for external use. */
+export interface MacroControllerInternal {
+  resolvedToken?: string;
+  destroyed?: boolean;
+  delegateComplete?: () => void;
+  updateStartStopBtn?: (running: boolean) => void;
+  updateAuthDiag?: () => void;
+  createUIWrapper?: () => void;
+  createUIManager?: () => object;
+  createWorkspaceManager?: () => object;
+  createAuthManager?: () => object;
+  createCreditManager?: () => object;
+  createLoopEngine?: () => object;
+  [key: string]: unknown;
+}
+
+/** Full namespace shape on RiseupAsiaMacroExt.Projects.MacroController. */
 export interface MacroControllerNamespace {
   meta: {
     version: string;
     displayName: string;
   };
-  api: {
-    loop: Record<string, unknown>;
-    credits: Record<string, unknown>;
-    auth: Record<string, unknown>;
-    workspace: Record<string, unknown>;
-    ui: Record<string, unknown>;
-    config: Record<string, unknown>;
-    autoAttach: Record<string, unknown>;
-    mc: unknown;
-    [key: string]: unknown;
-  };
-  _internal: Record<string, unknown>;
+  api: MacroControllerApi;
+  _internal: MacroControllerInternal;
   [key: string]: unknown;
 }
 
