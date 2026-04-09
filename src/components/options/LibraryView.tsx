@@ -68,7 +68,9 @@ import {
   MessageSquare,
   Zap,
   Settings2,
+  Users,
 } from "lucide-react";
+import { ProjectGroupPanel } from "./ProjectGroupPanel";
 import { toast } from "sonner";
 
 /* ------------------------------------------------------------------ */
