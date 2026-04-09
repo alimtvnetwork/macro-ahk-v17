@@ -295,6 +295,9 @@ function PromptRow({ prompt, index, total, onEdit, onDelete, onMoveUp, onMoveDow
                             {prompt.category}
                         </Badge>
                     )}
+                    {prompt.slug && libraryAssets?.has(prompt.slug) && (
+                        <SyncBadge state="synced" />
+                    )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{prompt.text}</p>
             </div>
