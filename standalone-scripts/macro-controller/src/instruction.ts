@@ -76,7 +76,7 @@ const instruction: ProjectInstruction = {
     schemaVersion: "1.0",
     name: "macro-controller",
     displayName: "Macro Controller",
-    version: "2.119.1",
+    version: "2.120.0",
     description: "Macro Controller for workspace and credit management",
     world: "MAIN",
     dependencies: ["marco-sdk", "xpath"],
