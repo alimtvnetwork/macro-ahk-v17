@@ -829,78 +829,102 @@ export function LibraryView() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleExport} disabled={importExportLoading}>
-            <Download className="h-3.5 w-3.5 mr-1" />
-            Export
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleImport} disabled={importExportLoading}>
-            <Upload className="h-3.5 w-3.5 mr-1" />
-            Import
-          </Button>
-          <Button size="sm" onClick={() => setPromoteOpen(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Promote
-          </Button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search assets…"
-            className="h-8 text-sm pl-8"
-          />
-        </div>
-        <Tabs value={filterType} onValueChange={v => setFilterType(v as AssetType | "all")}>
-          <TabsList className="h-8">
-            <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
-            <TabsTrigger value="prompt" className="text-xs px-2 h-6">Prompts</TabsTrigger>
-            <TabsTrigger value="script" className="text-xs px-2 h-6">Scripts</TabsTrigger>
-            <TabsTrigger value="chain" className="text-xs px-2 h-6">Chains</TabsTrigger>
-            <TabsTrigger value="preset" className="text-xs px-2 h-6">Presets</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Content */}
-      {loading ? (
-        <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="text-sm">Loading library…</span>
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-          <Library className="h-10 w-10 opacity-30" />
-          <p className="text-sm">
-            {assets.length === 0
-              ? "No shared assets yet. Promote an asset to get started."
-              : "No assets match your filter."}
-          </p>
-          {assets.length === 0 && (
-            <Button size="sm" variant="outline" onClick={() => setPromoteOpen(true)}>
-              <Plus className="h-3.5 w-3.5 mr-1" />
-              Promote first asset
-            </Button>
+          {activeTab === "assets" && (
+            <>
+              <Button size="sm" variant="outline" onClick={handleExport} disabled={importExportLoading}>
+                <Download className="h-3.5 w-3.5 mr-1" />
+                Export
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleImport} disabled={importExportLoading}>
+                <Upload className="h-3.5 w-3.5 mr-1" />
+                Import
+              </Button>
+              <Button size="sm" onClick={() => setPromoteOpen(true)}>
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Promote
+              </Button>
+            </>
           )}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filtered.map(asset => (
-            <AssetCard
-              key={asset.Id}
-              asset={asset}
-              links={linksForAsset(asset.Id)}
-              onSync={handleSync}
-              onDelete={handleDelete}
-              onViewDetail={setSelectedAsset}
-            />
-          ))}
-        </div>
-      )}
+      </div>
+
+      {/* Top-level Assets / Groups tabs */}
+      <Tabs value={activeTab} onValueChange={v => setActiveTab(v as "assets" | "groups")}>
+        <TabsList className="h-9">
+          <TabsTrigger value="assets" className="text-xs px-3 gap-1.5">
+            <Library className="h-3.5 w-3.5" />
+            Assets
+          </TabsTrigger>
+          <TabsTrigger value="groups" className="text-xs px-3 gap-1.5">
+            <Users className="h-3.5 w-3.5" />
+            Groups
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="assets" className="mt-4 space-y-4">
+          {/* Filters */}
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search assets…"
+                className="h-8 text-sm pl-8"
+              />
+            </div>
+            <Tabs value={filterType} onValueChange={v => setFilterType(v as AssetType | "all")}>
+              <TabsList className="h-8">
+                <TabsTrigger value="all" className="text-xs px-2 h-6">All</TabsTrigger>
+                <TabsTrigger value="prompt" className="text-xs px-2 h-6">Prompts</TabsTrigger>
+                <TabsTrigger value="script" className="text-xs px-2 h-6">Scripts</TabsTrigger>
+                <TabsTrigger value="chain" className="text-xs px-2 h-6">Chains</TabsTrigger>
+                <TabsTrigger value="preset" className="text-xs px-2 h-6">Presets</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Content */}
+          {loading ? (
+            <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">Loading library…</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
+              <Library className="h-10 w-10 opacity-30" />
+              <p className="text-sm">
+                {assets.length === 0
+                  ? "No shared assets yet. Promote an asset to get started."
+                  : "No assets match your filter."}
+              </p>
+              {assets.length === 0 && (
+                <Button size="sm" variant="outline" onClick={() => setPromoteOpen(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Promote first asset
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filtered.map(asset => (
+                <AssetCard
+                  key={asset.Id}
+                  asset={asset}
+                  links={linksForAsset(asset.Id)}
+                  onSync={handleSync}
+                  onDelete={handleDelete}
+                  onViewDetail={setSelectedAsset}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="groups" className="mt-4">
+          <ProjectGroupPanel groups={groups} onRefresh={loadData} />
+        </TabsContent>
+      </Tabs>
 
       {/* Promote dialog */}
       <PromoteDialog open={promoteOpen} onOpenChange={setPromoteOpen} onPromoted={loadData} />
