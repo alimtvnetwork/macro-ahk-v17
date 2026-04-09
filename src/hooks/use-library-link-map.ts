@@ -1,8 +1,9 @@
 /**
  * Hook: useLibraryLinkMap
  *
- * Fetches all SharedAssets and AssetLinks, then builds a lookup map
- * of asset slug → { linkState, pinnedVersion } for a given project.
+ * Fetches all SharedAssets and AssetLinks, then builds lookup maps:
+ * - assetSlugMap: slug → exists in library (for global prompt/script lists)
+ * - projectLinkMap: slug → { state, pinnedVersion } for a specific project
  *
  * Used by PromptRow and ScriptEntryCard to show inline SyncBadge.
  */
@@ -10,9 +11,9 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { sendMessage } from "@/lib/message-client";
 
-type LinkState = "synced" | "pinned" | "detached";
+export type LinkState = "synced" | "pinned" | "detached";
 
-interface LinkInfo {
+export interface LinkInfo {
   state: LinkState;
   pinnedVersion: string | null;
 }
@@ -30,10 +31,15 @@ interface AssetLinkMinimal {
   PinnedVersion: string | null;
 }
 
+/** Map of asset slug → LinkInfo */
 export type LibraryLinkMap = Map<string, LinkInfo>;
 
-export function useLibraryLinkMap(projectId: number | null): {
+/** Set of slugs that exist in the library */
+export type LibraryAssetSet = Set<string>;
+
+export function useLibraryLinkMap(projectId?: number | null): {
   linkMap: LibraryLinkMap;
+  assetSlugs: LibraryAssetSet;
   loading: boolean;
 } {
   const [assets, setAssets] = useState<SharedAssetMinimal[]>([]);
@@ -41,7 +47,6 @@ export function useLibraryLinkMap(projectId: number | null): {
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
-    if (!projectId) return;
     setLoading(true);
     try {
       const [assetsRes, linksRes] = await Promise.all([
@@ -55,9 +60,11 @@ export function useLibraryLinkMap(projectId: number | null): {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const assetSlugs = useMemo(() => new Set(assets.map(a => a.Slug)), [assets]);
 
   const linkMap = useMemo(() => {
     const map = new Map<string, LinkInfo>();
@@ -75,5 +82,5 @@ export function useLibraryLinkMap(projectId: number | null): {
     return map;
   }, [assets, links, projectId]);
 
-  return { linkMap, loading };
+  return { linkMap, assetSlugs, loading };
 }
