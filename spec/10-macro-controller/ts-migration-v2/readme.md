@@ -1,21 +1,21 @@
 # Macro Controller — TypeScript Migration V2
 
 **Created**: 2026-03-21
-**Status**: Planning
+**Status**: ✅ Complete
 **Active Codebase**: `standalone-scripts/macro-controller/src/`
-**Current Version**: v7.38 (4,165 lines in `macro-looping.ts`)
+**Current Version**: v2.126.0
 
 ---
 
 ## Overview
 
-V2 migration focuses on three pillars:
+V2 migration focused on three pillars:
 
 1. **Critical bug fixes** — initialization order, workspace name detection
-2. **Architectural refactor** — class-based modules, removal of window globals
-3. **Performance & quality** — configurable logging, DOM caching, observer throttling
+2. **Architectural refactor** — class-based modules, removal of window globals, HTTP→SDK migration
+3. **Performance & quality** — configurable logging, DOM caching, observer throttling, error logging, type safety
 
-React migration is evaluated but deferred pending modularization completion.
+React migration was evaluated and deferred (Phase 03).
 
 ---
 
@@ -23,11 +23,16 @@ React migration is evaluated but deferred pending modularization completion.
 
 | Phase | Spec File | Priority | Status |
 |-------|-----------|----------|--------|
-| 01 | `01-initialization-fix.md` | Critical | Planning |
-| 02 | `02-class-architecture.md` | High | Planning |
-| 03 | `03-react-feasibility.md` | Medium | Evaluation |
-| 04 | `04-performance-logging.md` | High | Planning |
-| 05 | `05-json-config-pipeline.md` | Medium | Planning |
+| 01 | `01-initialization-fix.md` | Critical | ✅ Complete |
+| 02 | `02-class-architecture.md` | High | ✅ Complete |
+| 03 | `03-react-feasibility.md` | Medium | ✅ Evaluated & deferred |
+| 04 | `04-performance-logging.md` | High | ✅ Complete |
+| 05 | `05-module-splitting.md` | Medium | ✅ Complete |
+| 06 | `06-http-to-sdk-migration.md` | High | ✅ Complete (v1.74.0) |
+| 07 | `07-rename-persistence-indexeddb.md` | Medium | ✅ Complete |
+| 08 | `08-error-logging-and-type-safety.md` | High | ✅ Complete |
+
+**All 8 phases complete.** No remaining migration work.
 
 ---
 
@@ -35,58 +40,47 @@ React migration is evaluated but deferred pending modularization completion.
 
 ```
 index.ts
-  └── macro-looping.ts (4,165 lines — orchestrator IIFE)
-        ├── imports 20+ modules
-        ├── defines ~40 window.__loop* globals
-        ├── creates entire UI via DOM manipulation
-        └── 200ms startup delay → auth → credits → workspace detect
+  └── macro-looping.ts (177 lines — thin orchestrator)
+        ├── imports MacroController class + sub-modules
+        ├── RiseupAsiaMacroExt namespace (no bare window globals)
+        ├── UI via modular ui/*.ts DOM builders
+        └── Startup: token gate → auth → credits → workspace detect
 ```
 
-### Extracted Modules (Step 2)
+### Module Structure
 
-| File | Responsibility |
-|------|----------------|
-| `shared-state.ts` | Config parsing, theme resolution, mutable state |
-| `controller-registry.ts` | Late-binding function registry (callFn/registerFn) |
-| `auth.ts` | Token resolution, session bridge, cookie fallback |
-| `credit-api.ts` | Credit calculation, bar rendering |
-| `credit-fetch.ts` | API calls, response parsing |
-| `workspace-detection.ts` | DOM-based workspace name detection |
-| `workspace-management.ts` | Workspace move operations |
-| `workspace-rename.ts` | Bulk rename, undo, templates |
-| `loop-engine.ts` | Start/stop/cycle/delegate/check |
-| `logging.ts` | Log persistence, export, activity log |
-| `dom-helpers.ts` | Page detection, dialog control |
-| `toast.ts` | Toast notification system |
-| `xpath-utils.ts` | XPath queries, element finding |
-| `ui/*.ts` | Panel layout, countdown, menus, modals, etc. |
-
-### Window Globals (40+)
-
-```
-__loopStart, __loopStop, __loopCheck, __loopState, __loopSetInterval,
-__loopToast, __loopDiag, __loopDestroy, __loopFetchCredits,
-__loopMoveToWorkspace, __loopMoveAdjacent, __loopGetBearerToken,
-__loopUpdateStartStopBtn, __loopUpdateAuthDiag, __loopBulkRename,
-__loopGetRenameDelay, __loopSetRenameDelay, __loopCancelRename,
-__loopUndoRename, __loopRenameHistory, __loopDestroyed,
-__delegateComplete, __setProjectButtonXPath, __setProgressXPath, ...
-```
+| Category | Files | Responsibility |
+|----------|-------|----------------|
+| **Core** | `MacroController.ts`, `macro-looping.ts` | Entry point, class facade |
+| **State** | `shared-state.ts`, `shared-state-runtime.ts` | Config, theme, mutable singletons |
+| **Auth** | `auth.ts`, `auth-bridge.ts`, `auth-resolve.ts`, `auth-recovery.ts` | Token resolution, bridge, recovery |
+| **Credits** | `credit-api.ts`, `credit-balance.ts`, `credit-fetch.ts` | Credit calc, bar, API calls via SDK |
+| **Workspace** | `workspace-*.ts`, `ws-*.ts` | Detection, cache, rename, move, observer |
+| **Rename** | `rename-*.ts`, `project-kv-store.ts` | Template engine, API, bulk ops, IndexedDB presets |
+| **Startup** | `startup*.ts` | Ordered boot sequence, token gate, toast |
+| **Logging** | `logging.ts`, `log-manager.ts`, `error-utils.ts` | Batched logs, configurable levels, structured errors |
+| **UI** | `ui/*.ts` (25+ files) | Panel, menus, settings, database modal, prompts |
+| **Types** | `types/*.ts` (12 files) | Configs, credits, workspaces, UI, enums |
+| **Infra** | `constants.ts`, `globals.d.ts`, `controller-registry.ts` | Shared constants, Window types, late-binding |
 
 ---
 
 ## Dependencies
 
-- Spec `06-macro-controller/js-to-ts-migration/` — V1 migration (completed Steps 1-5b)
-- Spec `07-chrome-extension/50-script-dependency-system.md` — Script injection order
-- Memory `architecture/standalone-scripts/modularization-strategy` — Context Object + Registry patterns
+- Spec `10-macro-controller/js-to-ts-migration/` — V1 migration (completed Steps 1-5b)
+- Spec `11-chrome-extension/50-script-dependency-system.md` — Script injection order
+- SDK `standalone-scripts/marco-sdk/` — API registry, auth utils, logger
 
 ---
 
 ## Rules
 
-1. **No breaking changes** — existing AHK/extension consumers must keep working during migration
+1. **No breaking changes** — existing AHK/extension consumers must keep working
 2. **One phase at a time** — verify each phase before starting next
 3. **Backward compat** — window globals retained as thin facades until all consumers migrate
 4. **Bug fixes first** — Phase 01 must land before any refactor work
 5. **Discuss before implementing** — per Engineering Standard #9
+
+---
+
+*Migration complete — 2026-04-09*
