@@ -57,7 +57,7 @@ function initLoopState(direction: LoopDirection | string): void {
   state.__cycleRetryPending = false;
   state.running = true;
   state.countdown = Math.floor(TIMING.LOOP_INTERVAL / 1000);
-  nsCallTyped('_internal.updateStartStopBtn', true);
+  nsCallTyped(NS_UPDATE_START_STOP, true);
 }
 
 function logLoopStartInfo(): void {
@@ -80,14 +80,14 @@ function verifyControllerInjection(): boolean {
   if (!marker || typeof loopStartFn !== 'function') {
     logError('unknown', '❌ Controller script NOT injected (marker=\' + !!marker + \', __loopStart=\' + (typeof loopStartFn) + \') — aborting');
     state.running = false;
-    nsCallTyped('_internal.updateStartStopBtn', false);
+    nsCallTyped(NS_UPDATE_START_STOP, false);
     return false;
   }
 
   if (!uiContainer) {
     logError('unknown', '❌ Controller UI container NOT found in DOM (id=\' + IDS.CONTAINER + \') — aborting');
     state.running = false;
-    nsCallTyped('_internal.updateStartStopBtn', false);
+    nsCallTyped(NS_UPDATE_START_STOP, false);
     return false;
   }
 
@@ -204,7 +204,7 @@ export function stopLoop(): boolean {
 
   log('=== LOOP STOPPED ===', 'success');
   log('Total cycles completed: ' + state.cycleCount);
-  nsCallTyped('_internal.updateStartStopBtn', false);
+  nsCallTyped(NS_UPDATE_START_STOP, false);
   mc().updateUI();
 
   return true;
