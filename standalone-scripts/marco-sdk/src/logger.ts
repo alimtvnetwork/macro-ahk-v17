@@ -2,12 +2,18 @@
  * Riseup Macro SDK — Namespace Logger
  *
  * Static class exposed on `RiseupAsiaMacroExt.Logger`.
- * All error logging in the macro-controller MUST go through this logger
- * instead of bare `log()` calls for error-level messages.
+ * All structured logging in the macro-controller MUST go through this logger.
+ *
+ * Methods:
+ * - `error(fn, msg, error?)` — Hard errors, always includes stack trace
+ * - `debug(fn, msg)` — Low-priority diagnostics and intentional fallbacks
+ * - `console(fn, msg, ...args)` — General-purpose structured console output
+ * - `stackTrace(fn, msg, error?)` — Always captures full call stack
+ * - `warn(fn, msg)` — Recoverable issues
+ * - `info(fn, msg)` — Informational messages
  *
  * Each method:
  * - Prefixes with `[RiseupAsia]` + function name
- * - For `error()`: includes stack trace from the error object if available
  * - Writes to the matching `console.*` method
  * - Never swallows — always outputs
  *
@@ -31,6 +37,20 @@ function formatError(error: unknown): string {
     } catch {
         return String(error);
     }
+}
+
+/**
+ * Capture the current call stack, stripping internal logger frames.
+ * If an Error object is provided, its stack is used instead.
+ */
+function captureStack(error?: unknown): string {
+    if (error instanceof Error && error.stack) {
+        return error.stack;
+    }
+    const trace = new Error().stack || "";
+    // Strip the first 3 frames: Error, captureStack, and the Logger method
+    const lines = trace.split("\n");
+    return lines.slice(3).join("\n");
 }
 
 export class NamespaceLogger {
@@ -66,5 +86,36 @@ export class NamespaceLogger {
      */
     static debug(fn: string, msg: string): void {
         console.debug(`${PREFIX} [${fn}] ${msg}`);
+    }
+
+    /**
+     * General-purpose structured console output.
+     * Use for runtime observations, data dumps, or verbose tracing.
+     *
+     * @param fn - Function or module name
+     * @param msg - Human-readable message
+     * @param args - Additional values to log (objects, arrays, etc.)
+     */
+    static console(fn: string, msg: string, ...args: unknown[]): void {
+        const base = `${PREFIX} [${fn}] ${msg}`;
+        if (args.length > 0) {
+            console.log(base, ...args);
+        } else {
+            console.log(base);
+        }
+    }
+
+    /**
+     * Log with a full stack trace — always captured, even without an Error.
+     * Use for tracing execution flow, diagnosing call chains, or debugging.
+     *
+     * @param fn - Function or module name
+     * @param msg - Human-readable message
+     * @param error - Optional error; its stack is used if provided, otherwise a fresh stack is captured
+     */
+    static stackTrace(fn: string, msg: string, error?: unknown): void {
+        const base = `${PREFIX} [${fn}] ${msg}`;
+        const stack = captureStack(error);
+        console.error(base + "\n" + stack);
     }
 }
