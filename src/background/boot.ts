@@ -81,6 +81,7 @@ export async function boot(): Promise<void> {
         step = "bind-handlers";
         setBootStep(step);
         bindAllHandlers(manager);
+        resolveBootReady();
 
         step = "rehydrate-state";
         setBootStep(step);
