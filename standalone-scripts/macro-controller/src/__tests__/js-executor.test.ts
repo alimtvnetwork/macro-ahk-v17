@@ -116,7 +116,7 @@ describe('js-executor', () => {
   describe('executeJs', () => {
     it('warns when textbox not found', () => {
       executeJs();
-      expect(log).toHaveBeenCalledWith('JS textbox element not found', 'error');
+      expect(logError).toHaveBeenCalledWith('unknown', 'JS textbox element not found');
     });
 
     it('warns for empty code', () => {
