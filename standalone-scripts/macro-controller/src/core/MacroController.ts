@@ -377,7 +377,7 @@ export function installWindowFacade(): void {
 
   // Expose MacroController class on window (proper name — not a __* global)
   
-  window.MacroController = MacroController as any;
+  window.MacroController = MacroController as unknown as MacroControllerFacade;
 
   // Mark fully initialized
   mc.markInitialized();

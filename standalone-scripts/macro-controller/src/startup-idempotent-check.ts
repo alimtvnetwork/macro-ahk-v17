@@ -111,7 +111,7 @@ function attemptUiRecovery(marker: HTMLElement): IdempotentResult {
 }
 
 
-function healAllManagers(existingController: any): void {
+function healAllManagers(existingController: MacroControllerFacade): void {
   if (!existingController) return;
 
   // Self-heal UIManager

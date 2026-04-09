@@ -355,7 +355,7 @@ function _appendPreviewSection(body: HTMLElement): HTMLElement {
 }
 
 function _detectVarsAndRenderStarts(
-  container: HTMLElement, tmplRow: any, prefixRow: any, suffixRow: any,
+  container: HTMLElement, tmplRow: RenameInputsResult['tmplRow'], prefixRow: RenameInputsResult['prefixRow'], suffixRow: RenameInputsResult['suffixRow'],
   startDollar: number, startHash: number, startStar: number, _updatePreview: () => void,
 ): void {
   const allText = tmplRow.input.value + (prefixRow.cb?.checked ? prefixRow.input.value : '') + (suffixRow.cb?.checked ? suffixRow.input.value : '');
@@ -455,7 +455,7 @@ function _buildRenameButtons(
 }
 
 function _executeRenameApply(
-  selected: WorkspaceCredit[], tmplRow: any, prefixRow: any, suffixRow: any,
+  selected: WorkspaceCredit[], tmplRow: RenameInputsResult['tmplRow'], prefixRow: RenameInputsResult['prefixRow'], suffixRow: RenameInputsResult['suffixRow'],
   getStartNums: () => { dollar: number; hash: number; star: number },
   applyBtn: HTMLElement, stopBtn: HTMLElement, cancelBtn: HTMLElement, etaRow: HTMLElement,
 ): void {

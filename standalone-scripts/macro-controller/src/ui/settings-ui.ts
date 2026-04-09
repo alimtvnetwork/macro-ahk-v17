@@ -223,7 +223,7 @@ function _buildSettingsFooter(btnStyle: string, deps: SettingsDeps, _panels: HTM
   return footer;
 }
 
-function _applyXPathSettings(xpResult: any): void {
+function _applyXPathSettings(xpResult: XPathPanelResult): void {
   for (const k in xpResult.inputs) {
     CONFIG[k] = xpResult.inputs[k].value;
   }
@@ -235,14 +235,14 @@ function _applyXPathSettings(xpResult: any): void {
   if (wInp) wInp.value = CONFIG.WORKSPACE_XPATH;
 }
 
-function _applyTimingSettings(tmResult: any): void {
+function _applyTimingSettings(tmResult: TimingPanelResult): void {
   for (const k in tmResult.inputs) {
     const val = parseInt(tmResult.inputs[k].value, 10);
     if (!isNaN(val) && val >= 0) TIMING[k] = val;
   }
 }
 
-function _applyTaskNextSettings(tnResult: any, taskNextDeps: any): void {
+function _applyTaskNextSettings(tnResult: TaskNextPanelResult, taskNextDeps: TaskNextDeps): void {
   for (const k in tnResult.inputs) {
     const isNum = k !== 'buttonXPath' && k !== 'promptSlug';
     if (isNum) {
@@ -255,7 +255,7 @@ function _applyTaskNextSettings(tnResult: any, taskNextDeps: any): void {
   saveTaskNextSettings(taskNextDeps);
 }
 
-function _applyLoggingSettings(logResult: any): void {
+function _applyLoggingSettings(logResult: LoggingPanelResult): void {
   const logUpdate: Partial<LogManagerConfig> = {
     enabled: logResult.logToggles.enabled.checked,
     consoleOutput: logResult.logToggles.consoleOutput.checked,
@@ -267,7 +267,7 @@ function _applyLoggingSettings(logResult: any): void {
   updateLogConfig(logUpdate);
 }
 
-function _saveConfigEdits(configResult: any, deps: SettingsDeps): void {
+function _saveConfigEdits(configResult: ConfigDbPanelResult, deps: SettingsDeps): void {
   for (const ci of configResult.configInputs) {
     deps.sendToExtension('PROJECT_CONFIG_UPDATE', {
       project: 'macro-controller',
@@ -279,7 +279,7 @@ function _saveConfigEdits(configResult: any, deps: SettingsDeps): void {
   }
 }
 
-function _saveGeneralSettings(genResult: any, deps: SettingsDeps): void {
+function _saveGeneralSettings(genResult: GeneralPanelResult, deps: SettingsDeps): void {
   const newChatXPath = genResult.inputs.pasteTargetXPath.value;
   if (newChatXPath) {
     deps.sendToExtension('KV_SET', { key: 'chatbox_xpath_override', value: newChatXPath, projectId: '_global' });

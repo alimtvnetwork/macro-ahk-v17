@@ -211,7 +211,7 @@ const cookieDiagState = new CookieDiagnosticState();
  * Always appends fallback names so diagnostics and resolution stay resilient.
  */
 /** Extract session cookie names from a single project namespace. */
-function extractSessionNamesFromProject(ns: any): string[] {
+function extractSessionNamesFromProject(ns: RiseupAsiaProject): string[] {
   if (!ns?.cookies?.bindings) {
     return [];
   }
