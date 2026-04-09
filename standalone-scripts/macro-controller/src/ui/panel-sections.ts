@@ -133,7 +133,7 @@ function _buildAuthDiagnostics(): { row: HTMLElement; updateAuthDiagRow: () => v
     getLastBridgeOutcome: getLastBridgeOutcome,
     refreshFromBestSource: refreshBearerTokenFromBestSource,
   });
-  dualWrite('__loopUpdateAuthDiag', '_internal.updateAuthDiag', authDiagResult.updateAuthDiagRow);
+  nsWrite('_internal.updateAuthDiag', authDiagResult.updateAuthDiagRow);
   setRecordRefreshOutcome(recordRefreshOutcome);
   return { row: authDiagResult.row, updateAuthDiagRow: authDiagResult.updateAuthDiagRow };
 }

@@ -185,7 +185,7 @@ function buildStartStopButton(deps: PanelBuilderDeps, btnStyle: string): { wrap:
   startStopWrap.appendChild(countdownBadge);
 
   const cdCtx = createCountdownCtx(startStopBtn, countdownBadge, function(d: string) { deps.startLoop(d); }, deps.stopLoop);
-  dualWrite('__loopUpdateStartStopBtn', '_internal.updateStartStopBtn', function(running: boolean) { updateStartStopBtn(cdCtx, running); });
+  nsWrite('_internal.updateStartStopBtn', function(running: boolean) { updateStartStopBtn(cdCtx, running); });
   updateStartStopBtn(cdCtx, !!state.running);
 
   return { wrap: startStopWrap, btn: startStopBtn };
