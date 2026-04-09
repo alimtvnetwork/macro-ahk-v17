@@ -36,7 +36,10 @@ export function setActivityLogVisible(v: boolean): void { activityLogState.visib
 /** @deprecated Use getActivityLogVisible(). Kept for backward compat. */
 export { activityLogState };
 export const activityLogLines: ActivityLogEntry[] = [];
-export { MAX_ACTIVITY_LINES as maxActivityLines, CREDIT_API_BASE, CREDIT_CACHE_TTL_S } from './constants';
+import { ApiPath } from './types';
+export { CREDIT_CACHE_TTL_S } from './constants';
+export const maxActivityLines = MAX_ACTIVITY_LINES;
+export const CREDIT_API_BASE = ApiPath.CreditApiBase;
 
 export const loopCreditState: LoopCreditState = {
   lastCheckedAt: null,
