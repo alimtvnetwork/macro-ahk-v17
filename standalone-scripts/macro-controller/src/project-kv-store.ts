@@ -11,7 +11,7 @@
  * @see spec/10-macro-controller/ts-migration-v2/07-rename-persistence-indexeddb.md
  */
 
-import { logError, logDebug } from './error-utils';
+import { logError } from './error-utils';
 
 const FN = 'ProjectKvStore';
 const DB_VERSION = 1;
