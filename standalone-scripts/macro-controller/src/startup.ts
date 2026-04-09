@@ -11,7 +11,7 @@
  * @see .lovable/memory/features/macro-controller/startup-initialization.md — UI-first strategy
  */
 
-import { log } from './logging';
+import { log, getProjectNameFromDom } from './logging';
 import { getCachedWorkspaceName, cacheWorkspaceName } from './workspace-cache';
 import { timingStart, timingEnd, logTimingSummary } from './startup-timing';
 import { dualWriteAll, nsRead } from './api-namespace';
@@ -218,6 +218,11 @@ function _preWarmViaLoader(): void {
 function createUiAndObserver(): void {
   timingStart('ui', 'UI Creation');
 
+  // Read project name from DOM on first UI creation
+  const domName = getProjectNameFromDom();
+  if (domName) {
+    log('Startup: Project name from DOM XPath: "' + domName + '"', 'info');
+  }
 
   const mc = MacroController.getInstance();
   if (tryCreateUiNow(mc)) {
