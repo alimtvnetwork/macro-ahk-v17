@@ -27,6 +27,16 @@ vi.mock("../../src/background/bg-logger", () => ({
     BgLogTag: { DefaultProjectSeeder: "DefaultProjectSeeder" },
 }));
 
+vi.mock("../../src/background/handlers/updater-handler", () => ({
+    handleListUpdaters: vi.fn().mockResolvedValue([]),
+    handleCreateUpdater: vi.fn().mockResolvedValue(undefined),
+    linkUpdaterToCategory: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../src/background/db-manager", () => ({
+    initDatabases: vi.fn().mockResolvedValue({}),
+}));
+
 installChromeMock();
 
 /* ------------------------------------------------------------------ */
