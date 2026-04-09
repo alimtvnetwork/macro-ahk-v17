@@ -72,15 +72,20 @@ All config files use lowercase with dots or hyphens:
 ❌ Docker-Compose.yml
 ```
 
-### 7. README and LICENSE Are UPPERCASE
+### 7. All Markdown Files Are Lowercase Hyphen-Case
 
-These are the only exceptions to the lowercase rule:
+No exceptions — all `.md` files use lowercase with hyphens:
 
 ```
 ✅ readme.md
-✅ LICENSE
 ✅ changelog.md
+✅ contributing.md
+✅ axios-security-note.md
+❌ README.md
+❌ CHANGELOG.md
 ```
+
+`LICENSE` (no extension) remains uppercase by convention.
 
 ---
 
