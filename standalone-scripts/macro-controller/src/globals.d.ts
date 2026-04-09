@@ -166,16 +166,31 @@ declare global {
     marco?: MarcoSDK;
 
     // SDK namespace
-    RiseupAsiaMacroExt?: {
-      Projects?: Record<string, {
-        meta?: { version?: string };
-        api?: Record<string, unknown>;
-        _internal?: Record<string, unknown>;
-        cookies?: {
-          bindings?: Array<{ role?: string; cookieName?: string }>;
-        };
-      } | undefined>;
+    RiseupAsiaMacroExt?: RiseupAsiaMacroExtNamespace;
+  }
+
+  interface RiseupAsiaCookieBinding {
+    role?: string;
+    cookieName?: string;
+  }
+
+  interface RiseupAsiaProject {
+    meta?: { version?: string };
+    api?: Record<string, unknown>;
+    _internal?: Record<string, unknown>;
+    cookies?: {
+      bindings?: Array<RiseupAsiaCookieBinding>;
     };
+  }
+
+  interface RiseupAsiaMacroExtNamespace {
+    Logger?: {
+      error(fn: string, msg: string, error?: unknown): void;
+      warn(fn: string, msg: string): void;
+      info(fn: string, msg: string): void;
+      debug(fn: string, msg: string): void;
+    };
+    Projects?: Record<string, RiseupAsiaProject | undefined>;
   }
 
   /**
