@@ -16,6 +16,7 @@ import {
   type ElementIds,
 } from './types';
 import { validateConfig, validateTheme, drainValidationWarnings } from './config-validator';
+import { logDebug } from './error-utils';
 
 // ============================================
 // Config: Validated + deep-merged with defaults (Phase 05)

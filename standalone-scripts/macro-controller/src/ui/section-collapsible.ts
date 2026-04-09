@@ -8,6 +8,7 @@
  */
 
 import { cPanelBorder, cSectionBg, cSectionHeader, cSectionToggle } from '../shared-state';
+import { logDebug } from '../error-utils';
 import type { CollapsibleSectionOpts } from '../types';
 
 export interface CollapsibleResult {
