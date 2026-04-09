@@ -25,6 +25,7 @@ import {
   Wifi,
   RefreshCw,
   ShieldAlert,
+  Library,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,7 +41,7 @@ import { useErrorCount } from "@/hooks/use-error-count";
 /* ------------------------------------------------------------------ */
 
 export type SidebarSection =
-  | "projects" | "scripts" | "prompts" | "automation" | "updaters" | "storage" | "api" | "settings" | "about"
+  | "projects" | "scripts" | "prompts" | "automation" | "updaters" | "storage" | "api" | "library" | "settings" | "about"
   | "logging" | "timing" | "data" | "network" | "activity";
 
 export interface SidebarSelection {
@@ -66,6 +67,7 @@ const primaryItems: Array<{ id: SidebarSection; label: string; icon: typeof Fold
   { id: "prompts", label: "Prompts", icon: MessageSquare },
   { id: "automation", label: "Automation", icon: Zap },
   { id: "updaters", label: "Updaters", icon: RefreshCw },
+  { id: "library", label: "Library", icon: Library },
   { id: "storage", label: "Storage", icon: Database },
   { id: "api", label: "API Explorer", icon: Zap },
   { id: "settings", label: "Settings", icon: Settings },
