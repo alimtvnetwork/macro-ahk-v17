@@ -243,12 +243,6 @@ export function getNamespace(): MacroControllerNamespace | null {
 /*  Typed write/read helpers (no dynamic path traversal)               */
 /* ------------------------------------------------------------------ */
 
-/** Internal: resolve a 2-segment path on the namespace. */
-function resolveInternal(ns: MacroControllerNamespace, key: string): void {
-  // Ensure _internal exists (already guaranteed by getNamespace)
-  void ns._internal[key as keyof MacroControllerInternal];
-}
-
 /**
  * Write a value to a typed namespace path.
  * Phase 10: replaces dynamic `dualWrite` — all paths are compile-time checked.
