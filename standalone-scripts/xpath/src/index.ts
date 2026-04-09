@@ -10,7 +10,7 @@ import { findElement } from "./find-element";
 import { reactClick } from "./react-click";
 import { setLogger } from "./logger";
 
-const VERSION = "2.98.0";
+const VERSION = "2.127.0";
 
 const XPathUtils = {
   version: VERSION,
