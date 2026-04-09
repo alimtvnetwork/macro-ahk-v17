@@ -128,7 +128,7 @@ export async function handleSaveSharedAsset(msg: unknown): Promise<{ assetId: nu
         `INSERT INTO SharedAsset (Type, Name, Slug, ContentJson, ContentHash, Version) VALUES (?, ?, ?, ?, ?, ?)`,
         [asset.Type, asset.Name, asset.Slug, asset.ContentJson, contentHash, version],
     );
-    const idResult = db.exec("SELECT last_insert_rowid()");
+    const idResult = db.exec(SQL_LAST_INSERT_ROWID);
     const newId = idResult[0].values[0][0] as number;
     markDirty();
     return { assetId: newId };
@@ -213,7 +213,7 @@ export async function handleSaveAssetLink(msg: unknown): Promise<{ linkId: numbe
         `INSERT OR REPLACE INTO AssetLink (SharedAssetId, ProjectId, LinkState, PinnedVersion, LocalOverrideJson) VALUES (?, ?, ?, ?, ?)`,
         [link.SharedAssetId, link.ProjectId, linkState, link.PinnedVersion ?? null, link.LocalOverrideJson ?? null],
     );
-    const idResult = db.exec("SELECT last_insert_rowid()");
+    const idResult = db.exec(SQL_LAST_INSERT_ROWID);
     const newId = idResult[0].values[0][0] as number;
     markDirty();
     return { linkId: newId };
@@ -294,7 +294,7 @@ export async function handlePromoteAsset(msg: unknown): Promise<{
             `INSERT INTO SharedAsset (Type, Name, Slug, ContentJson, ContentHash, Version) VALUES (?, ?, ?, ?, ?, '1.0.0')`,
             [type, name, slug, contentJson, hash],
         );
-        const idResult = db.exec("SELECT last_insert_rowid()");
+        const idResult = db.exec(SQL_LAST_INSERT_ROWID);
         const newId = idResult[0].values[0][0] as number;
         markDirty();
         return { action: "created", assetId: newId };
@@ -362,7 +362,7 @@ export async function handleForkLibraryAsset(msg: unknown): Promise<{ assetId: n
         `INSERT INTO SharedAsset (Type, Name, Slug, ContentJson, ContentHash, Version) VALUES (?, ?, ?, ?, ?, '1.0.0')`,
         [type, name, forkSlug, contentJson, hash],
     );
-    const idResult = db.exec("SELECT last_insert_rowid()");
+    const idResult = db.exec(SQL_LAST_INSERT_ROWID);
     const newId = idResult[0].values[0][0] as number;
     markDirty();
     return { assetId: newId, slug: forkSlug };
@@ -400,7 +400,7 @@ export async function handleSaveProjectGroup(msg: unknown): Promise<{ groupId: n
         `INSERT INTO ProjectGroup (Name, SharedSettingsJson) VALUES (?, ?)`,
         [group.Name, group.SharedSettingsJson ?? null],
     );
-    const idResult = db.exec("SELECT last_insert_rowid()");
+    const idResult = db.exec(SQL_LAST_INSERT_ROWID);
     const newId = idResult[0].values[0][0] as number;
     markDirty();
     return { groupId: newId };
@@ -438,7 +438,7 @@ export async function handleAddGroupMember(msg: unknown): Promise<{ memberId: nu
         `INSERT OR IGNORE INTO ProjectGroupMember (GroupId, ProjectId) VALUES (?, ?)`,
         [groupId, projectId],
     );
-    const idResult = db.exec("SELECT last_insert_rowid()");
+    const idResult = db.exec(SQL_LAST_INSERT_ROWID);
     const newId = idResult[0].values[0][0] as number;
     markDirty();
     return { memberId: newId };
@@ -580,7 +580,7 @@ export async function handleImportLibrary(msg: unknown): Promise<{
             `INSERT INTO ProjectGroup (Name, SharedSettingsJson) VALUES (?, ?)`,
             [group.name, group.sharedSettings ? JSON.stringify(group.sharedSettings) : null],
         );
-        const groupIdResult = db.exec("SELECT last_insert_rowid()");
+        const groupIdResult = db.exec(SQL_LAST_INSERT_ROWID);
         const groupId = groupIdResult[0].values[0][0] as number;
 
         for (const projectId of group.memberProjectIds) {
