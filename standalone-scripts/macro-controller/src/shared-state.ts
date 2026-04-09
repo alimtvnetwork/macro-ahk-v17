@@ -292,15 +292,8 @@ export const autoAttachCfg = cfg.autoAttach || {};
 export const autoAttachTiming = autoAttachCfg.timing || {};
 export const autoAttachGroups = autoAttachCfg.groups || [];
 
-// ============================================
-// Storage constants
-// ============================================
-export const LOG_STORAGE_KEY = 'ahk_macroloop_logs';
-export const WS_HISTORY_KEY = 'ml_workspace_history';
-export const WS_SHARED_KEY = 'ml_known_workspaces';
-export const LOG_MAX_ENTRIES = 500;
-export const WS_HISTORY_MAX_ENTRIES = 50;
-export const BLOATED_KEY_PATTERNS = ['console-history', 'previously-viewed-files', 'ai-code-completion'];
+// Storage constants — centralized in constants.ts
+export { LOG_STORAGE_KEY, WS_HISTORY_KEY, WS_SHARED_KEY, LOG_MAX_ENTRIES, WS_HISTORY_MAX_ENTRIES, BLOATED_KEY_PATTERNS } from './constants';
 
 // ============================================
 // Runtime state — re-exported from shared-state-runtime.ts (Phase 5 split)
