@@ -13,35 +13,37 @@ import {
     getMockStoreSnapshot,
 } from "../mocks/chrome-storage";
 
-// Mock heavy dependencies that cause import-chain hangs in test env
-vi.mock("../../src/background/manifest-seeder", () => ({
+// Mock heavy dependencies — use root src/ paths since the shim re-exports from there
+const ROOT = "../../../src/background";
+
+vi.mock(`${ROOT}/manifest-seeder`, () => ({
     seedFromManifest: vi.fn().mockResolvedValue({ scripts: 3, configs: 2, projects: 3 }),
 }));
 
-vi.mock("../../src/background/boot", () => ({
+vi.mock(`${ROOT}/boot`, () => ({
     bootReady: Promise.resolve(),
 }));
 
-vi.mock("../../src/background/bg-logger", () => ({
+vi.mock(`${ROOT}/bg-logger`, () => ({
     logCaughtError: vi.fn(),
     BgLogTag: { DefaultProjectSeeder: "DefaultProjectSeeder" },
 }));
 
-vi.mock("../../src/background/handlers/updater-handler", () => ({
+vi.mock(`${ROOT}/handlers/updater-handler`, () => ({
     handleListUpdaters: vi.fn().mockResolvedValue([]),
     handleCreateUpdater: vi.fn().mockResolvedValue(undefined),
     linkUpdaterToCategory: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("../../src/background/db-manager", () => ({
+vi.mock(`${ROOT}/db-manager`, () => ({
     initDatabases: vi.fn().mockResolvedValue({}),
 }));
 
-vi.mock("../../src/background/injection-cache", () => ({
+vi.mock(`${ROOT}/injection-cache`, () => ({
     invalidateCacheOnDeploy: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("../../src/background/cache-warmer", () => ({
+vi.mock(`${ROOT}/cache-warmer`, () => ({
     warmScriptCache: vi.fn().mockResolvedValue({ hit: 0, miss: 0 }),
 }));
 
