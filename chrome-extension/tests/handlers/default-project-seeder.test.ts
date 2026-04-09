@@ -13,9 +13,18 @@ import {
     getMockStoreSnapshot,
 } from "../mocks/chrome-storage";
 
-// Mock the manifest seeder — it fetches seed-manifest.json which isn't available in test env
+// Mock heavy dependencies that cause import-chain hangs in test env
 vi.mock("../../src/background/manifest-seeder", () => ({
     seedFromManifest: vi.fn().mockResolvedValue({ scripts: 3, configs: 2, projects: 3 }),
+}));
+
+vi.mock("../../src/background/boot", () => ({
+    bootReady: Promise.resolve(),
+}));
+
+vi.mock("../../src/background/bg-logger", () => ({
+    logCaughtError: vi.fn(),
+    BgLogTag: { DefaultProjectSeeder: "DefaultProjectSeeder" },
 }));
 
 installChromeMock();
