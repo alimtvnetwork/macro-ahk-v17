@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-04-09
 **Active Codebase**: `marco-script-ahk-v7.latest/` (v7.23)
-**Macro Controller**: v2.124.0
+**Macro Controller**: v2.125.0
 **Chrome Extension**: v2.119.0
 **Detailed Plan**: `.lovable/plan.md`
 **Suggestions Tracker**: `.lovable/memory/suggestions/01-suggestions-tracker.md`
@@ -12,9 +12,9 @@
 
 ---
 
-## Current Status: v7.23 AHK + Extension v2.122.0 + Macro Controller v2.124.0 — Stable
+## Current Status: v7.23 AHK + Extension v2.122.0 + Macro Controller v2.125.0 — Stable
 
-All critical AHK features implemented. 44 issue write-ups documented. 26 engineering standards established. Chrome Extension at v2.122.0 with full React UI unification, session-bridge auth, SQLite bundles, User Script API, Context Menu, relative scaling, view transitions, hover micro-interactions, 7-stage injection pipeline with cache gate, 4-tier CSP fallback, and Cross-Project Sync (Phase 1 data layer + Phase 2 Library UI). Macro Controller at v2.124.0 with typed namespace API, centralized constants, and zero ESLint warnings. All immediate workstream items complete.
+All critical AHK features implemented. 44 issue write-ups documented. 26 engineering standards established. Chrome Extension at v2.122.0 with full React UI unification, session-bridge auth, SQLite bundles, User Script API, Context Menu, relative scaling, view transitions, hover micro-interactions, 7-stage injection pipeline with cache gate, 4-tier CSP fallback, and Cross-Project Sync (Phase 1 data layer + Phase 2 Library UI). Macro Controller at v2.125.0 with typed namespace API, centralized constants (Phase 1+2), and zero ESLint warnings. All immediate workstream items complete.
 
 ### 2026-04-09 Session (continued)
 
@@ -26,11 +26,23 @@ All critical AHK features implemented. 44 issue write-ups documented. 26 enginee
   - Fixed `sonarjs/cognitive-complexity` warning in `save-prompt.ts` by extracting `tryToolbarButtonFallback()` and `tryDirectFallback()`.
   - Fixed 9 migration bugs from T6: 4 broken `.catch(function)` calls, 2 broken import merges, 3 missing string quotes.
 
-- **Constants Centralization (v2.124.0)**:
+- **Constants Centralization Phase 1 (v2.124.0)**:
   - Created `constants.ts` — single source of truth for 56 hardcoded constants across 7 categories: DOM IDs (`ID_*`), CSS selectors (`SEL_*`), data attributes (`ATTR_*`), localStorage keys (`LS_*`), workspace/cache keys (`WS_*`), style IDs (`STYLE_*`), timing/limits, and shared strings.
   - Migrated 18 files to import from `constants.ts`. Eliminated 4 duplicate constant definitions (`ID_LOOP_WS_LIST`, `ATTR_DATA_ACTIVE`, `SEL_LOOP_WS_ITEM`, `MACRO_CONTROLLER`).
   - Moved 6 storage constants from `shared-state.ts` to `constants.ts` with re-exports for backward compatibility.
   - Config-derived runtime constants (`IDS`, `TIMING`, `CONFIG`) remain in `shared-state.ts` (resolved from `__MARCO_CONFIG__` at runtime).
+
+- **Constants Centralization Phase 2 (v2.125.0)**:
+  - Expanded `constants.ts` from 56 → 96 exported constants. Migrated 50 constants from 21 consumer files.
+  - **CSS Fragments (21 constants)**: `CSS_SPAN_STYLE_COLOR`, `CSS_SPAN_COLOR` (deduplicated alias), `CSS_BAR_SEGMENT_TAIL`, `CSS_TRANSITION_TAIL`, `CSS_EASE_CLOSE`, `CSS_STYLE_WIDTH`, `CSS_BACKGROUND`, `CSS_FONT_SIZE`, `CSS_FONT_SIZE_9PX_COLOR`, `CSS_FONT_SIZE_11PX_FONT_WEIGHT_700_COLOR`, `CSS_BORDER_RADIUS_3PX_BACKGROUND`, `CSS_BORDER_1PX_SOLID_RGBA_255_255_255_0_08`, `CSS_PADDING_2PX_0`, `CSS_BORDER_PRIMARY`, `CSS_BORDER_PRIMARY_STRONG`, `CSS_BORDER_SOLID`, `CSS_LABEL_BLOCK`, `CSS_LABEL_SUFFIX`, `CSS_BORDER_RADIUS_COLOR`, `CSS_RGBA_124_58_237_0_15`, `CSS_WIDTH_100_PADDING_3PX_5PX_BORDER_1PX_SOL`, `CSS_BRIGHTNESS_1_3`.
+  - **IndexedDB Constants (7)**: `DB_PROMPTS_CACHE_NAME`, `DB_PROMPTS_CACHE_VERSION`, `DB_PROMPTS_STORE`, `DB_PROMPTS_UI_STORE`, `DB_PROMPTS_JSON_COPY_KEY`, `DB_PROMPTS_HTML_COPY_KEY`, `DB_PROMPTS_UI_CACHE_KEY`.
+  - **API Paths (2)**: `API_USER_WORKSPACES`, `API_USER_WORKSPACES_SLASH`.
+  - **Timing/Limits (6)**: `DEFAULT_TOKEN_TTL_MS`, `MIN_CREDIT_CALL_GAP_MS`, `MAX_OVERLAY_ERRORS`, `MAX_SDK_ATTEMPTS`, `SDK_RETRY_DELAY_MS`, `MAX_UI_CREATE_RETRIES`.
+  - **Storage Keys (2)**: `LS_TOKEN_SAVED_AT`, `LS_RENAME_PRESET_PREFIX`.
+  - **Defaults (2)**: `DEFAULT_PRESET_NAME`, `DEFAULT_PASTE_XPATH`.
+  - **Startup Labels (5)**: `LABEL_PROMPT_PREWARM`, `LABEL_WS_PREFETCH`, `LABEL_STARTUP_RETRY`, `LABEL_AUTH_AUTO_RESYNC`, `LABEL_LOG_MACROLOOP_V`.
+  - **DOM IDs (1)**: `ID_MARCO_ERROR_OVERLAY`.
+  - Consumer files updated: `credit-api.ts`, `log-activity-ui.ts`, `auth-recovery.ts`, `auth-resolve.ts`, `credit-balance.ts`, `credit-fetch.ts`, `rename-api.ts`, `workspace-rename.ts`, `startup.ts`, `startup-idempotent-check.ts`, and 11 UI modules (`js-executor`, `auth-diag-waterfall`, `bulk-rename-fields`, `hot-reload-section`, `panel-controls`, `panel-header`, `prompt-injection`, `save-prompt-task-next`, `settings-tab-panels`, `settings-ui`, `tools-sections-builder`, `prompt-cache`, `prompt-loader`, `error-overlay`).
 
 ### 2026-04-09 Session (earlier)
 
@@ -115,14 +127,14 @@ Spec: `spec/13-features/cross-project-sync.md`
 |------|-----------|
 | **AHK Layer** | E2E tests (22 suites, 150+ cases), XPath self-healing, config schema validation, hot-reload, token expiry UI |
 | **Extension Releases** | v1.0–v2.119.0: injection, SQLite, auth, context menu, scaling, React unification, view transitions, cache gate, force run, cross-project sync |
-| **Macro Controller** | v2.124.0: typed namespace API (`NsPathMap` + `nsWrite`/`nsReadTyped`/`nsCallTyped`), centralized `constants.ts` (56 constants, 18 files migrated), error logging T1–T5 complete |
+| **Macro Controller** | v2.125.0: typed namespace API (`NsPathMap` + `nsWrite`/`nsReadTyped`/`nsCallTyped`), centralized `constants.ts` (96 constants in 2 phases, 21 consumer files migrated), error logging T1–T5 complete |
 | **React UI Unification** | All 12 steps complete — content scripts moved, message client migrated, version bumped |
 | **Immediate Workstream** | Swagger API Explorer, Storage Browser (4 categories), Prompt Seeding, Overflow Menus, Project Files Panel, ZIP Export/Import |
 | **Injection Pipeline** | 7-stage + cache gate, 4-tier CSP fallback (MAIN Blob → USER_SCRIPT → ISOLATED Blob → ISOLATED Eval), Force Run (context menu + shortcut) |
 | **Cross-Project Sync** | Phase 1: data layer (4 tables, migration v7, 22 message types, sync engine). Phase 2: Library UI (AssetCard, SyncBadge, PromoteDialog). 45 unit tests. |
 | **UI Polish** | Tailwind hover micro-interactions (Task 4.1), direction-aware view transitions (Task 4.2) |
 | **Build & Docs** | Build verification (Task 2.1), CDP injection docs (Task 3.1), AI onboarding checklist (Task 3.2), LLM guide updated |
-| **Code Quality** | ESLint 1390 → 0 issues, SonarJS integration, TS migration v2 (6 phases), error logging T1–T5 complete (86 log migrations, 48 silent catches fixed, 11 `any` eliminated, 8 explicit API interfaces), typed namespace refactor (30+ paths), constants centralization (56 constants), `logError`/`logDebug`/`logConsole`/`logStackTrace` helpers |
+| **Code Quality** | ESLint 1390 → 0 issues, SonarJS integration, TS migration v2 (6 phases), error logging T1–T5 complete (86 log migrations, 48 silent catches fixed, 11 `any` eliminated, 8 explicit API interfaces), typed namespace refactor (30+ paths), constants centralization Phase 1+2 (96 constants, 21 consumer files), `logError`/`logDebug`/`logConsole`/`logStackTrace` helpers |
 | **Specs Matured** | S-056 Cross-Project Sync (READY v2.0.0), S-052 Prompt Click verification checklist, error logging & type safety spec |
 | **Issues Resolved** | #76–#90: cookie binding, hot-reload, globals migration, auth bridge, injection pipeline, IndexedDB cache, prompt click fix |
 
