@@ -731,44 +731,6 @@ export function LibraryView() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
-
-      // / → focus search (only when not in input)
-      if (e.key === "/" && !isInput && activeTab === "assets") {
-        e.preventDefault();
-        const searchInput = document.querySelector<HTMLInputElement>('[placeholder="Search assets…"]');
-        searchInput?.focus();
-        return;
-      }
-
-      // Escape → blur search + clear
-      if (e.key === "Escape" && isInput) {
-        (target as HTMLInputElement).blur();
-        return;
-      }
-
-      if (isInput) return;
-
-      // ← / → pagination
-      if (e.key === "ArrowLeft" && safePage > 0) {
-        setPage(p => p - 1);
-      } else if (e.key === "ArrowRight" && safePage < totalPages - 1) {
-        setPage(p => p + 1);
-      }
-
-      // N → promote new asset
-      if (e.key === "n" && !e.metaKey && !e.ctrlKey && activeTab === "assets") {
-        setPromoteOpen(true);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [activeTab, safePage, totalPages]);
-
   const handleSync = useCallback(async (assetId: number) => {
     try {
       const result = await sendMessage<{ syncedCount: number; pinnedNotified: number }>({
