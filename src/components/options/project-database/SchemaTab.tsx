@@ -202,7 +202,7 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
           toast.error("Invalid schema file");
           return;
         }
-        const imported: TableDefinition[] = data.tables.map((t: any) => ({
+        const imported: TableDefinition[] = data.tables.map((t: Record<string, unknown>) => ({
           name: t.name ?? "",
           description: t.description ?? "",
           columns: Array.isArray(t.columns) ? t.columns : [{ name: "", type: "TEXT" }],
@@ -417,7 +417,7 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
             currentTables={tables.map(({ isOpen, ...rest }) => rest)}
             onRestore={(restored) => {
               setTables(
-                (restored as any[]).map((t) => ({
+                (restored as Array<Record<string, unknown>>).map((t) => ({
                   name: t.name ?? "",
                   description: t.description ?? "",
                   columns: Array.isArray(t.columns) ? t.columns : [],
