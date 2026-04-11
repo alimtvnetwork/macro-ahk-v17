@@ -115,13 +115,14 @@ function _isServiceWorkerSuspended(error: string): boolean {
 function _getBridgeErrorHelp(error: string): string {
   const lower = error.toLowerCase();
   if (lower.includes('extension context invalidated')) {
-    return 'The Chrome extension was updated or reloaded while this page was open. ' +
-      'The content script lost its connection to the background service worker. ' +
-      'Fix: Refresh this page (F5) to re-establish the connection.';
+    return 'Normal MV3 behavior — Chrome suspended the background service worker after inactivity. ' +
+      'The token is still available from localStorage. ' +
+      'The bridge will reconnect automatically on the next action, or refresh the page (F5).';
   }
   if (lower.includes('receiving end does not exist')) {
-    return 'The extension background service worker is not running. ' +
-      'This can happen after Chrome suspends it. Fix: Open the extension popup or refresh the page.';
+    return 'Normal MV3 behavior — the background service worker is currently suspended. ' +
+      'This happens automatically after ~30s of inactivity. ' +
+      'The bridge will reconnect on the next action, or open the extension popup to wake it.';
   }
   if (lower.includes('could not establish connection')) {
     return 'Chrome could not reach the extension. It may be disabled, uninstalled, or crashed. ' +
