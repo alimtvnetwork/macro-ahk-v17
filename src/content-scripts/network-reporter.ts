@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- XHR monkey-patching requires dynamic property access */
+/* eslint-disable @typescript-eslint/no-explicit-any -- XHR monkey-patching requires unsafe property injection on native prototypes */
 /**
  * Marco Extension — Content Script: Network Reporter
  *
