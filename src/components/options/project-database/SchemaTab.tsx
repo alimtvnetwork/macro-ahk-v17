@@ -147,7 +147,7 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
             sourceColumn: r.SourceColumn,
             targetTable: r.TargetTable,
             targetColumn: r.TargetColumn || "Id",
-            onDelete: (r.OnDelete) || "CASCADE",
+            onDelete: ((r.OnDelete) || "CASCADE") as OnDeleteAction,
           })),
         isOpen: false,
       }));
@@ -418,10 +418,10 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
             onRestore={(restored) => {
               setTables(
                 (restored as Array<Record<string, unknown>>).map((t) => ({
-                  name: t.name ?? "",
-                  description: t.description ?? "",
-                  columns: Array.isArray(t.columns) ? t.columns : [],
-                  relations: Array.isArray(t.relations) ? t.relations : [],
+                  name: String(t.name ?? ""),
+                  description: String(t.description ?? ""),
+                  columns: Array.isArray(t.columns) ? t.columns as ColumnWithValidation[] : [],
+                  relations: Array.isArray(t.relations) ? t.relations as ForeignKeyDefinition[] : [],
                   isOpen: false,
                 })),
               );
