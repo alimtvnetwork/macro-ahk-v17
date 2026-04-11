@@ -12,9 +12,8 @@ import { getConfigFetchStatus } from "./handlers/config-auth-handler";
 import { readCookieFromCandidates, type ChromeCookie } from "./cookie-helpers";
 import { logCaughtError, BgLogTag} from "./bg-logger";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const _chr = globalThis.chrome as any;
-/* eslint-enable @typescript-eslint/no-explicit-any */
+import { getChromeRef } from "./chrome-ref";
+const _chr = getChromeRef();
 
 /** Builds the full status response aggregated from all subsystems. */
 export async function buildStatusResponse(): Promise<StatusResponse> {

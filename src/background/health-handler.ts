@@ -15,9 +15,8 @@ import {
 import { countTable, getLogsDb, getErrorsDb, getCurrentSessionId } from "./handlers/logging-handler";
 import { logBgWarnError, logCaughtError, BgLogTag} from "./bg-logger";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const _chr = globalThis.chrome as any;
-/* eslint-enable @typescript-eslint/no-explicit-any */
+import { getChromeRef } from "./chrome-ref";
+const _chr = getChromeRef();
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */

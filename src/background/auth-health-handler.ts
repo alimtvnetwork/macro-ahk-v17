@@ -58,10 +58,9 @@ const PLATFORM_TAB_PATTERNS = [
     "https://*.lovableproject.com/*",
 ] as const;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Chrome extension APIs — typed at runtime, excluded from tsconfig.app.json
-const _chrome = globalThis.chrome as any;
-/* eslint-enable @typescript-eslint/no-explicit-any */
+import { getChromeRef } from "./chrome-ref";
+// Chrome extension APIs — typed via shared ChromeRef
+const _chrome = getChromeRef();
 
 /* ------------------------------------------------------------------ */
 /*  Public API                                                         */

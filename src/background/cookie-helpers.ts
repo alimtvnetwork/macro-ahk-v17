@@ -5,9 +5,8 @@
  * Runs in the extension service worker (excluded from tsconfig.app.json).
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function _chr(): any { return globalThis.chrome as any; }
-/* eslint-enable @typescript-eslint/no-explicit-any */
+import { getChromeRef } from "./chrome-ref";
+function _chr() { return getChromeRef(); }
 
 interface ChromeCookie {
     value: string;
