@@ -101,14 +101,24 @@ export function formatErrorForClipboard(error: ErrorModel): string {
     lines.push(`**Inner Error:** ${error.innerError}`);
   }
   if (error.suggestedAction) {
-    lines.push(`**Suggested Action:** ${error.suggestedAction}`);
+    lines.push("", `**Suggested Action:** ${error.suggestedAction}`);
   }
   if (error.contextJson) {
-    lines.push("", "### Context", "```json", error.contextJson, "```");
+    lines.push("", "### Context", "```json", tryPrettyJson(error.contextJson), "```");
   }
+  // Always include stack trace when available — essential for debugging
   if (error.stackTrace) {
     lines.push("", "### Stack Trace", "```", error.stackTrace, "```");
   }
 
   return lines.join("\n");
+}
+
+/** Pretty-print JSON if valid, otherwise return raw string */
+function tryPrettyJson(str: string): string {
+  try {
+    return JSON.stringify(JSON.parse(str), null, 2);
+  } catch {
+    return str;
+  }
 }
