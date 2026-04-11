@@ -34,6 +34,10 @@ export function GlobalAboutView() {
           <div className="font-bold text-sm">Author</div>
           <div className="space-y-1">
             <p className="text-sm font-semibold">Md. Alim Ul Karim</p>
+            <p className="text-xs text-muted-foreground">
+              <a href="https://riseup-asia.com" target="_blank" rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 hover:text-primary/80">Riseup Asia LLC</a>
+            </p>
             <p className="text-xs text-muted-foreground">Chief Software Engineer — Riseup Asia</p>
             <p className="text-xs text-muted-foreground">Former Software Architect — Crossover.com (Top 1% Developer)</p>
             <p className="text-xs text-muted-foreground">20+ years of programming experience</p>

@@ -28,6 +28,9 @@ export function AboutSection() {
                 <div className="card-title" style={{ marginBottom: 12 }}>Author</div>
                 <div className="card-meta" style={{ fontWeight: 600 }}>Md. Alim Ul Karim</div>
                 <div className="card-meta" style={{ marginTop: 4 }}>
+                    <a href="https://riseup-asia.com" target="_blank" rel="noopener noreferrer">Riseup Asia LLC</a>
+                </div>
+                <div className="card-meta" style={{ marginTop: 4 }}>
                     Chief Software Engineer — Riseup Asia
                 </div>
                 <div className="card-meta" style={{ marginTop: 4 }}>
