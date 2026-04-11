@@ -21,14 +21,15 @@
     "build:sdk": "node scripts/check-axios-version.mjs && node scripts/compile-instruction.mjs standalone-scripts/marco-sdk && tsc --noEmit -p tsconfig.sdk.json && vite build --config vite.config.sdk.ts && node scripts/generate-dts.mjs && echo Built marco-sdk.js + .d.ts to standalone-scripts/marco-sdk/dist",
     "build:marco-sdk": "npm run build:sdk",
     "build:extension": "node scripts/check-axios-version.mjs && node scripts/lint-const-reassign.mjs && node scripts/compile-instruction.mjs standalone-scripts/marco-sdk && node scripts/compile-instruction.mjs standalone-scripts/xpath && node scripts/compile-instruction.mjs standalone-scripts/macro-controller && node scripts/check-standalone-dist.mjs && node scripts/check-version-sync.mjs && vite build --config vite.config.extension.ts",
-    "lint:no-bun": "node scripts/no-bun-in-scripts.mjs"
-    ,"bump": "node scripts/bump-version.mjs"
+    "lint:no-bun": "node scripts/no-bun-in-scripts.mjs",
+    "bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^3.10.0",
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
