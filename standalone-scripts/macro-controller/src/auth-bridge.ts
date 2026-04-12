@@ -11,11 +11,14 @@ import { log } from './logging';
 import { getLastSessionBridgeSource } from './shared-state';
 import { logError } from './error-utils';
 import {
-  extractBearerTokenFromUnknown,
+  extractBearerTokenFromRaw,
   getBearerTokenFromSessionBridge,
   getSessionCookieNames,
   getLastTokenSource,
 } from './auth-resolve';
+
+/** Recursive value type for bridge message payloads. */
+type BridgePayloadValue = string | number | boolean | null | undefined | Record<string, BridgePayloadValue>;
 
 const EXTENSION_BRIDGE = 'Extension bridge ';
 
