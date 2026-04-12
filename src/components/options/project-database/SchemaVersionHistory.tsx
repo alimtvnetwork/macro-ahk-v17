@@ -22,7 +22,7 @@ interface SchemaSnapshot {
   label: string;
   savedAt: string;
   tableCount: number;
-  tables: Record<string, JsonValue>[];
+  tables: Record<string, unknown>[];
 }
 
 interface SchemaVersionHistoryProps {
