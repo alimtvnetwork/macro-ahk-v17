@@ -91,18 +91,20 @@ function applyEmergencyDarkStyles() {
   document.body.style.color = "hsl(220, 14%, 92%)";
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    enforceDarkClass();
-    validateCssInjection();
-  }, []);
+export const ThemeProvider = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+  function ThemeProvider({ children }, _ref) {
+    useEffect(() => {
+      enforceDarkClass();
+      validateCssInjection();
+    }, []);
 
-  return (
-    <ThemeContext.Provider value={{ theme: "dark" }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
+    return (
+      <ThemeContext.Provider value={{ theme: "dark" }}>
+        {children}
+      </ThemeContext.Provider>
+    );
+  },
+);
 
 export function useTheme() {
   return useContext(ThemeContext);
