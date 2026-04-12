@@ -52,7 +52,7 @@ interface ProjectApiMessage {
 /*  Handler                                                            */
 /* ------------------------------------------------------------------ */
 
-export async function handleProjectApi(msg: unknown): Promise<unknown> {
+export async function handleProjectApi(msg: ProjectApiMessage): Promise<Record<string, unknown>> {
     const m = msg as ProjectApiMessage;
     const slug = m.project;
     const method = (m.method || "GET").toUpperCase();

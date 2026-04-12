@@ -11,6 +11,26 @@ import type { Database as SqlJsDatabase } from "sql.js";
 import type { DbManager } from "../db-manager";
 import { computeContentHash } from "./library-content-hasher";
 import { bumpMinor } from "./library-version-manager";
+import { collectTypedRows, type JsonValue } from "./handler-types";
+
+/* ------------------------------------------------------------------ */
+/*  Message Interfaces                                                 */
+/* ------------------------------------------------------------------ */
+
+interface AssetTypeMsg { assetType?: AssetType }
+interface AssetIdMsg { assetId: number }
+interface SaveAssetMsg { asset: Partial<SharedAsset> & { Name: string; Type: AssetType; ContentJson: string; Slug: string } }
+interface LinkFilterMsg { projectId?: number; sharedAssetId?: number }
+interface SaveLinkMsg { link: Partial<AssetLink> & { SharedAssetId: number; ProjectId: number } }
+interface LinkIdMsg { linkId: number }
+interface PromoteMsg { slug: string; name: string; type: AssetType; contentJson: string }
+interface ReplaceMsg { assetId: number; contentJson: string; name?: string }
+interface ForkMsg { originalSlug: string; name: string; type: AssetType; contentJson: string }
+interface GroupMsg { group: Partial<ProjectGroup> & { Name: string } }
+interface GroupIdMsg { groupId: number }
+interface GroupMemberMsg { groupId: number; projectId: number }
+interface VersionIdMsg { assetId: number; versionId: number }
+interface ImportMsg { bundle: LibraryExport }
 
 /* ------------------------------------------------------------------ */
 /*  DB Binding                                                         */
