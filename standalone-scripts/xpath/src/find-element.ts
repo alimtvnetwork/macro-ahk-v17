@@ -58,7 +58,7 @@ export function findElement(descriptor: ElementDescriptor): Element | null {
           log("findElement", "  FOUND via selector: " + selectors[s]);
           return sResult;
         }
-      } catch (e: unknown) {
+      } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         warn("findElement", "  Invalid selector: " + msg);
       }

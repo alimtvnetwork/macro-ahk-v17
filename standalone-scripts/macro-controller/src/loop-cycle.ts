@@ -16,6 +16,7 @@ import { showToast } from './toast';
 import { resolveToken } from './auth';
 import { getLastTokenSource, invalidateSessionBridgeKey, markBearerTokenExpired, recoverAuthOnce } from './auth';
 import { parseLoopApiResponse, syncCreditStateFromApi } from './credit-fetch';
+import type { WorkspacesApiResponse } from './types';
 import { MacroController } from './core/MacroController';
 import { isUserTypingInPrompt } from './dom-helpers';
 import { CREDIT_API_BASE, TIMING, loopCreditState, state } from './shared-state';
@@ -85,7 +86,7 @@ async function doubleConfirmAndMove(threshold: number): Promise<void> {
     return;
   }
 
-  const data = resp.data as Record<string, unknown>;
+  const data = resp.data as WorkspacesApiResponse;
   parseLoopApiResponse(data);
   state.workspaceFromApi = false;
 
@@ -149,7 +150,7 @@ async function handleFallbackAuthRecovery(
 // ============================================
 
 async function processWorkspaceData(
-  data: Record<string, unknown>,
+  data: WorkspacesApiResponse,
 ): Promise<void> {
   if (state.retryCount > 0) {
     log('Retry recovery: API succeeded after ' + state.retryCount + ' previous failure(s)', 'success');
@@ -270,7 +271,7 @@ async function doCycleFetchWithToken(isRetryAttempt: boolean): Promise<void> {
       throw new Error('HTTP ' + resp.status);
     }
 
-    const data = resp.data as Record<string, unknown>;
+    const data = resp.data as WorkspacesApiResponse;
     log('Cycle fallback API: response received', 'check');
     await processWorkspaceData(data);
   } catch (err) {

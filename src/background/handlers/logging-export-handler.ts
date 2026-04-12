@@ -11,7 +11,7 @@ import type { SqlValue } from "sql.js";
 import type { MessageRequest } from "../../shared/messages";
 import { getLogsDb, getErrorsDb, markLoggingDirty, countTable } from "./logging-handler";
 import JSZip from "jszip";
-import { logCaughtError, BgLogTag} from "../bg-logger";
+import { logCaughtError, BgLogTag, type CaughtError} from "../bg-logger";
 
 /* ------------------------------------------------------------------ */
 /*  PURGE_LOGS                                                         */
@@ -277,6 +277,6 @@ function buildExportFilename(prefix: string, ext: string): string {
 }
 
 /** Logs a ZIP export error. */
-function logZipError(error: unknown): void {
+function logZipError(error: CaughtError): void {
     logCaughtError(BgLogTag.LOGGING, "ZIP export failed", error);
 }

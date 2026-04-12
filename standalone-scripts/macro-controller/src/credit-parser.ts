@@ -6,7 +6,7 @@
  */
 
 import { log, logSub } from './logging';
-import { CreditSource } from './types';
+import { CreditSource, type RawWorkspaceApiItem, type WorkspacesApiResponse } from './types';
 import { calcTotalCredits, calcAvailableCredits } from './credit-api';
 import { loopCreditState, state } from './shared-state';
 
@@ -66,8 +66,8 @@ export function resolveWsTier(plan: string, subStatus: string, billingLimit: num
 // ============================================
 // parseWorkspaceItem — extract a single workspace from API response
 // ============================================
-function parseWorkspaceItem(rawItem: Record<string, unknown>, wsIdx: number): import('./types').WorkspaceCredit {
-  const rawWs = rawItem as Record<string, unknown>;
+function parseWorkspaceItem(rawItem: RawWorkspaceApiItem, wsIdx: number): import('./types').WorkspaceCredit {
+  const rawWs = rawItem;
   const ws = (rawWs.workspace || rawWs) as Record<string, number | string>;
   const bUsed = (ws.billing_period_credits_used as number) || 0;
   const bLimit = (ws.billing_period_credits_limit as number) || 0;
@@ -87,9 +87,9 @@ function parseWorkspaceItem(rawItem: Record<string, unknown>, wsIdx: number): im
   const totalCredits = calcTotalCredits(freeGranted, dLimit, bLimit, topupLimit, rLimit);
   const available = calcAvailableCredits(totalCredits, rUsed, dUsed, bUsed, freeUsed);
 
-  const subStatus = ((rawWs.workspace ? (rawWs as Record<string, unknown>).subscription_status : ws.subscription_status) || '') as string;
-  const role = ((rawWs.workspace ? (rawWs as Record<string, unknown>).role : ws.role) || 'N/A') as string;
-  const plan = ((rawWs.workspace ? (rawWs as Record<string, unknown>).plan : ws.plan) || (rawWs.plan as string) || '') as string;
+  const subStatus = ((rawWs.workspace ? rawWs.subscription_status : ws.subscription_status) || '') as string;
+  const role = ((rawWs.workspace ? rawWs.role : ws.role) || 'N/A') as string;
+  const plan = ((rawWs.workspace ? rawWs.plan : ws.plan) || (rawWs.plan as string) || '') as string;
 
   return {
     id: (ws.id as string) || '',
@@ -160,8 +160,8 @@ function buildWsByIdIndex(perWs: import('./types').WorkspaceCredit[]): void {
 // ============================================
 // parseLoopApiResponse — parse /user/workspaces API response
 // ============================================
-export function parseLoopApiResponse(data: Record<string, unknown>): boolean {
-  const workspaces = (data.workspaces || data || []) as Array<Record<string, unknown>>;
+export function parseLoopApiResponse(data: WorkspacesApiResponse): boolean {
+  const workspaces = (data.workspaces || data || []) as RawWorkspaceApiItem[];
   if (!Array.isArray(workspaces)) {
     log('parseLoopApiResponse: unexpected response shape', 'warn');
     return false;

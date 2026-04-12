@@ -73,7 +73,7 @@ export function ProjectDatabasePanel({ projectId, projectSlug }: ProjectDatabase
   const [modalError, setModalError] = useState<ErrorModel | null>(null);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
 
-  const showError = useCallback((err: unknown, operation: string, context?: Record<string, unknown>) => {
+  const showError = useCallback((err: Error | string | object, operation: string, context?: Record<string, unknown>) => {
     const errModel = createErrorModel(err, {
       source: "Database",
       operation,
@@ -124,7 +124,7 @@ export function ProjectDatabasePanel({ projectId, projectSlug }: ProjectDatabase
         setTables(result.tables);
       }
     } catch (err) {
-      showError(err, "RefreshTables", { type: "PROJECT_API", project: projectSlug });
+      showError(err as Error, "RefreshTables", { type: "PROJECT_API", project: projectSlug });
       setTables([]);
     } finally {
       setLoading(false);

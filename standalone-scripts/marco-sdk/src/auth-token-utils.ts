@@ -90,7 +90,7 @@ export class AuthTokenUtils {
                     return nested;
                 }
             }
-        } catch (e: unknown) {
+        } catch (e) {
             console.debug(
                 "[AuthTokenUtils] extractBearerTokenFromUnknown: value is not parseable JSON, skipping object extraction —",
                 e instanceof Error ? e.message : String(e),
@@ -109,7 +109,7 @@ export class AuthTokenUtils {
      */
     static scanSupabaseLocalStorage(
         onFound?: (key: string, tokenLength: number) => void,
-        onScanError?: (error: unknown) => void,
+        onScanError?: (error: Error | string) => void,
     ): string {
         try {
             const keys = AuthTokenUtils.collectLocalStorageKeys();
@@ -129,7 +129,7 @@ export class AuthTokenUtils {
                     return token;
                 }
             }
-        } catch (scanErr: unknown) {
+        } catch (scanErr) {
             if (onScanError) {
                 onScanError(scanErr);
             } else {
@@ -191,7 +191,7 @@ export class AuthTokenUtils {
 
                 return session.access_token as string;
             }
-        } catch (jsonErr: unknown) {
+        } catch (jsonErr) {
             // JSON parse failed — try treating the raw value as a plain token
             console.debug(
                 "[AuthTokenUtils] extractSupabaseTokenFromRaw: localStorage[" +

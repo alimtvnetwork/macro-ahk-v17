@@ -11,7 +11,7 @@
 
 import type { MessageRequest, OkResponse } from "../../shared/messages";
 import type { RecordedXPath } from "../../shared/xpath-types";
-import { logCaughtError, BgLogTag} from "../bg-logger";
+import { logCaughtError, BgLogTag, type CaughtError} from "../bg-logger";
 
 /* ------------------------------------------------------------------ */
 /*  Module State                                                       */
@@ -94,7 +94,7 @@ async function stopRecording(tabId: number): Promise<void> {
 }
 
 /** Logs an injection error for recorder start/stop. */
-function logInjectionError(action: string, error: unknown): void {
+function logInjectionError(action: string, error: CaughtError): void {
     logCaughtError(BgLogTag.XPATH, `Failed to ${action} recorder`, error);
 }
 

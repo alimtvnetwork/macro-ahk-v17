@@ -4,7 +4,7 @@ import type { JsonValue, JsonObject, JsonArray } from "./json-tree-types";
 export function safeParse(str: string): JsonValue {
   try {
     return JSON.parse(str);
-  } catch (parseError: unknown) {
+  } catch (parseError) {
     return null;
   }
 }
@@ -67,7 +67,7 @@ function parseAsJsonOrString(trimmed: string): JsonValue {
     const parsed = JSON.parse(trimmed);
     const isComplex = typeof parsed === "object";
     if (isComplex) return parsed;
-  } catch (jsonParseError: unknown) {
+  } catch (jsonParseError) {
     // Not JSON — treat as string
   }
 

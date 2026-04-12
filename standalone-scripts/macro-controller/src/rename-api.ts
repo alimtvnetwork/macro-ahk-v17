@@ -18,7 +18,7 @@ import { showToast } from './toast';
 import { CREDIT_API_BASE } from './shared-state';
 import { hasForbidden, addForbidden, removeForbidden } from './rename-forbidden-cache';
 import { getAuthRecoveryExhausted, setAuthRecoveryExhausted } from './rename-bulk';
-import type { RenameStrategy } from './types';
+import type { RenameStrategy, MutationPayload } from './types';
 import { delay } from './async-utils';
 import { logError } from './error-utils';
 
@@ -87,8 +87,8 @@ function buildLabels(attempt: RenameAttemptState): string {
   return labels.length > 0 ? ' (' + labels.join(', ') + ')' : '';
 }
 
-function buildRenameBody(newName: string, includeCreditLimit: boolean): Record<string, unknown> {
-  const payload: Record<string, unknown> = { name: newName };
+function buildRenameBody(newName: string, includeCreditLimit: boolean): MutationPayload {
+  const payload: MutationPayload = { name: newName };
 
   if (includeCreditLimit) {
     payload.default_monthly_member_credit_limit = -1;

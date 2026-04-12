@@ -48,7 +48,7 @@ function isRecord(value: PromptChain | Record<string, unknown>): value is Record
     return typeof value === "object" && value !== null;
 }
 
-function toError(error: unknown, fallback: string): Error {
+function toError(error: Error | string | null | undefined | object, fallback: string): Error {
     return error instanceof Error ? error : new Error(fallback);
 }
 
@@ -98,7 +98,7 @@ export function usePromptChains() {
             setChains(normalized);
         } catch (error) {
             setChains([]);
-            setFatalError(toError(error, "Failed to load prompt chains"));
+            setFatalError(toError(error as Error, "Failed to load prompt chains"));
         } finally {
             setLoading(false);
         }

@@ -33,7 +33,7 @@ export function truncateUrl(url: string): string {
   try {
     const parsed = new URL(url);
     return parsed.pathname + parsed.search;
-  } catch (urlParseError: unknown) {
+  } catch (urlParseError) {
     const isTooLong = url.length > 60;
     return isTooLong ? url.slice(0, 60) + "…" : url;
   }
@@ -50,7 +50,7 @@ export function formatNetworkTimestamp(ts: string): string {
       minute: "2-digit",
       second: "2-digit",
     });
-  } catch (dateFormatError: unknown) {
+  } catch (dateFormatError) {
     return ts;
   }
 }

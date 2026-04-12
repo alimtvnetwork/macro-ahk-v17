@@ -10,7 +10,7 @@
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-import { logCaughtError, logBgWarnError, BgLogTag} from "./bg-logger";
+import { logCaughtError, logBgWarnError, BgLogTag, type CaughtError} from "./bg-logger";
 
 export interface RemoteConfigSettings {
     isEnabled: boolean;
@@ -160,7 +160,7 @@ function handleFailedFetch(
 
 /** Handles a fetch exception (network error, timeout). */
 function handleFetchException(
-    error: unknown,
+    error: CaughtError,
 ): Record<string, unknown> | null {
     const errorMessage = error instanceof Error
         ? error.message

@@ -11,7 +11,7 @@ export function formatDataTimestamp(ts: string): string {
       minute: "2-digit",
       second: "2-digit",
     });
-  } catch (dateFormatError: unknown) {
+  } catch (dateFormatError) {
     return ts;
   }
 }

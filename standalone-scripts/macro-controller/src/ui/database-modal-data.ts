@@ -10,7 +10,7 @@
  */
 
 import { sendToExtension } from './prompt-manager';
-import type { ExtensionCallbackResponse } from '../types';
+import type { ExtensionCallbackResponse, DatabaseRow } from '../types';
 import { buildFilterBar } from './database-data-filter';
 import { escapeHtml, buildPagination, buildDataTableElement } from './database-data-table';
 
@@ -74,7 +74,7 @@ export function loadTables(
 function parseTableList(
   response: ExtensionCallbackResponse,
 ): Array<{ name: string; rowCount?: number }> {
-  return (response.tables || []).map((table: Record<string, unknown>) => ({
+  return (response.tables || []).map((table: { name?: string; TableName?: string; ColumnDefs?: string; rowCount?: number }) => ({
     name: (table.name as string) || '',
     rowCount: table.rowCount as number | undefined,
   }));
@@ -198,13 +198,13 @@ export function loadTableData(
       return;
     }
 
-    const rows: Record<string, unknown>[] = response.rows || [];
+    const rows: DatabaseRow[] = response.rows || [];
     updateFilterColumns(tableName, rows);
     fetchCountAndRender(tableName, rows, page, whereClause, content, statusBar);
   });
 }
 
-function buildWhereClause(tableName: string): Record<string, unknown> | undefined {
+function buildWhereClause(tableName: string): DatabaseRow | Record<string, DatabaseRow> | undefined {
   const filter = activeFilters[tableName];
   const hasFilter = filter !== null && filter !== undefined && filter.column !== '' && filter.value !== '';
 
@@ -225,7 +225,7 @@ function buildWhereClause(tableName: string): Record<string, unknown> | undefine
 
 function updateFilterColumns(
   tableName: string,
-  rows: Record<string, unknown>[],
+  rows: DatabaseRow[],
 ): void {
   const hasRows = rows.length > 0;
   const filter = activeFilters[tableName];
@@ -251,9 +251,9 @@ function updateFilterColumns(
 
 function fetchCountAndRender(
   tableName: string,
-  rows: Record<string, unknown>[],
+  rows: DatabaseRow[],
   page: number,
-  whereClause: Record<string, unknown> | undefined,
+  whereClause: DatabaseRow | Record<string, DatabaseRow> | undefined,
   content: HTMLElement,
   statusBar: HTMLElement,
 ): void {
@@ -284,7 +284,7 @@ function renderDataError(
 
 function renderDataTable(
   tableName: string,
-  rows: Record<string, unknown>[],
+  rows: DatabaseRow[],
   page: number,
   totalCount: number,
   content: HTMLElement,

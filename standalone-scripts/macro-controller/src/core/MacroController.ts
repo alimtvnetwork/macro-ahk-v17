@@ -19,7 +19,7 @@
  */
 
 import { VERSION, state, loopCreditState } from '../shared-state';
-import type { WorkspaceCredit, LoopCreditState } from '../types';
+import type { WorkspaceCredit, LoopCreditState, WorkspacesApiResponse } from '../types';
 import { log } from '../logging';
 import { domCache } from '../dom-cache';
 import { nsRead } from '../api-namespace';
@@ -43,7 +43,7 @@ export interface CreditManagerInterface {
   fetchAsync(isRetry?: boolean): Promise<void>;
   fetchBalance(workspaceId?: string): Promise<import('../types').CreditBalanceResponse | null>;
   getState(): LoopCreditState;
-  parse(data: Record<string, unknown>): boolean;
+  parse(data: WorkspacesApiResponse): boolean;
   sync(): void;
   calcTotal(granted: number, dailyLimit: number, billingLimit: number, topupLimit: number, rolloverLimit: number): number;
   calcAvailable(totalCredits: number, rolloverUsed: number, dailyUsed: number, billingUsed: number, freeUsed: number): number;
@@ -327,7 +327,7 @@ export class MacroController {
 
   // ---- Diagnostics ----
 
-  diagnostics(): Record<string, unknown> {
+  diagnostics(): DiagnosticDump & Record<string, string | number | boolean | Record<string, string | number | boolean>> {
     return {
       version: this.version,
       initialized: this._initialized,

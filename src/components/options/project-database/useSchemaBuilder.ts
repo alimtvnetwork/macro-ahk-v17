@@ -109,7 +109,7 @@ export function useSchemaBuilder(projectSlug: string, onMigrationComplete: () =>
       setTables(loaded);
       toast.success(`Loaded ${loaded.length} table(s) from DB`);
     } catch (err) {
-      const errModel = createErrorModel(err, {
+      const errModel = createErrorModel(err as Error, {
         source: "Database", operation: "LoadFromDB", projectName: projectSlug,
         contextJson: JSON.stringify({ type: "GENERATE_SCHEMA_DOCS", project: projectSlug, format: "meta" }),
         suggestedAction: "Ensure the project slug is set. Try selecting a project from the project list first.",

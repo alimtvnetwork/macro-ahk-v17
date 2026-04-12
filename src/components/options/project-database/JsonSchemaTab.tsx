@@ -254,7 +254,7 @@ export function JsonSchemaTab({ projectSlug, onMigrationComplete }: Props) {
       setDocsOutput(null);
       toast.success(`Loaded ${tableDefs.length} table(s) from MetaTables`);
     } catch (err) {
-      const errModel = createErrorModel(err, {
+      const errModel = createErrorModel(err as Error, {
         source: "Database",
         operation: "LoadFromDB",
         projectName: projectSlug,
@@ -328,7 +328,7 @@ export function JsonSchemaTab({ projectSlug, onMigrationComplete }: Props) {
       setDiffMode(true);
       toast.success("Diff view loaded");
     } catch (err) {
-      const errModel = createErrorModel(err, {
+      const errModel = createErrorModel(err as Error, {
         source: "Database",
         operation: "LoadDiff",
         projectName: projectSlug,

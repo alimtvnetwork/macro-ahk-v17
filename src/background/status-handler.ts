@@ -10,7 +10,7 @@ import { getHealthState } from "./state-manager";
 import { getBootStep, getBootPersistenceMode, getBootTimings, getTotalBootMs } from "./boot-diagnostics";
 import { getConfigFetchStatus } from "./handlers/config-auth-handler";
 import { readCookieFromCandidates, type ChromeCookie } from "./cookie-helpers";
-import { logCaughtError, BgLogTag} from "./bg-logger";
+import { logCaughtError, BgLogTag, type CaughtError} from "./bg-logger";
 
 import { getChromeRef } from "./chrome-ref";
 const _chr = getChromeRef();
@@ -125,7 +125,7 @@ function buildMissingToken(): StatusResponse["token"] {
 }
 
 /** Logs a cookie access error. */
-function logCookieWarning(error: unknown): void {
+function logCookieWarning(error: CaughtError): void {
     logCaughtError(BgLogTag.STATUS_HANDLER, "Token check failed", error);
 }
 

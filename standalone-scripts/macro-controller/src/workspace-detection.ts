@@ -20,6 +20,7 @@ import { resolveToken, markBearerTokenExpired } from './auth';
 import { matchWorkspaceByName } from './ws-name-matching';
 import { detectWorkspaceViaProjectDialog } from './ws-dialog-detection';
 import { logError } from './error-utils';
+import type { MarkViewedResponse } from './types';
 
 // ============================================
 // Helper — auth failure check
@@ -123,8 +124,8 @@ function fallbackDetect(
 // extractWorkspaceIdFromResponse — parses workspace_id from mark-viewed data
 // ============================================
 
-function extractWorkspaceIdFromResponse(data: Record<string, unknown>): string {
-  const project = data.project as Record<string, unknown> | undefined;
+function extractWorkspaceIdFromResponse(data: MarkViewedResponse): string {
+  const project = data.project;
 
   return (data.workspace_id as string)
     || (project && (project.workspace_id as string))
@@ -136,8 +137,8 @@ function extractWorkspaceIdFromResponse(data: Record<string, unknown>): string {
 // extractProjectNameFromResponse — pulls project name if present
 // ============================================
 
-function extractProjectNameFromResponse(fn: string, data: Record<string, unknown>): void {
-  const project = data.project as Record<string, unknown> | undefined;
+function extractProjectNameFromResponse(fn: string, data: MarkViewedResponse): void {
+  const project = data.project;
   const apiProjectName = (project && ((project.name as string) || (project.title as string)))
     || (data.name as string) || (data.title as string) || '';
 
@@ -228,7 +229,7 @@ async function processTier1Response(
     return;
   }
 
-  const data = resp.data as Record<string, unknown> | null;
+  const data = resp.data as MarkViewedResponse | null;
 
   if (!data) {
     log(fn + ': Tier 1 — empty response body — falling to passive fallback', 'warn');

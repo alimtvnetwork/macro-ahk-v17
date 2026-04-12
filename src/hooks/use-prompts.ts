@@ -26,7 +26,7 @@ function isRecord(value: PromptEntry | Record<string, unknown>): value is Record
     return typeof value === "object" && value !== null;
 }
 
-function toError(error: unknown, fallback: string): Error {
+function toError(error: Error | string | null | undefined | object, fallback: string): Error {
     return error instanceof Error ? error : new Error(fallback);
 }
 
@@ -76,7 +76,7 @@ export function usePrompts() {
             setPrompts(normalized);
         } catch (error) {
             setPrompts([]);
-            setFatalError(toError(error, "Failed to load prompts"));
+            setFatalError(toError(error as Error, "Failed to load prompts"));
         } finally {
             setLoading(false);
         }

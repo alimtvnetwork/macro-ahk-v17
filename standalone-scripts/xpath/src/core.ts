@@ -11,7 +11,7 @@ export function getByXPath(xpath: string): Node | null {
   }
   try {
     return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-  } catch (e: unknown) {
+  } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     getLogger().warn("getByXPath", "XPath evaluation error: " + msg);
     getLogger().warn("getByXPath", "Problematic XPath: " + xpath);
@@ -32,7 +32,7 @@ export function getAllByXPath(xpath: string): Node[] {
       if (item) nodes.push(item);
     }
     return nodes;
-  } catch (e: unknown) {
+  } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     getLogger().warn("getAllByXPath", "XPath evaluation error: " + msg);
     getLogger().warn("getAllByXPath", "Problematic XPath: " + xpath);

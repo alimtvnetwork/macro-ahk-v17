@@ -10,7 +10,7 @@
 
 import { log } from '../logging';
 import { sendToExtension } from './prompt-manager';
-import type { ExtensionCallbackResponse } from '../types';
+import type { ExtensionCallbackResponse, ColumnDefinition } from '../types';
 import { injectSchemaStyles } from './database-schema-styles';
 import { el, escHtml, showMsg } from './database-schema-helpers';
 import {
@@ -338,8 +338,8 @@ function validateCreateTableInput(tableName: string, columns: ColumnEntry[]): st
   return null;
 }
 
-function buildColumnDefinition(column: ColumnEntry): Record<string, unknown> {
-  const definition: Record<string, unknown> = {
+function buildColumnDefinition(column: ColumnEntry): ColumnDefinition {
+  const definition: ColumnDefinition = {
     Name: column.name,
     Type: column.type,
     Nullable: column.nullable,
