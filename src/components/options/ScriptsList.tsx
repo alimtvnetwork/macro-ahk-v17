@@ -868,16 +868,16 @@ export function ScriptsList({ scripts, configs, loading, onSave, onDelete, onSav
 
       {/* === BUNDLE CARDS LIST === */}
       {scripts.map((rawScript) => {
-        const rawBindingValue = (rawScript as { configBinding?: string }).configBinding;
+        const rawBindingValue = (rawScript as { configBinding?: string | string[] | Array<{ id?: string }> }).configBinding;
         const normalizedBinding = typeof rawBindingValue === "string"
           ? rawBindingValue
           : Array.isArray(rawBindingValue)
-            ? rawBindingValue
-                .map((entry) => {
+            ? (rawBindingValue as Array<string | number | { id?: string }>)
+                .map((entry: string | number | { id?: string }) => {
                   if (typeof entry === "string") return entry.trim();
                   if (typeof entry === "number") return String(entry);
                   if (typeof entry === "object" && entry !== null && "id" in entry) {
-                    const idValue = (entry as { id?: string }).id;
+                    const idValue = entry.id;
                     return typeof idValue === "string" ? idValue.trim() : "";
                   }
                   return "";

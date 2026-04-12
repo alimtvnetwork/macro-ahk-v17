@@ -414,7 +414,7 @@ export function SchemaTab({ projectSlug, onMigrationComplete }: SchemaTabProps) 
           />
           <SchemaVersionHistory
             projectSlug={projectSlug}
-             currentTables={tables.map(({ isOpen, ...rest }) => rest) as unknown as Record<string, JsonValue>[]}
+             currentTables={tables.map(({ isOpen, ...rest }) => rest) as unknown as Record<string, unknown>[]}
              onRestore={(restored) => {
                setTables(
                  (restored as unknown as Array<Record<string, unknown>>).map((t) => ({
