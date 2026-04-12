@@ -124,7 +124,7 @@ export function handleListUpdaters(): UpdaterEntry[] {
     const stmt = db.prepare("SELECT * FROM UpdaterDetails ORDER BY Name");
     const rows: UpdaterEntry[] = [];
     while (stmt.step()) {
-        rows.push(stmt.getAsObject() as unknown as UpdaterEntry);
+        rows.push(stmt.getAsObject() as UpdaterEntry);
     }
     stmt.free();
     return rows;
@@ -135,7 +135,7 @@ export function handleGetUpdater(updaterId: number): UpdaterEntry | null {
     const db = getDb();
     const stmt = db.prepare("SELECT * FROM UpdaterDetails WHERE UpdaterId = ?");
     stmt.bind([updaterId]);
-    const row = stmt.step() ? (stmt.getAsObject() as unknown as UpdaterEntry) : null;
+    const row = stmt.step() ? (stmt.getAsObject() as UpdaterEntry) : null;
     stmt.free();
     return row;
 }
@@ -353,7 +353,7 @@ export interface GlobalUpdateSettings {
 export function handleGetUpdateSettings(): GlobalUpdateSettings {
     const db = getDb();
     const stmt = db.prepare("SELECT * FROM UpdateSettings LIMIT 1");
-    const row = stmt.step() ? (stmt.getAsObject() as unknown as GlobalUpdateSettings) : null;
+    const row = stmt.step() ? (stmt.getAsObject() as GlobalUpdateSettings) : null;
     stmt.free();
     return row ?? {
         Id: 0,

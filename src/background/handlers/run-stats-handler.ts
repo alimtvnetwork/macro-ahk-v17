@@ -60,7 +60,7 @@ async function saveMetrics(metrics: CycleMetric[]): Promise<void> {
 /* ------------------------------------------------------------------ */
 
 /** Records a single cycle metric. */
-export async function handleRecordCycleMetric(msg: unknown): Promise<{ isOk: true }> {
+export async function handleRecordCycleMetric(msg: { projectId: string; cycleMs: number; loopCount: number; action: string }): Promise<{ isOk: true }> {
     const m = msg as {
         cycleNumber: number;
         startTime: string;

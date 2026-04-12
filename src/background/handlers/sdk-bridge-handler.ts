@@ -12,6 +12,7 @@
  * @see .lovable/memory/architecture/marco-sdk-convention.md — SDK convention
  */
 
+import type { JsonValue } from "./handler-types";
 import type { MessageRequest } from "../../shared/messages";
 import {
     handleGetToken,
@@ -129,7 +130,7 @@ export async function handleSdkConfigGetAll(): Promise<{
 export async function handleSdkConfigSet(
     msg: MessageRequest,
 ): Promise<{ isOk: boolean }> {
-    const { key, value } = msg as MessageRequest & { key: string; value: unknown };
+    const { key, value } = msg as MessageRequest & { key: string; value: JsonValue };
     if (!key) return { isOk: false };
     const storageKey = `marco_config_${key}`;
     await chrome.storage.local.set({ [storageKey]: value });

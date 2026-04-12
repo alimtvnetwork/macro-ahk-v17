@@ -7,11 +7,12 @@
  * @see spec/05-chrome-extension/55-storage-ui-redesign.md — Storage UI redesign
  */
 
+import type { JsonValue } from "./handler-types";
 import type { MessageRequest } from "../../shared/messages";
 
 interface SessionEntry {
     key: string;
-    value: unknown;
+    value: JsonValue;
     valueType: string;
     sizeBytes: number;
 }
@@ -29,7 +30,7 @@ interface CookieEntry {
     storeId: string;
 }
 
-function estimateBytes(value: unknown): number {
+function estimateBytes(value: JsonValue): number {
     try {
         return new TextEncoder().encode(JSON.stringify(value)).length;
     } catch {
@@ -101,7 +102,7 @@ export async function handleStorageSessionList(
 export async function handleStorageSessionSet(
     message: MessageRequest,
 ): Promise<{ isOk: true }> {
-    const { key, value } = message as { key: string; value: unknown };
+    const { key, value } = message as { key: string; value: JsonValue };
     if (!key || typeof key !== "string") {
         throw new Error("[Storage] Session key is required");
     }

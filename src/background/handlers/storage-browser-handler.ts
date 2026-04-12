@@ -9,6 +9,8 @@
  * @see spec/05-chrome-extension/19-opfs-persistence-strategy.md — OPFS persistence
  */
 
+import type { SqlRow } from "./handler-types";
+import type { SqlValue } from "sql.js";
 import { type MessageRequest } from "../../shared/messages";
 import type { DbManager } from "../db-manager";
 import type { Database as SqlJsDatabase } from "sql.js";
@@ -181,7 +183,7 @@ export async function handleStorageGetSchema(
 /** Paginated query for table/view rows. */
 export async function handleStorageQueryTable(
     message: MessageRequest,
-): Promise<{ rows: unknown[]; total: number; columns: string[] }> {
+): Promise<{ rows: SqlRow[]; total: number; columns: string[] }> {
     const { table, offset = 0, limit = 50 } = message as {
         table: string; offset?: number; limit?: number;
     };
@@ -225,7 +227,7 @@ export async function handleStorageUpdateRow(
     const db = getDbForTable(table);
     const setClauses: string[] = [];
     const wheresClauses: string[] = [];
-    const params: unknown[] = [];
+    const params: SqlValue[] = [];
 
     for (const [col, val] of Object.entries(updates)) {
         setClauses.push(`${col} = ?`);
@@ -263,7 +265,7 @@ export async function handleStorageDeleteRow(
 
     const db = getDbForTable(table);
     const wheresClauses: string[] = [];
-    const params: unknown[] = [];
+    const params: SqlValue[] = [];
 
     for (const [col, val] of Object.entries(primaryKey)) {
         wheresClauses.push(`${col} = ?`);

@@ -7,6 +7,7 @@
  * @see spec/05-chrome-extension/06-logging-architecture.md — Logging architecture
  */
 
+import type { SqlValue } from "sql.js";
 import type { MessageRequest } from "../../shared/messages";
 import { getLogsDb, getErrorsDb, markLoggingDirty, countTable } from "./logging-handler";
 import JSZip from "jszip";
@@ -258,7 +259,7 @@ function exportTableRows(
 /** Builds a key-value object from column names and row values. */
 function buildRowObject(
     columns: string[],
-    values: unknown[],
+    values: SqlValue[],
 ): Record<string, unknown> {
     const obj: Record<string, unknown> = {};
 
