@@ -487,6 +487,7 @@ describe("Integration: Injection flow", () => {
     beforeEach(() => {
         resetMockStorage();
         installChromeMock();
+        setMockTabs([{ id: 1, url: "https://example.com" }, { id: 7, url: "https://example.com" }, { id: 99, url: "https://example.com" }]);
     });
 
     it("INJECT_SCRIPTS returns results array", async () => {
