@@ -191,6 +191,11 @@ export function installChromeMock(): void {
         },
         tabs: {
             query: async () => mockTabs,
+            get: async (tabId: number) => {
+                const tab = mockTabs.find((t) => t.id === tabId);
+                if (!tab) throw new Error(`No tab with id: ${tabId}`);
+                return { id: tab.id, url: tab.url ?? "https://example.com/" };
+            },
             onRemoved: {
                 addListener: () => {},
             },
