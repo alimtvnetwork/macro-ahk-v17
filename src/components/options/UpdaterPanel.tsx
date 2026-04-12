@@ -350,7 +350,7 @@ export function UpdaterPanel({ projectId: _projectId }: Props) {
     }
   };
 
-  const handleUpdateField = (id: number, field: keyof UpdaterEntry, value: unknown) => {
+  const handleUpdateField = (id: number, field: keyof UpdaterEntry, value: UpdaterEntry[typeof field]) => {
     setUpdaters((prev) =>
       prev.map((u) => (u.id === id ? { ...u, [field]: value } : u)),
     );
@@ -383,7 +383,7 @@ export function UpdaterPanel({ projectId: _projectId }: Props) {
     );
   };
 
-  const handleUpdateEndpoint = (updaterId: number, endpointId: number, field: keyof UpdaterEndpoint, value: unknown) => {
+  const handleUpdateEndpoint = (updaterId: number, endpointId: number, field: keyof UpdaterEndpoint, value: UpdaterEntry[typeof field]) => {
     setUpdaters((prev) =>
       prev.map((u) => {
         if (u.id !== updaterId) return u;
@@ -422,7 +422,7 @@ export function UpdaterPanel({ projectId: _projectId }: Props) {
     );
   };
 
-  const handleUpdateStep = (updaterId: number, stepId: number, field: keyof UpdaterStep, value: unknown) => {
+  const handleUpdateStep = (updaterId: number, stepId: number, field: keyof UpdaterStep, value: UpdaterEntry[typeof field]) => {
     setUpdaters((prev) =>
       prev.map((u) => {
         if (u.id !== updaterId) return u;
@@ -666,13 +666,13 @@ interface UpdaterEntryCardProps {
   onCheck: () => void;
   onRemove: () => void;
   onToggleEnabled: () => void;
-  onUpdateField: (field: keyof UpdaterEntry, value: unknown) => void;
+  onUpdateField: (field: keyof UpdaterEntry, value: UpdaterEntry[typeof field]) => void;
   onAddEndpoint: () => void;
   onRemoveEndpoint: (id: number) => void;
-  onUpdateEndpoint: (id: number, field: keyof UpdaterEndpoint, value: unknown) => void;
+  onUpdateEndpoint: (id: number, field: keyof UpdaterEndpoint, value: UpdaterEntry[typeof field]) => void;
   onAddStep: () => void;
   onRemoveStep: (id: number) => void;
-  onUpdateStep: (id: number, field: keyof UpdaterStep, value: unknown) => void;
+  onUpdateStep: (id: number, field: keyof UpdaterStep, value: UpdaterEntry[typeof field]) => void;
   toggleCategory: (cats: string[], cat: string) => string[];
 }
 

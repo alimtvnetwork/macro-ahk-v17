@@ -1651,7 +1651,7 @@ function ScriptsTabContent({ project, availableScripts, availableConfigs, onSave
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-function formatJson(input: unknown): string {
+function formatJson(input: string | number | boolean | null | undefined): string {
   if (typeof input === "string") {
     try {
       return JSON.stringify(JSON.parse(input), null, 2);

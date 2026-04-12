@@ -1,4 +1,6 @@
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { getPlatform } from "@/platform";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +28,7 @@ type RuntimeStorageSurface = "session" | "cookies" | "indexeddb";
 
 interface SessionEntry {
   key: string;
-  value: unknown;
+  value: JsonValue;
   valueType: string;
   sizeBytes: number;
 }
@@ -46,7 +48,7 @@ interface CookieEntry {
 
 interface IndexedRecord {
   key: IDBValidKey;
-  value: unknown;
+  value: JsonValue;
 }
 
 interface IndexedStoreView {
@@ -67,7 +69,7 @@ interface StorageRuntimePanelsProps {
   surface: RuntimeStorageSurface;
 }
 
-function toPrettyJson(value: unknown): string {
+function toPrettyJson(value: JsonValue): string {
   try {
     return JSON.stringify(value, null, 2);
   } catch {
@@ -182,7 +184,7 @@ async function saveIndexedRecord(
   dbName: string,
   storeName: string,
   key: IDBValidKey,
-  value: unknown,
+  value: JsonValue,
 ): Promise<void> {
   const db = await openIndexedDb(dbName);
   try {

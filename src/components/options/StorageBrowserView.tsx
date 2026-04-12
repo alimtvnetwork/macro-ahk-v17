@@ -6,6 +6,7 @@
  * complex fields. Views are read-only.
  */
 
+import type { SqlValue } from "sql.js";
 import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { getPlatform } from "@/platform";
 import { Button } from "@/components/ui/button";
@@ -167,9 +168,9 @@ export function StorageBrowserView() {
     try {
       const chromeAny = globalThis as Record<string, unknown>;
       const chromeObj = chromeAny.chrome as Record<string, unknown> | undefined;
-      const cookiesApi = chromeObj?.cookies as { getAll?: (filter: object, cb: (cookies: unknown[]) => void) => void } | undefined;
+      const cookiesApi = chromeObj?.cookies as { getAll?: (filter: object, cb: (cookies: Array<Record<string, string | number | boolean>>) => void) => void } | undefined;
       if (cookiesApi?.getAll) {
-        cookiesApi.getAll({}, (cookies: unknown[]) => {
+        cookiesApi.getAll({}, (cookies: Array<Record<string, string | number | boolean>>) => {
           setCookieCount(cookies?.length ?? 0);
         });
       } else {
@@ -903,7 +904,7 @@ function TableDataView({
 /*  Cell Value Renderer                                                */
 /* ------------------------------------------------------------------ */
 
-function CellValue({ value }: { value: unknown }) {
+function CellValue({ value }: { value: SqlValue }) {
   if (value === null || value === undefined) {
     return <span className="text-muted-foreground/50 italic">null</span>;
   }

@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -867,7 +868,7 @@ export function ScriptsList({ scripts, configs, loading, onSave, onDelete, onSav
 
       {/* === BUNDLE CARDS LIST === */}
       {scripts.map((rawScript) => {
-        const rawBindingValue = (rawScript as { configBinding?: unknown }).configBinding;
+        const rawBindingValue = (rawScript as { configBinding?: string }).configBinding;
         const normalizedBinding = typeof rawBindingValue === "string"
           ? rawBindingValue
           : Array.isArray(rawBindingValue)
@@ -876,7 +877,7 @@ export function ScriptsList({ scripts, configs, loading, onSave, onDelete, onSav
                   if (typeof entry === "string") return entry.trim();
                   if (typeof entry === "number") return String(entry);
                   if (typeof entry === "object" && entry !== null && "id" in entry) {
-                    const idValue = (entry as { id?: unknown }).id;
+                    const idValue = (entry as { id?: string }).id;
                     return typeof idValue === "string" ? idValue.trim() : "";
                   }
                   return "";
@@ -970,7 +971,7 @@ function validateJson(str: string): boolean {
   try { JSON.parse(str); return true; } catch { return false; }
 }
 
-function formatJson(input: unknown): string {
+function formatJson(input: JsonValue): string {
   if (typeof input === "string") {
     try { return JSON.stringify(JSON.parse(input), null, 2); } catch { return input; }
   }
