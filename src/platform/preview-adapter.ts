@@ -21,6 +21,15 @@ import type {
 
 const memoryStore = new Map<string, unknown>();
 
+/* ------------------------------------------------------------------ */
+/*  Mutable Mock Error/Log State                                       */
+/* ------------------------------------------------------------------ */
+
+/** Whether mock errors have been cleared in this session. */
+let mockErrorsCleared = false;
+/** Whether mock logs have been cleared in this session. */
+let mockLogsCleared = false;
+
 const previewStorage: PlatformStorage = {
     async get(key: string): Promise<unknown> {
         return memoryStore.get(key) ?? null;
@@ -56,6 +65,13 @@ const previewTabs: PlatformTabs = {
 /** Returns mock data matching the background service worker protocol. */
 // eslint-disable-next-line max-lines-per-function
 function getMockResponse(message: MessagePayload): unknown {
+    // Handle stateful mutations before building mock lookup
+    if (message.type === "CLEAR_ERRORS") {
+        mockErrorsCleared = true;
+        mockLogsCleared = true;
+        return { isOk: true };
+    }
+
     const mocks: Record<string, unknown> = {
         GET_STATUS: {
             connection: "online",
@@ -234,7 +250,7 @@ function getMockResponse(message: MessagePayload): unknown {
         QUERY_LOGS: { rows: [], total: 0 },
         GET_LOG_STATS: { logCount: 42, errorCount: 3, sessionCount: 5 },
         GET_RECENT_LOGS: {
-            logs: [
+            logs: mockLogsCleared ? [] : [
                 { id: 1, timestamp: new Date(Date.now() - 60000).toISOString(), level: "info", source: "BOOT", category: "LIFECYCLE", action: "init", detail: "Service worker initialized", message: "Service worker initialized" },
                 { id: 2, timestamp: new Date(Date.now() - 55000).toISOString(), level: "info", source: "CONFIG", category: "CONFIG", action: "load", detail: "Config loaded from storage", message: "Config loaded from storage" },
                 { id: 3, timestamp: new Date(Date.now() - 50000).toISOString(), level: "warn", source: "AUTH", category: "AUTH", action: "token_expiry", detail: "Token expires in 5 minutes", message: "Token expires in 5 minutes" },
@@ -250,7 +266,7 @@ function getMockResponse(message: MessagePayload): unknown {
             ],
         },
         GET_RECORDED_XPATHS: { recorded: [], isRecording: false },
-        GET_ACTIVE_ERRORS: { errors: [
+        GET_ACTIVE_ERRORS: { errors: mockErrorsCleared ? [] : [
             {
                 id: 1,
                 timestamp: new Date(Date.now() - 30000).toISOString(),
@@ -270,7 +286,7 @@ function getMockResponse(message: MessagePayload): unknown {
                 ext_version: "1.33.0",
             },
         ] },
-        CLEAR_ERRORS: { isOk: true },
+        /* CLEAR_ERRORS handled above as stateful mutation */
         GET_SETTINGS: { settings: {
             autoRunOnPageLoad: true,
             showNotifications: true,

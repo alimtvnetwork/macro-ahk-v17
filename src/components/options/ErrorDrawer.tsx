@@ -8,6 +8,7 @@
 
 import { useState, useCallback } from "react";
 import { useActivityTimeline, type TimelineEntry } from "@/hooks/use-activity-timeline";
+import { sendMessage } from "@/lib/message-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -178,6 +179,16 @@ export function ErrorDrawer({ open, onOpenChange }: ErrorDrawerProps) {
     toast.success(`Copied ${errorEntries.length} entries`);
   }, [errorEntries]);
 
+  const handleClearAll = useCallback(async () => {
+    try {
+      await sendMessage({ type: "CLEAR_ERRORS" });
+      toast.success("All errors cleared");
+      await refresh();
+    } catch {
+      toast.error("Failed to clear errors");
+    }
+  }, [refresh]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[420px] sm:w-[480px] flex flex-col p-0">
@@ -211,8 +222,18 @@ export function ErrorDrawer({ open, onOpenChange }: ErrorDrawerProps) {
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={refresh} disabled={loading}>
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyAll}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyAll} title="Copy all">
               <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive hover:text-destructive"
+              onClick={handleClearAll}
+              disabled={errorEntries.length === 0}
+              title="Clear all errors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
