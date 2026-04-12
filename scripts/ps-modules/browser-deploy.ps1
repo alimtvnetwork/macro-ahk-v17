@@ -84,19 +84,24 @@ function Deploy-Extension([string]$ProfileFolder) {
 
     if ($isLoadExtDisabled -or $isBrowserRunning) {
         # Hot-reload strategy
+        $isFirstLoad = -not (Test-ExtensionInProfile $userDataDir $ProfileFolder $extDistAbsolute)
+
         if ($isLoadExtDisabled -and -not $isBrowserRunning) {
             Write-Host "  Chrome v$browserMajor detected -- --load-extension disabled." -ForegroundColor Yellow
             Start-Process -FilePath $browserExe -ArgumentList @("--profile-directory=`"$ProfileFolder`"")
             Write-Host "  [OK] Chrome launched" -ForegroundColor Green
         } elseif ($isBrowserRunning) {
-            Write-Host "  Browser running -- extension will auto-reload via hot-reload." -ForegroundColor Yellow
+            if ($isFirstLoad) {
+                Write-Host "  Browser running, but this dist path is NOT loaded in profile '$ProfileFolder'." -ForegroundColor Yellow
+                Write-Host "  Reload will keep refreshing the older unpacked extension until you load this folder once." -ForegroundColor Yellow
+            } else {
+                Write-Host "  Browser running -- existing unpacked extension will auto-reload via hot-reload." -ForegroundColor Yellow
+            }
         }
-        
-        $isFirstLoad = -not (Test-ExtensionInProfile $userDataDir $ProfileFolder $extDistAbsolute)
 
         if ($isFirstLoad) {
             $script:LastDeployMode = "Manual first load"
-            $script:LastDeployNote = "Open chrome://extensions and load unpacked once."
+            $script:LastDeployNote = "Open chrome://extensions, remove/disable any older unpacked Marco copy if needed, then load this dist folder once."
         } elseif ($isLoadExtDisabled -and -not $isBrowserRunning) {
             $script:LastDeployMode = "Hot reload"
             $script:LastDeployNote = "Browser launched; existing unpacked extension will auto-reload."
@@ -104,19 +109,20 @@ function Deploy-Extension([string]$ProfileFolder) {
             $script:LastDeployMode = "Hot reload"
             $script:LastDeployNote = "Browser already running; extension auto-reloads in ~2 seconds."
         }
-        
+
         Write-Host ""
         if ($isFirstLoad) {
-            Write-Host "  FIRST TIME: Open chrome://extensions/ and 'Load unpacked'" -ForegroundColor Yellow
+            Write-Host "  ACTION REQUIRED: chrome://extensions -> Remove or disable the old unpacked Marco extension if it points elsewhere." -ForegroundColor Yellow
+            Write-Host "  Then click 'Load unpacked' and select:" -ForegroundColor Yellow
             Write-Host "  Path: $extDistAbsolute" -ForegroundColor White
-            Write-Host "  After loading once, future builds auto-reload (~2s)" -ForegroundColor Green
+            Write-Host "  After this one-time load, future builds auto-reload (~2s)." -ForegroundColor Green
         } else {
             Write-Host "  [OK] Extension will auto-reload in ~2 seconds (v$extVersion)" -ForegroundColor Green
+            Write-Host "  [OK] Active unpacked path: $extDistAbsolute" -ForegroundColor Green
         }
-        
-        Write-Host "  [OK] $extName v$extVersion built and ready" -ForegroundColor Green
-        Write-Host "  [OK] Loaded from: $extDistAbsolute" -ForegroundColor Green
-        
+
+        Write-Host "  [OK] $extName v$extVersion built successfully" -ForegroundColor Green
+
         if ($isLoadExtDisabled) {
             Write-Host ""
             Write-Host "  TIP: Use -dl to download Chrome for Testing (supports --load-extension)" -ForegroundColor Gray
