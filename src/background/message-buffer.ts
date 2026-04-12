@@ -5,16 +5,23 @@
  * then drains them in order once boot completes.
  */
 
+import { type MessageRequest } from "../shared/messages";
 import { handleMessage } from "./message-router";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
+interface MessageResponse {
+    isOk?: boolean;
+    errorMessage?: string;
+    [key: string]: string | number | boolean | null | undefined | object;
+}
+
 interface BufferedMessage {
-    message: unknown;
+    message: MessageRequest | Record<string, string | number | boolean | null | undefined | object>;
     sender: chrome.runtime.MessageSender;
-    sendResponse: (response: unknown) => void;
+    sendResponse: (response: MessageResponse) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -40,9 +47,9 @@ export function markInitialized(): void {
 
 /** Enqueues a message for later processing. */
 export function bufferMessage(
-    message: unknown,
+    message: MessageRequest | Record<string, string | number | boolean | null | undefined | object>,
     sender: chrome.runtime.MessageSender,
-    sendResponse: (response: unknown) => void,
+    sendResponse: (response: MessageResponse) => void,
 ): void {
     messageBuffer.push({ message, sender, sendResponse });
 }

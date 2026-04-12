@@ -22,14 +22,29 @@ import {
 export { getRecentTrackedMessages } from "./message-tracker";
 
 /* ------------------------------------------------------------------ */
+/*  Response Types                                                     */
+/* ------------------------------------------------------------------ */
+
+interface MessageResponse {
+    isOk?: boolean;
+    errorMessage?: string;
+    [key: string]: string | number | boolean | null | undefined | object;
+}
+
+interface ErrorResponse {
+    isOk: false;
+    errorMessage: string;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Message Dispatch                                                   */
 /* ------------------------------------------------------------------ */
 
 /** Dispatches a message to its handler and sends the response. */
 export async function handleMessage(
-    rawMessage: unknown,
+    rawMessage: MessageRequest | Record<string, string | number | boolean | null | undefined | object>,
     sender: chrome.runtime.MessageSender,
-    sendResponse: (response: unknown) => void,
+    sendResponse: (response: MessageResponse | ErrorResponse) => void,
 ): Promise<void> {
     const message = rawMessage as MessageRequest;
 
@@ -46,7 +61,7 @@ export async function handleMessage(
 async function routeMessage(
     message: MessageRequest,
     sender: chrome.runtime.MessageSender,
-): Promise<unknown> {
+): Promise<MessageResponse> {
     const messageType = typeof message === "object"
         && message !== null
         && "type" in message
@@ -79,7 +94,7 @@ async function routeMessage(
         try {
             const result = await handler(message, sender);
             trackMessage(String(messageType), Math.round(performance.now() - start), true);
-            return result;
+            return result as MessageResponse;
         } catch (err) {
             trackMessage(String(messageType), Math.round(performance.now() - start), false);
             throw err;
@@ -93,10 +108,7 @@ async function routeMessage(
 }
 
 /** Builds a standardized error response from a caught error. */
-function buildErrorResponse(error: unknown): {
-    isOk: false;
-    errorMessage: string;
-} {
+function buildErrorResponse(error: Error | string | { message?: string }): ErrorResponse {
     const errorMessage = error instanceof Error
         ? error.message
         : String(error);

@@ -65,6 +65,9 @@ export const enum BgLogTag {
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
+/** Caught error type — an Error, a string message, or an object with message. */
+export type CaughtError = Error | string | { message?: string };
+
 export interface BgErrorContext {
     scriptId?: string;
     projectId?: string;
@@ -90,7 +93,7 @@ export function logBgError(
     tag: string,
     errorCode: string,
     message: string,
-    error?: unknown,
+    error?: CaughtError,
     context?: BgErrorContext,
 ): void {
     const stackTrace = error instanceof Error ? error.stack : undefined;
@@ -135,7 +138,7 @@ export function logBgError(
 export function logCaughtError(
     tag: string,
     message: string,
-    error: unknown,
+    error: CaughtError,
     context?: BgErrorContext,
 ): void {
     const errorCode = tag
@@ -154,7 +157,7 @@ export function logCaughtError(
 export function logBgWarnError(
     tag: string,
     message: string,
-    error?: unknown,
+    error?: CaughtError,
 ): void {
     if (error !== undefined) {
         console.warn(`${tag} ${message}`, error);
