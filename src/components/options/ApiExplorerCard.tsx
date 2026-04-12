@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- dynamic API explorer message types */
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useEffect, useMemo, useState } from "react";
 import { sendMessage } from "@/lib/message-client";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ type ApiStatus = {
   persistenceMode: string;
 };
 
-function toPrettyJson(value: unknown): string {
+function toPrettyJson(value: JsonValue): string {
   try {
     return JSON.stringify(value, null, 2);
   } catch {
@@ -103,7 +104,7 @@ export function ApiExplorerCard() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const runRequest = async () => {
-    let parsedBody: unknown = {};
+    let parsedBody: JsonValue = {};
     try {
       parsedBody = requestJson.trim() ? JSON.parse(requestJson) : {};
     } catch {

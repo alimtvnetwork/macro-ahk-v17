@@ -3,6 +3,7 @@
  * Used by the Storage Browser category cards (Spec 55).
  */
 
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useEffect, useState, useCallback } from "react";
 import { sendMessage } from "@/lib/message-client";
 
@@ -10,7 +11,7 @@ import { sendMessage } from "@/lib/message-client";
 
 export interface SessionEntry {
   key: string;
-  value: unknown;
+  value: JsonValue;
   valuePreview: string;
   sizeBytes: number;
 }
@@ -79,7 +80,7 @@ export function useCookies() {
 
 export interface LocalStorageEntry {
   key: string;
-  value: unknown;
+  value: JsonValue;
   valuePreview: string;
   sizeBytes: number;
 }

@@ -30,7 +30,7 @@ interface StoredProject {
   cookies?: CookieBinding[];
   /** @deprecated Use cookies[] instead */
   cookieRules?: CookieRule[];
-  settings?: { isolateScripts?: boolean; logLevel?: string; retryOnNavigate?: boolean; chatBoxXPath?: string; variables?: string; [key: string]: unknown };
+  settings?: { isolateScripts?: boolean; logLevel?: string; retryOnNavigate?: boolean; chatBoxXPath?: string; variables?: string; [key: string]: string | number | boolean | undefined };
   dependencies?: Array<{ projectId: string; version: string }>;
   isGlobal?: boolean;
   isRemovable?: boolean;

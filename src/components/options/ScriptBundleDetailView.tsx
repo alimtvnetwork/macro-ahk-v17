@@ -2,6 +2,7 @@
  * ScriptBundleDetailView — Detail/editor view for a single script bundle.
  * Mirrors ProjectDetailView pattern with the bundle editor from ScriptsList.
  */
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useState, useCallback } from "react";
 import { RefreshCw, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ function validateJson(str: string): boolean {
   try { JSON.parse(str); return true; } catch { return false; }
 }
 
-function formatJson(input: unknown): string {
+function formatJson(input: JsonValue): string {
   if (typeof input === "string") {
     try { return JSON.stringify(JSON.parse(input), null, 2); } catch { return input; }
   }
