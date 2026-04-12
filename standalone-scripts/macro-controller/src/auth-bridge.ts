@@ -375,7 +375,7 @@ function handleRelayPong(ctx: RelayPingCtx, event: MessageEvent): void {
     return;
   }
 
-  const payload = unwrapRelayPayload((event.data as { payload?: unknown }).payload);
+  const payload = unwrapRelayPayload((event.data as { payload?: BridgePayloadValue }).payload);
   const errorMsg = typeof payload.errorMessage === 'string' ? payload.errorMessage : '';
 
   if (!ctx.settled) {
