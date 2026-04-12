@@ -22,10 +22,11 @@ import {
   cPrimaryLight,
   cSectionHeader,
   cWarning,
-  state,
 } from '../shared-state';
 import type { SettingsDeps, MakeFieldFn } from './settings-ui';
-import { CssFragment } from '../types';
+
+const CSS_FONT_SIZE_11PX_FONT_WEIGHT_700_COLOR = 'font-size:11px;font-weight:700;color:';
+
 // ── Panel Results ──
 
 export interface XPathPanelResult {
@@ -157,7 +158,7 @@ export function buildLoggingPanel(deps: SettingsDeps): LoggingPanelResult {
   };
 
   const masterTitle = document.createElement('div');
-  masterTitle.style.cssText = CssFragment.FontSize11pxFontWeight700Color + cSectionHeader + ';margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
+  masterTitle.style.cssText = CSS_FONT_SIZE_11PX_FONT_WEIGHT_700_COLOR + cSectionHeader + ';margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
   masterTitle.textContent = 'Master Controls';
   panel.appendChild(masterTitle);
 
@@ -176,7 +177,7 @@ export function buildLoggingPanel(deps: SettingsDeps): LoggingPanelResult {
   });
 
   const levelTitle = document.createElement('div');
-  levelTitle.style.cssText = CssFragment.FontSize11pxFontWeight700Color + cSectionHeader + ';margin-top:14px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
+  levelTitle.style.cssText = CSS_FONT_SIZE_11PX_FONT_WEIGHT_700_COLOR + cSectionHeader + ';margin-top:14px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
   levelTitle.textContent = 'Log Levels';
   panel.appendChild(levelTitle);
 
@@ -232,7 +233,9 @@ export function buildConfigDbPanel(
 
     const sections: Record<string, Array<{ key: string; value: string; valueType: string }>> = {};
     for (const row of rows) {
-      if (!sections[row.section]) sections[row.section] = [];
+      if (!sections[row.section]) {
+        sections[row.section] = [];
+      }
       sections[row.section].push({ key: row.key, value: row.value, valueType: row.valueType });
     }
 
@@ -257,16 +260,22 @@ function renderConfigSection(
   configInputs: ConfigDbPanelResult['configInputs'],
 ): void {
   const sectionTitle = document.createElement('div');
-  sectionTitle.style.cssText = CssFragment.FontSize11pxFontWeight700Color + cSectionHeader + ';margin-top:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
+  sectionTitle.style.cssText = CSS_FONT_SIZE_11PX_FONT_WEIGHT_700_COLOR + cSectionHeader + ';margin-top:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;';
   sectionTitle.textContent = sectionName;
   panel.appendChild(sectionTitle);
 
   for (const entry of entries) {
     const isMultiline = entry.valueType === 'object' || entry.valueType === 'array' || entry.value.length > 80;
     const fieldOpts: { type?: string; hint?: string; multiline?: boolean } = {};
-    if (isMultiline) fieldOpts.multiline = true;
-    if (entry.valueType === 'number') fieldOpts.type = 'number';
-    if (entry.valueType === 'boolean') fieldOpts.type = 'text';
+    if (isMultiline) {
+      fieldOpts.multiline = true;
+    }
+    if (entry.valueType === 'number') {
+      fieldOpts.type = 'number';
+    }
+    if (entry.valueType === 'boolean') {
+      fieldOpts.type = 'text';
+    }
     fieldOpts.hint = entry.valueType;
 
     const field = makeField(entry.key, entry.value, fieldOpts);
@@ -283,22 +292,11 @@ export function buildGeneralPanel(
 ): GeneralPanelResult {
   const panel = document.createElement('div');
   const promptsCfg = getPromptsConfig();
-
-  // Custom display name field
-  const displayNameField = makeField('Custom Display Name', state.customDisplayName || '', {
-    hint: 'Override the project name shown in the title bar. Leave empty to auto-detect.',
-  });
-
   const fields = [
     { key: 'pasteTargetXPath', label: 'Chatbox / Paste Target XPath', value: promptsCfg.pasteTargetXPath || '' },
     { key: 'pasteTargetSelector', label: 'Chatbox CSS Selector (fallback)', value: promptsCfg.pasteTargetSelector || '' }
   ];
   const inputs: Record<string, HTMLInputElement> = {};
-
-  // Add custom display name as first input
-  inputs['customDisplayName'] = displayNameField.input;
-  panel.appendChild(displayNameField.row);
-
   fields.forEach(function(f) {
     const field = makeField(f.label, f.value);
     inputs[f.key] = field.input;

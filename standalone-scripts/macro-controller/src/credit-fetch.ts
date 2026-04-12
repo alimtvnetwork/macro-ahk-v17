@@ -16,15 +16,16 @@
 import { log, logSub } from './logging';
 import { resolveToken, invalidateSessionBridgeKey, markBearerTokenExpired, getLastTokenSource, getAuthDebugSnapshot, getBearerToken } from './auth';
 import { showToast } from './toast';
-import { nsWrite, nsCallTyped } from './api-namespace';
+import { dualWrite, nsCall } from './api-namespace';
 
 import { MacroController } from './core/MacroController';
 
 import { CREDIT_API_BASE, loopCreditState } from './shared-state';
 import { parseLoopApiResponse, syncCreditStateFromApi } from './credit-parser';
 import { logError } from './error-utils';
-import { ApiPath } from './types';
 
+const API_USER_WORKSPACES = '/user/workspaces';
+const NS_UPDATEAUTHDIAG = '_internal.updateAuthDiag';
 
 function mc() { return MacroController.getInstance(); }
 
@@ -83,7 +84,7 @@ function emitAuthFailureToast(status: number, statusText: string): void {
     {
       noStop: true,
       requestDetail: {
-        method: 'GET', url: CREDIT_API_BASE + ApiPath.UserWorkspaces, headers: {}, status, statusText, responseBody: detail,
+        method: 'GET', url: CREDIT_API_BASE + API_USER_WORKSPACES, headers: {}, status, statusText, responseBody: detail,
       },
     },
   );
@@ -104,7 +105,7 @@ async function handleAuthRecovery(
   log('Credit API: Auth ' + status + ' — forcing token refresh before retry...', 'warn');
   showToast('Auth ' + status + ' — recovering session...', 'warn', {
     noStop: true,
-    requestDetail: { method: 'GET', url: CREDIT_API_BASE + ApiPath.UserWorkspaces, headers: {}, status, statusText },
+    requestDetail: { method: 'GET', url: CREDIT_API_BASE + API_USER_WORKSPACES, headers: {}, status, statusText },
   });
 
   const newToken = await getBearerToken({ force: true });
@@ -147,7 +148,7 @@ function handleNonAuthError(resp: SdkApiResponse): void {
   showToast('Credit API error: HTTP ' + resp.status, 'error', {
     noStop: true,
     requestDetail: {
-      method: 'GET', url: CREDIT_API_BASE + ApiPath.UserWorkspaces, headers: {}, status: resp.status, statusText: '', responseBody: bodyPreview,
+      method: 'GET', url: CREDIT_API_BASE + API_USER_WORKSPACES, headers: {}, status: resp.status, statusText: '', responseBody: bodyPreview,
     },
   });
 }
@@ -157,24 +158,26 @@ async function processSuccessData(
   autoDetectFn?: (token: string) => Promise<void>,
 ): Promise<void> {
   const isParseOk = parseLoopApiResponse(data);
-  if (!isParseOk) return;
+  if (!isParseOk) {
+    return;
+  }
 
   const freshToken = resolveToken();
-  nsWrite('_internal.resolvedToken', freshToken);
+  dualWrite('__loopResolvedToken', '_internal.resolvedToken', freshToken);
 
   if (autoDetectFn) {
     await autoDetectFn(freshToken);
     syncCreditStateFromApi();
     mc().updateUI();
     log('Credit API: display updated (workspace detected)', 'success');
-    nsCallTyped('_internal.updateAuthDiag');
+    nsCall('__loopUpdateAuthDiag', NS_UPDATEAUTHDIAG);
 
     return;
   }
 
   syncCreditStateFromApi();
   mc().updateUI();
-  nsCallTyped('_internal.updateAuthDiag');
+  nsCall('__loopUpdateAuthDiag', NS_UPDATEAUTHDIAG);
 }
 
 // ============================================
@@ -209,7 +212,9 @@ export function fetchLoopCredits(
       return data;
     })
     .then(async function (data: Record<string, unknown> | undefined) {
-      if (!data) return;
+      if (!data) {
+        return;
+      }
       await processSuccessData(data, autoDetectFn);
     })
     .catch(function (err: Error) {
@@ -217,7 +222,7 @@ export function fetchLoopCredits(
       logSub('Token source: ' + getLastTokenSource(), 1);
       logSub('isRetry: ' + (isRetry ? 'YES' : 'NO'), 1);
       logSub('Hint: If 401/403, the token may be expired. Check extension bridge or re-login.', 1);
-      nsCallTyped('_internal.updateAuthDiag');
+      nsCall('__loopUpdateAuthDiag', NS_UPDATEAUTHDIAG);
       mc().updateUI();
     });
 }

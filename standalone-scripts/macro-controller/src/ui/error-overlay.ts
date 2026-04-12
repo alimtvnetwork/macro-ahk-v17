@@ -51,8 +51,8 @@ export interface OverlayError {
 // State
 // ============================================
 
-import { MAX_OVERLAY_ERRORS } from '../constants';
-import { DomId } from '../types';
+const MAX_OVERLAY_ERRORS = 30;
+
 class ErrorOverlayState {
   private _errors: OverlayError[] = [];
   private _nextId = 1;
@@ -176,7 +176,7 @@ const overlayState = new ErrorOverlayState();
 // Overlay Container ID
 // ============================================
 
-const OVERLAY_ID = DomId.ErrorOverlay;
+const OVERLAY_ID = 'marco-error-overlay';
 
 // ============================================
 // Styles

@@ -31,9 +31,14 @@ import {
 import { showWsContextMenu } from './ws-context-menu';
 import { logError } from './error-utils';
 
-// ── Centralized constants ──
-import { SEL_LOOP_WS_ITEM } from './constants';
-import { DataAttr, DomId } from './types';
+// ── Extracted string constants (sonarjs/no-duplicate-string) ──
+const ATTR_DATA_ACTIVE = 'data-active';
+const ID_LOOP_WS_SELECTED = 'loop-ws-selected';
+const ATTR_SELECTED_ID = 'data-selected-id';
+const ATTR_WS_ID = 'data-ws-id';
+const ATTR_WS_NAME = 'data-ws-name';
+const ATTR_WS_CURRENT = 'data-ws-current';
+const SEL_LOOP_WS_ITEM = '.loop-ws-item';
 
 // ============================================
 // CQ11/CQ17: Encapsulated view-filter state
@@ -141,8 +146,12 @@ export function buildLoopTooltipText(ws: WorkspaceCredit): string {
   lines.push('  Role: ' + (ws.role || 'N/A'));
   if (ws.raw) {
     const r = ws.raw;
-    if (r.last_trial_credit_period) lines.push('  Trial Period: ' + r.last_trial_credit_period);
-    if (r.subscription_status) lines.push('  Subscription: ' + r.subscription_status);
+    if (r.last_trial_credit_period) {
+      lines.push('  Trial Period: ' + r.last_trial_credit_period);
+    }
+    if (r.subscription_status) {
+      lines.push('  Subscription: ' + r.subscription_status);
+    }
   }
   return lines.join('\n');
 }
@@ -164,16 +173,20 @@ function readFilterState(filter: string): WsFilterState {
   return {
     filter,
     freeOnly: viewState().getFreeOnly(),
-    rolloverOnly: rolloverEl?.getAttribute(DataAttr.Active) === 'true',
-    billingOnly: billingEl?.getAttribute(DataAttr.Active) === 'true',
+    rolloverOnly: rolloverEl?.getAttribute(ATTR_DATA_ACTIVE) === 'true',
+    billingOnly: billingEl?.getAttribute(ATTR_DATA_ACTIVE) === 'true',
     minCredits: minEl ? parseInt((minEl as HTMLInputElement).value, 10) || 0 : 0,
   };
 }
 
 /** Check if a workspace matches the current name (fuzzy). */
 function isCurrentWorkspace(ws: WorkspaceCredit, currentName: string): boolean {
-  if (!currentName) return false;
-  if (ws.fullName === currentName || ws.name === currentName) return true;
+  if (!currentName) {
+    return false;
+  }
+  if (ws.fullName === currentName || ws.name === currentName) {
+    return true;
+  }
   const lcn = currentName.toLowerCase();
   return (ws.fullName || '').toLowerCase().indexOf(lcn) !== -1 ||
          lcn.indexOf((ws.fullName || '').toLowerCase()) !== -1;
@@ -184,25 +197,43 @@ function passesFilters(ws: WorkspaceCredit, fs: WsFilterState): boolean {
   const matchesText = !fs.filter ||
     ws.fullName.toLowerCase().indexOf(fs.filter.toLowerCase()) !== -1 ||
     ws.name.toLowerCase().indexOf(fs.filter.toLowerCase()) !== -1;
-  if (!matchesText) return false;
-  if (fs.freeOnly && (ws.dailyFree || 0) <= 0) return false;
-  if (fs.rolloverOnly && (ws.rollover || 0) <= 0) return false;
-  if (fs.billingOnly && (ws.billingAvailable || 0) <= 0) return false;
-  if (fs.minCredits > 0 && (ws.available || 0) < fs.minCredits) return false;
+  if (!matchesText) {
+    return false;
+  }
+  if (fs.freeOnly && (ws.dailyFree || 0) <= 0) {
+    return false;
+  }
+  if (fs.rolloverOnly && (ws.rollover || 0) <= 0) {
+    return false;
+  }
+  if (fs.billingOnly && (ws.billingAvailable || 0) <= 0) {
+    return false;
+  }
+  if (fs.minCredits > 0 && (ws.available || 0) < fs.minCredits) {
+    return false;
+  }
   return true;
 }
 
 /** Resolve the status emoji for a workspace row. */
 function wsStatusEmoji(isCurrent: boolean, available: number, limitInt: number): string {
-  if (isCurrent) return '📍';
-  if (available <= 0) return '🔴';
-  if (available <= limitInt * 0.2) return '🟡';
+  if (isCurrent) {
+    return '📍';
+  }
+  if (available <= 0) {
+    return '🔴';
+  }
+  if (available <= limitInt * 0.2) {
+    return '🟡';
+  }
   return '🟢';
 }
 
 /** Compute row background style. */
 function wsRowBgStyle(isCurrent: boolean, isSel: boolean): string {
-  if (isCurrent) return 'background:' + cPrimaryHL + ';border-left:3px solid #a78bfa;';
+  if (isCurrent) {
+    return 'background:' + cPrimaryHL + ';border-left:3px solid #a78bfa;';
+  }
   return isSel ? 'border-left:3px solid #facc15;' : 'border-left:3px solid transparent;';
 }
 
@@ -238,16 +269,16 @@ function buildWsRow(
   const limitInt = Math.round(ws.limit || 0);
   const emoji = wsStatusEmoji(isCurrent, available, limitInt);
   const wsId = String(ws.id || (ws.raw && ws.raw.id) || '');
-  const selEl = document.getElementById(DomId.LoopWsSelected);
-  const isSel = selEl ? selEl.getAttribute(DataAttr.SelectedId) === wsId : false;
+  const selEl = document.getElementById(ID_LOOP_WS_SELECTED);
+  const isSel = selEl ? selEl.getAttribute(ATTR_SELECTED_ID) === wsId : false;
   const isChecked = !!getLoopWsCheckedIds()[wsId];
   const tooltip = buildLoopTooltipText(ws).replace(/"/g, '&quot;');
 
   const row = document.createElement('div');
   row.className = 'loop-ws-item';
-  row.setAttribute(DataAttr.WsId, wsId);
-  row.setAttribute(DataAttr.WsName, ws.fullName || ws.name);
-  row.setAttribute(DataAttr.WsCurrent, isCurrent ? 'true' : 'false');
+  row.setAttribute(ATTR_WS_ID, wsId);
+  row.setAttribute(ATTR_WS_NAME, ws.fullName || ws.name);
+  row.setAttribute(ATTR_WS_CURRENT, isCurrent ? 'true' : 'false');
   row.setAttribute('data-ws-idx', String(count));
   row.setAttribute('data-ws-raw-idx', String(wsIndex));
   row.title = tooltip;
@@ -276,7 +307,9 @@ export function renderLoopWorkspaceList(
   filter: string,
 ): void {
   const listEl = document.getElementById('loop-ws-list');
-  if (!listEl) return;
+  if (!listEl) {
+    return;
+  }
 
   let count = 0;
   let currentIdx = -1;
@@ -284,16 +317,22 @@ export function renderLoopWorkspaceList(
 
   for (const ws of workspaces) {
     const mtc = Math.round(ws.totalCredits || calcTotalCredits(ws.freeGranted, ws.dailyLimit, ws.limit, ws.topupLimit, ws.rolloverLimit));
-    if (mtc > maxTotalCredits) maxTotalCredits = mtc;
+    if (mtc > maxTotalCredits) {
+      maxTotalCredits = mtc;
+    }
   }
 
   const frag = document.createDocumentFragment();
   const fs = readFilterState(filter);
 
   for (const [wsIndex, ws] of workspaces.entries()) {
-    if (!passesFilters(ws, fs)) continue;
+    if (!passesFilters(ws, fs)) {
+      continue;
+    }
     const isCurrent = isCurrentWorkspace(ws, currentName);
-    if (isCurrent) currentIdx = count;
+    if (isCurrent) {
+      currentIdx = count;
+    }
     frag.appendChild(buildWsRow(ws, wsIndex, isCurrent, count, maxTotalCredits));
     count++;
   }
@@ -364,46 +403,52 @@ function attachWsListEventDelegation(
 function _createClickHandler(): (e: MouseEvent) => void {
   return function (e: MouseEvent) {
     const item = (e.target as HTMLElement).closest(SEL_LOOP_WS_ITEM) as HTMLElement | null;
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     if ((e.target as HTMLElement).classList && (e.target as HTMLElement).classList.contains('loop-ws-checkbox')) {
       e.preventDefault();
       e.stopPropagation();
       handleWsCheckboxClick(
-        item.getAttribute(DataAttr.WsId) || '',
+        item.getAttribute(ATTR_WS_ID) || '',
         parseInt(item.getAttribute('data-ws-raw-idx') || '0', 10),
         e.shiftKey,
       );
       return;
     }
     setLoopWsNavIndex(parseInt(item.getAttribute('data-ws-idx') || '0', 10));
-    log('Selected workspace: ' + item.getAttribute(DataAttr.WsName), 'success');
+    log('Selected workspace: ' + item.getAttribute(ATTR_WS_NAME), 'success');
   };
 }
 
 function _createDblClickHandler(): (e: MouseEvent) => void {
   return function (e: MouseEvent) {
     const item = (e.target as HTMLElement).closest(SEL_LOOP_WS_ITEM) as HTMLElement | null;
-    if (!item) return;
-    e.preventDefault();
-    e.stopPropagation();
-    if (item.getAttribute(DataAttr.WsCurrent) === 'true') {
-      log('Double-click on current workspace "' + item.getAttribute(DataAttr.WsName) + '" — no move needed', 'warn');
+    if (!item) {
       return;
     }
-    log('Double-click move -> ' + item.getAttribute(DataAttr.WsName) + ' (id=' + item.getAttribute(DataAttr.WsId) + ')', 'delegate');
-    moveToWorkspace(item.getAttribute(DataAttr.WsId) || '', item.getAttribute(DataAttr.WsName) || '');
+    e.preventDefault();
+    e.stopPropagation();
+    if (item.getAttribute(ATTR_WS_CURRENT) === 'true') {
+      log('Double-click on current workspace "' + item.getAttribute(ATTR_WS_NAME) + '" — no move needed', 'warn');
+      return;
+    }
+    log('Double-click move -> ' + item.getAttribute(ATTR_WS_NAME) + ' (id=' + item.getAttribute(ATTR_WS_ID) + ')', 'delegate');
+    moveToWorkspace(item.getAttribute(ATTR_WS_ID) || '', item.getAttribute(ATTR_WS_NAME) || '');
   };
 }
 
 function _createCtxHandler(): (e: MouseEvent) => void {
   return function (e: MouseEvent) {
     const item = (e.target as HTMLElement).closest(SEL_LOOP_WS_ITEM) as HTMLElement | null;
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     showWsContextMenu(
-      item.getAttribute(DataAttr.WsId) || '',
-      item.getAttribute(DataAttr.WsName) || '',
+      item.getAttribute(ATTR_WS_ID) || '',
+      item.getAttribute(ATTR_WS_NAME) || '',
       e.clientX, e.clientY,
     );
   };
@@ -412,11 +457,15 @@ function _createCtxHandler(): (e: MouseEvent) => void {
 function _createHoverHandler(): (e: MouseEvent) => void {
   return function (e: MouseEvent) {
     const item = (e.target as HTMLElement).closest(SEL_LOOP_WS_ITEM) as HTMLElement | null;
-    if (!item || item.getAttribute(DataAttr.WsCurrent) === 'true') return;
-    const selEl = document.getElementById(DomId.LoopWsSelected);
-    const selId = selEl ? selEl.getAttribute(DataAttr.SelectedId) : '';
-    const itemId = item.getAttribute(DataAttr.WsId);
-    if (selId && selId === itemId) return;
+    if (!item || item.getAttribute(ATTR_WS_CURRENT) === 'true') {
+      return;
+    }
+    const selEl = document.getElementById(ID_LOOP_WS_SELECTED);
+    const selId = selEl ? selEl.getAttribute(ATTR_SELECTED_ID) : '';
+    const itemId = item.getAttribute(ATTR_WS_ID);
+    if (selId && selId === itemId) {
+      return;
+    }
     item.style.background = 'rgba(59,130,246,0.15)';
   };
 }
@@ -424,11 +473,15 @@ function _createHoverHandler(): (e: MouseEvent) => void {
 function _createOutHandler(): (e: MouseEvent) => void {
   return function (e: MouseEvent) {
     const item = (e.target as HTMLElement).closest(SEL_LOOP_WS_ITEM) as HTMLElement | null;
-    if (!item || item.getAttribute(DataAttr.WsCurrent) === 'true') return;
-    const selEl = document.getElementById(DomId.LoopWsSelected);
-    const selId = selEl ? selEl.getAttribute(DataAttr.SelectedId) : '';
-    const itemId = item.getAttribute(DataAttr.WsId);
-    if (selId && selId === itemId) return;
+    if (!item || item.getAttribute(ATTR_WS_CURRENT) === 'true') {
+      return;
+    }
+    const selEl = document.getElementById(ID_LOOP_WS_SELECTED);
+    const selId = selEl ? selEl.getAttribute(ATTR_SELECTED_ID) : '';
+    const itemId = item.getAttribute(ATTR_WS_ID);
+    if (selId && selId === itemId) {
+      return;
+    }
     item.style.background = 'transparent';
   };
 }
@@ -493,7 +546,9 @@ export const wsRenderStats = {
  */
 export function populateLoopWorkspaceDropdown(): void {
   const listEl = document.getElementById('loop-ws-list');
-  if (!listEl) return;
+  if (!listEl) {
+    return;
+  }
   const workspaces = loopCreditState.perWorkspace || [];
   if (workspaces.length === 0) {
     if (dropdownState().getHash() === '_empty') { dropdownState().recordSkip(); return; }
@@ -520,8 +575,8 @@ export function populateLoopWorkspaceDropdown(): void {
     loopCreditState.lastCheckedAt || 0,
     viewState().getFreeOnly() ? 1 : 0,
     viewState().getCompactMode() ? 1 : 0,
-    rolloverEl ? rolloverEl.getAttribute(DataAttr.Active) : '',
-    billingEl ? billingEl.getAttribute(DataAttr.Active) : '',
+    rolloverEl ? rolloverEl.getAttribute(ATTR_DATA_ACTIVE) : '',
+    billingEl ? billingEl.getAttribute(ATTR_DATA_ACTIVE) : '',
     minCreditsEl ? (minCreditsEl as HTMLInputElement).value : '',
     checkedCount,
   ].join('|');

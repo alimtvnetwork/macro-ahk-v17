@@ -1,5 +1,5 @@
 
-import { DataAttr } from '../types';
+const ATTR_DATA_SKELETON = 'data-skeleton';
 /**
  * Skeleton UI — Shimmer loading placeholders for macro controller panel.
  *
@@ -33,7 +33,9 @@ const shimmerState = new ShimmerState();
 
 /** Inject the shimmer keyframe animation into <head> (idempotent). */
 export function injectSkeletonStyles(): void {
-  if (shimmerState.injected) return;
+  if (shimmerState.injected) {
+    return;
+  }
   shimmerState.injected = true;
 
   const style = document.createElement('style');
@@ -93,7 +95,7 @@ export function createSkeletonBar(opts?: SkeletonBarOpts): HTMLElement {
  */
 export function createStatusSkeleton(): HTMLElement {
   const wrap = document.createElement('div');
-  wrap.setAttribute(DataAttr.Skeleton, 'status');
+  wrap.setAttribute(ATTR_DATA_SKELETON, 'status');
   wrap.style.cssText = 'padding:2px 0;';
 
   // Line 1: workspace + status text
@@ -129,7 +131,7 @@ export function createStatusSkeleton(): HTMLElement {
  */
 export function createWorkspaceListSkeleton(): HTMLElement {
   const wrap = document.createElement('div');
-  wrap.setAttribute(DataAttr.Skeleton, 'ws-list');
+  wrap.setAttribute(ATTR_DATA_SKELETON, 'ws-list');
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;padding:4px;';
 
   for (let i = 0; i < 3; i++) {
@@ -149,7 +151,7 @@ export function createWorkspaceListSkeleton(): HTMLElement {
  */
 export function createPromptsListSkeleton(): HTMLElement {
   const wrap = document.createElement('div');
-  wrap.setAttribute(DataAttr.Skeleton, 'prompts-list');
+  wrap.setAttribute(ATTR_DATA_SKELETON, 'prompts-list');
   wrap.style.cssText = 'display:flex;flex-direction:column;gap:4px;padding:8px 12px;';
 
   for (let i = 0; i < 4; i++) {

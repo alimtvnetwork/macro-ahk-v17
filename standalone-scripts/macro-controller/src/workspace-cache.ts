@@ -1,4 +1,4 @@
-import { logError, logWarn, logDebug } from './error-utils';
+import { logError } from './error-utils';
 /**
  * Workspace Cache — localStorage persistence for instant UI on reload.
  *
@@ -11,7 +11,8 @@ import { logError, logWarn, logDebug } from './error-utils';
  * Ref: .lovable/fixes/macro-controller-toast-crash-and-slow-startup.md
  */
 
-import { StorageKey } from './types';
+const WS_CACHE_PREFIX = 'marco_ws_cache_';
+const WS_LAST_PROJECT_KEY = 'marco_last_project_id';
 
 /** Extract project ID from the current URL (lovable.dev/projects/{id} or {id}-preview--{uuid}). */
 function resolveProjectId(): string {
@@ -19,19 +20,25 @@ function resolveProjectId(): string {
     const href = window.location.href;
     // Pattern 1: /projects/{uuid}
     const projMatch = href.match(/\/projects\/([a-f0-9-]{36})/i);
-    if (projMatch) return projMatch[1];
+    if (projMatch) {
+      return projMatch[1];
+    }
     // Pattern 2: {id}-preview--{uuid}.lovable.app
     const previewMatch = href.match(/([a-f0-9-]{36})\.lovable(?:project)?\.(?:app|com)/i);
-    if (previewMatch) return previewMatch[1];
+    if (previewMatch) {
+      return previewMatch[1];
+    }
     // Pattern 3: id-preview--{uuid}
     const altMatch = href.match(/id-preview--([a-f0-9-]{36})/i);
-    if (altMatch) return altMatch[1];
-  } catch (_e) { logDebug('resolveProjectId', 'URL parse failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
+    if (altMatch) {
+      return altMatch[1];
+    }
+  } catch (_e) { console.debug('[RiseupAsia] [resolveProjectId] URL parse failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
   return '_default';
 }
 
 function cacheKey(projectId: string, suffix: string): string {
-  return StorageKey.WsCachePrefix + projectId + '_' + suffix;
+  return WS_CACHE_PREFIX + projectId + '_' + suffix;
 }
 
 /** Read cached workspace name for the current project (returns '' if missing). */
@@ -73,7 +80,7 @@ export function cacheWorkspaceName(name: string, id?: string): void {
       }
     }
     // Track last project for cross-project detection
-    localStorage.setItem(StorageKey.WsLastProject, pid);
+    localStorage.setItem(WS_LAST_PROJECT_KEY, pid);
   } catch (e) {
     logError('setCachedWs', 'Failed to persist workspace cache', e);
     // localStorage unavailable — no-op
@@ -87,13 +94,13 @@ export function cacheWorkspaceName(name: string, id?: string): void {
 export function invalidateCacheOnProjectSwitch(): void {
   try {
     const currentPid = resolveProjectId();
-    const lastPid = localStorage.getItem(StorageKey.WsLastProject) || '';
+    const lastPid = localStorage.getItem(WS_LAST_PROJECT_KEY) || '';
     if (lastPid && lastPid !== currentPid && currentPid !== '_default') {
       // Different project — clear old project's cache (it stays for that project)
       // Just update the tracker; each project has its own scoped keys
-      localStorage.setItem(StorageKey.WsLastProject, currentPid);
+      localStorage.setItem(WS_LAST_PROJECT_KEY, currentPid);
     }
-  } catch (_e) { logWarn('invalidateCacheOnProjectSwitch', 'localStorage write failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
+  } catch (_e) { console.warn('[RiseupAsia] [detectProjectSwitch] localStorage write failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
 }
 
 /**
@@ -116,5 +123,5 @@ export function migrateLegacyCache(): void {
         localStorage.removeItem('marco_last_workspace_id');
       }
     }
-  } catch (_e) { logWarn('migrateLegacyCache', 'localStorage read/write failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
+  } catch (_e) { console.warn('[RiseupAsia] [migrateLegacyCache] localStorage read/write failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
 }

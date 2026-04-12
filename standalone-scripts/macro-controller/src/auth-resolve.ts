@@ -45,25 +45,41 @@ function getAuthUtils(): MarcoSDKAuthTokenUtils {
     },
     isUsableToken(raw: string): boolean {
       const token = (raw || '').trim().replace(/^Bearer\s+/i, '');
-      if (!token || token.length < 10) return false;
-      if (/\s/.test(token)) return false;
-      if (token[0] === '{' || token[0] === '[') return false;
+      if (!token || token.length < 10) {
+        return false;
+      }
+      if (/\s/.test(token)) {
+        return false;
+      }
+      if (token[0] === '{' || token[0] === '[') {
+        return false;
+      }
 
       return token.startsWith('eyJ') && token.split('.').length === 3;
     },
     extractBearerTokenFromUnknown(raw: unknown): string {
-      if (typeof raw !== 'string') return '';
+      if (typeof raw !== 'string') {
+        return '';
+      }
       const normalized = this.normalizeBearerToken(raw);
-      if (this.isUsableToken(normalized)) return normalized;
+      if (this.isUsableToken(normalized)) {
+        return normalized;
+      }
 
       try {
         const parsed = JSON.parse(raw) as Record<string, unknown>;
-        if (parsed === null || typeof parsed !== 'object') return '';
+        if (parsed === null || typeof parsed !== 'object') {
+          return '';
+        }
         const candidates = [parsed.token, parsed.access_token, parsed.authToken, parsed.sessionId];
         for (const candidate of candidates) {
-          if (typeof candidate !== 'string') continue;
+          if (typeof candidate !== 'string') {
+            continue;
+          }
           const nested = this.normalizeBearerToken(candidate);
-          if (this.isUsableToken(nested)) return nested;
+          if (this.isUsableToken(nested)) {
+            return nested;
+          }
         }
       } catch (e: unknown) {
         log('auth-resolve: fallback extractBearerTokenFromUnknown JSON parse failed — ' + toErrorMessage(e), 'debug');
@@ -181,8 +197,15 @@ export function getBearerTokenFromSessionBridge(): string {
 // Cookie Token & Session Cookie Names
 // ============================================
 
-import { FALLBACK_SESSION_COOKIE_NAMES, COOKIE_DIAGNOSTIC_COOLDOWN_MS } from './constants';
-import { StorageKey } from './types';
+const FALLBACK_SESSION_COOKIE_NAMES = [
+  'lovable-session-id-v2',
+  'lovable-session-id.id',
+  '__Secure-lovable-session-id.id',
+  '__Host-lovable-session-id.id',
+  'lovable-session-id',
+];
+
+const COOKIE_DIAGNOSTIC_COOLDOWN_MS = 60_000;
 
 // CQ11: Encapsulate diagnostic timestamp in singleton
 class CookieDiagnosticState {
@@ -228,11 +251,7 @@ export function getSessionCookieNames(): string[] {
 
     const names: string[] = [];
     for (const projectKey of Object.keys(root.Projects)) {
-      const project = root.Projects[projectKey];
-      if (!project) {
-        continue;
-      }
-      names.push(...extractSessionNamesFromProject(project));
+      names.push(...extractSessionNamesFromProject(root.Projects[projectKey]));
     }
 
     return Array.from(new Set(names.concat(FALLBACK_SESSION_COOKIE_NAMES)));
@@ -291,8 +310,8 @@ export function getBearerTokenFromCookie(): string {
     cookieDiagState.lastAt = now;
     logCookieDiagnostics(fn, cookies, sessionNames, rawCookie, result.hasTarget);
   } catch (e: unknown) {
-    logError('readCookies', 'EXCEPTION reading cookies: ' + toErrorMessage(e));
-    logError('readCookies', 'This may happen in sandboxed iframes or restricted contexts');
+    logError('fn', EXCEPTION reading cookies: ' + toErrorMessage(e));
+    logError('fn', This may happen in sandboxed iframes or restricted contexts);
   }
 
   return '';
@@ -332,11 +351,12 @@ function logCookieDiagnostics(
 // Token timestamp helpers (Phase A: Auth Bridge)
 // ============================================
 
+const TOKEN_SAVED_AT_KEY = 'marco_token_saved_at';
 
 /** Read the timestamp when the token was last persisted. */
 export function getTokenSavedAt(): number {
   try {
-    const raw = localStorage.getItem(StorageKey.TokenSavedAt) || '0';
+    const raw = localStorage.getItem(TOKEN_SAVED_AT_KEY) || '0';
 
     return parseInt(raw, 10) || 0;
   } catch (e: unknown) {
@@ -350,7 +370,7 @@ export function getTokenSavedAt(): number {
 export function saveTokenWithTimestamp(token: string): void {
   localStorage.setItem('marco_bearer_token', token);
   localStorage.setItem('lovable-session-id', token);
-  localStorage.setItem(StorageKey.TokenSavedAt, String(Date.now()));
+  localStorage.setItem(TOKEN_SAVED_AT_KEY, String(Date.now()));
   log('[AuthBridge] Token persisted with timestamp', 'info');
 }
 

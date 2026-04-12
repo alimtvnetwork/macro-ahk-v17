@@ -39,7 +39,6 @@ export interface AuthDiagDeps {
   getSessionCookieNames: () => string[];
   getLastBridgeOutcome: () => { attempted: boolean; success: boolean; source: string; error: string };
   refreshFromBestSource: (callback: (token: string, source: string) => void) => void;
-  wakeBridge: () => Promise<boolean>;
 }
 
 export interface AuthDiagResult {
@@ -47,7 +46,8 @@ export interface AuthDiagResult {
   updateAuthDiagRow: () => void;
 }
 
-import { CssFragment } from '../types';
+const ROW_CSS = 'display:flex;align-items:center;gap:6px;padding:2px 4px;background:rgba(0,0,0,.2);border-radius:3px;';
+
 // CQ16: Extracted auth diag update context + function
 interface AuthDiagUpdateCtx {
   deps: AuthDiagDeps;
@@ -60,11 +60,6 @@ interface AuthDiagUpdateCtx {
   refreshRow: ReturnType<typeof buildDiagRow>;
   wsCacheRow: ReturnType<typeof buildDiagRow>;
   renderWaterfall: () => void;
-}
-/** Check if a bridge error is due to normal MV3 service worker suspension. */
-function _isMv3Suspension(error: string): boolean {
-  const lower = error.toLowerCase();
-  return lower.includes('extension context invalidated') || lower.includes('receiving end does not exist');
 }
 
 function performAuthDiagUpdate(ctx: AuthDiagUpdateCtx): void {
@@ -80,28 +75,19 @@ function performAuthDiagUpdate(ctx: AuthDiagUpdateCtx): void {
   try {
     const diag = window.marco?.auth?.getLastAuthDiag?.();
     if (diag) {
-      const bridgeError = diag.bridgeOutcome === 'error';
-      // Check controller-level bridge outcome for the actual error message
-      const controllerBridge = ctx.deps.getLastBridgeOutcome();
-      const isSuspended = bridgeError && _isMv3Suspension(controllerBridge.error || '');
-      const isDegraded = (diag.bridgeOutcome === 'timeout' || (bridgeError && !isSuspended)) && diag.source !== 'none';
-      const isDown = diag.source === 'none';
-
-      ctx.headerBadge.style.animation = (isDegraded || isDown) ? 'ml-badge-pulse 1.8s ease-in-out infinite' : 'none';
+      const isDegraded = diag.bridgeOutcome === 'timeout' || diag.bridgeOutcome === 'error' || diag.source === 'none';
+      ctx.headerBadge.style.animation = isDegraded ? 'ml-badge-pulse 1.8s ease-in-out infinite' : 'none';
 
       if (diag.bridgeOutcome === 'hit') {
         ctx.headerBadge.textContent = '🟢';
         ctx.headerBadge.title = 'Bridge OK · ' + Math.round(diag.durationMs) + 'ms';
-      } else if (isSuspended && diag.source !== 'none') {
-        ctx.headerBadge.textContent = '🟡';
-        ctx.headerBadge.title = 'Bridge idle (MV3 suspended) · token from ' + diag.source + ' · ' + Math.round(diag.durationMs) + 'ms';
       } else if (diag.bridgeOutcome === 'timeout') {
         ctx.headerBadge.textContent = '🟡';
         ctx.headerBadge.title = 'Bridge timeout · fell back to ' + diag.source + ' · ' + Math.round(diag.durationMs) + 'ms';
-      } else if (bridgeError) {
+      } else if (diag.bridgeOutcome === 'error') {
         ctx.headerBadge.textContent = '🔴';
         ctx.headerBadge.title = 'Bridge error · fell back to ' + diag.source + ' · ' + Math.round(diag.durationMs) + 'ms';
-      } else if (isDown) {
+      } else if (diag.source === 'none') {
         ctx.headerBadge.textContent = '🔴';
         ctx.headerBadge.title = 'No token from any source · ' + Math.round(diag.durationMs) + 'ms';
       }
@@ -109,6 +95,7 @@ function performAuthDiagUpdate(ctx: AuthDiagUpdateCtx): void {
   } catch (e: unknown) {
     logError('renderAuthDiag', 'Auth diagnostics render failed', e);
     showToast('❌ Auth diagnostics render failed', 'error');
+    // SDK not available
   }
 }
 
@@ -139,7 +126,7 @@ export function createAuthDiagRow(deps: AuthDiagDeps): AuthDiagResult {
   const jwtRow = buildDiagRow(dimStyle, valStyle, 'JWT:', '110px', '8px');
 
   const jwtDetailRow = document.createElement('div');
-  jwtDetailRow.style.cssText = CssFragment.RowDiag + 'flex-wrap:wrap;';
+  jwtDetailRow.style.cssText = ROW_CSS + 'flex-wrap:wrap;';
   const jwtDetailVal = document.createElement('span');
   jwtDetailVal.style.cssText = dimStyle + 'font-size:9px;flex:1;';
   jwtDetailVal.appendChild(createSkeletonBar({ width: '180px', height: '7px' }));
@@ -178,7 +165,9 @@ export function createAuthDiagRow(deps: AuthDiagDeps): AuthDiagResult {
 
   setInterval(function () {
     const isVisible = diagBody.style.display !== 'none';
-    if (isVisible) updateAuthDiagRow();
+    if (isVisible) {
+      updateAuthDiagRow();
+    }
   }, 10000);
 
   return { row: col.section, updateAuthDiagRow };

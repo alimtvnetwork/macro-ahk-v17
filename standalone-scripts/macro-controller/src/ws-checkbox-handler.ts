@@ -18,8 +18,9 @@ import { log } from './logging';
 import { moveToWorkspace, updateLoopMoveStatus } from './workspace-management';
 import { showToast } from './toast';
 
-import { SEL_LOOP_WS_ITEM } from './constants';
-import { DataAttr, DomId } from './types';
+const ID_LOOP_WS_LIST = 'loop-ws-list';
+const SEL_LOOP_WS_ITEM = '.loop-ws-item';
+const ATTR_DATA_WS_ID = 'data-ws-id';
 
 // ============================================
 // CQ11/CQ17: Encapsulated keyboard navigation state
@@ -91,15 +92,19 @@ export function handleWsCheckboxClick(
 
 /** Sync checkbox visuals in the workspace list to match checked state. */
 function syncCheckboxVisuals(): void {
-  const listEl = document.getElementById(DomId.LoopWsList);
-  if (!listEl) return;
+  const listEl = document.getElementById(ID_LOOP_WS_LIST);
+  if (!listEl) {
+    return;
+  }
 
   const items = listEl.querySelectorAll(SEL_LOOP_WS_ITEM);
   for (const item of items) {
     const cb = item.querySelector('.loop-ws-checkbox');
-    if (!cb) continue;
+    if (!cb) {
+      continue;
+    }
 
-    const wsId = item.getAttribute(DataAttr.WsId);
+    const wsId = item.getAttribute(ATTR_DATA_WS_ID);
     const isChecked = !!getLoopWsCheckedIds()[wsId!];
     cb.textContent = isChecked ? '☑' : '☐';
     (cb as HTMLElement).style.color = isChecked ? '#a78bfa' : '#64748b';
@@ -150,13 +155,13 @@ export function triggerLoopMoveFromSelection(): void {
 
   // Fallback: if nothing explicitly selected, use the keyboard-navigated item
   if (!wsId) {
-    const listEl = document.getElementById(DomId.LoopWsList);
+    const listEl = document.getElementById(ID_LOOP_WS_LIST);
     const currentNavIndex = navState().getIndex();
     if (listEl && currentNavIndex >= 0) {
       const items = listEl.querySelectorAll(SEL_LOOP_WS_ITEM);
       const navItem = items[currentNavIndex] as HTMLElement | undefined;
       if (navItem) {
-        wsId = navItem.getAttribute(DataAttr.WsId) || '';
+        wsId = navItem.getAttribute(ATTR_DATA_WS_ID) || '';
         wsName = navItem.getAttribute('data-ws-name') || '';
         log('Move fallback: using keyboard-navigated item idx=' + currentNavIndex + ' (' + wsName + ')', 'info');
       }
@@ -200,9 +205,11 @@ function highlightActiveItem(item: Element): void {
 /** Update the selected-workspace indicator element from the active item. */
 function updateSelectedIndicator(item: Element): void {
   const selectedEl = document.getElementById('loop-ws-selected');
-  if (!selectedEl) return;
+  if (!selectedEl) {
+    return;
+  }
 
-  const wsId = item.getAttribute(DataAttr.WsId) || '';
+  const wsId = item.getAttribute(ATTR_DATA_WS_ID) || '';
   const wsName = item.getAttribute('data-ws-name') || '';
   selectedEl.setAttribute('data-selected-id', wsId);
   selectedEl.setAttribute('data-selected-name', wsName);
@@ -229,8 +236,10 @@ function resetItemStyles(item: Element): void {
  */
 export function setLoopWsNavIndex(idx: number): void {
   navState().setIndex(idx);
-  const listEl = document.getElementById(DomId.LoopWsList);
-  if (!listEl) return;
+  const listEl = document.getElementById(ID_LOOP_WS_LIST);
+  if (!listEl) {
+    return;
+  }
 
   const items = listEl.querySelectorAll(SEL_LOOP_WS_ITEM);
   for (const [itemIndex, item] of Array.from(items).entries()) {

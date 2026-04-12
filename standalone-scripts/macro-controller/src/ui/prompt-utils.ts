@@ -14,7 +14,9 @@ import { showToast } from '../toast';
 // ── Prompt entry normalization ──
 // eslint-disable-next-line sonarjs/cognitive-complexity -- field-by-field validation with optional property copying
 export function normalizePromptEntries(entries: Partial<PromptEntry & { order?: number }>[]): PromptEntry[] {
-  if (!Array.isArray(entries)) return [];
+  if (!Array.isArray(entries)) {
+    return [];
+  }
   const out: PromptEntry[] = [];
   let droppedCount = 0;
   for (const p of entries) {
@@ -76,13 +78,14 @@ export function parseWithRecovery(content: string): unknown {
 
 // ── Toast notification system (solid dark minimal, left accent bar, stacking max 3) ──
 
-import { TOAST_MAX_STACK } from '../constants';
-import { DomId } from '../types';
+const TOAST_CONTAINER_ID = 'marco-toast-stack';
+const TOAST_MAX_STACK = 3;
+
 function _getOrCreateToastContainer(): HTMLElement {
-  let container = document.getElementById(DomId.ToastStack);
+  let container = document.getElementById(TOAST_CONTAINER_ID);
   if (!container) {
     container = document.createElement('div');
-    container.id = DomId.ToastStack;
+    container.id = TOAST_CONTAINER_ID;
     container.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);' +
       'display:flex;flex-direction:column-reverse;gap:6px;z-index:1000000;pointer-events:none;';
     document.body.appendChild(container);
@@ -96,7 +99,9 @@ export function showPasteToast(message: string, isError: boolean): void {
   // Enforce max stack — remove oldest if at limit
   while (container.children.length >= TOAST_MAX_STACK) {
     const oldest = container.lastElementChild;
-    if (oldest) oldest.remove();
+    if (oldest) {
+      oldest.remove();
+    }
   }
 
   const toast = document.createElement('div');
@@ -152,11 +157,15 @@ export function findPasteTarget(promptsCfg: PromptsCfg, getByXPath: (xpath: stri
   let el: Element | null = null;
   if (promptsCfg.pasteTargetXPath) {
     el = getByXPath(promptsCfg.pasteTargetXPath);
-    if (el) return el;
+    if (el) {
+      return el;
+    }
   }
   if (promptsCfg.pasteTargetSelector) {
     el = document.querySelector(promptsCfg.pasteTargetSelector);
-    if (el) return el;
+    if (el) {
+      return el;
+    }
   }
   const selectors = [
     'form textarea[placeholder]',
@@ -254,7 +263,9 @@ export function pasteIntoEditor(rawText: string, promptsCfg: PromptsCfg, getByXP
       pasteIntoTextarea(target, text);
     } else {
       const ok = pasteIntoContentEditable(target, text);
-      if (!ok) return false;
+      if (!ok) {
+        return false;
+      }
     }
 
     log('Prompt injected: "' + text.substring(0, 80) + '..." (' + text.length + ' total chars)', 'success');
@@ -265,8 +276,8 @@ export function pasteIntoEditor(rawText: string, promptsCfg: PromptsCfg, getByXP
     logError('Prompt inject failed', '' + errMsg);
     navigator.clipboard.writeText(text).then(function() {
       showPasteToast('⚠️ Inject failed — copied to clipboard, try Ctrl+V', true);
-    }).catch(function(e: unknown) {
-      logError('copyPrompt', 'Prompt copy to clipboard failed', e);
+    }).catch(function() {
+      logError('copyPrompt', 'Prompt copy to clipboard failed', function);
       showToast('❌ Prompt copy to clipboard failed', 'error');
       showPasteToast('❌ Inject and clipboard both failed', true);
     });

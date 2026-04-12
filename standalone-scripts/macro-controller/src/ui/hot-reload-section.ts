@@ -28,19 +28,22 @@ import { sendToExtension } from './prompt-manager';
 import { destroyPanel } from './ui-updaters';
 import { createCollapsibleSection } from './sections';
 import { logError } from '../error-utils';
-import { REINJECT_COOLDOWN_MS } from '../constants';
-import { CssFragment, StorageKey } from '../types';
+
+const CSS_PADDING_2PX_0 = ';padding:2px 0;';
+const CSS_FONT_SIZE = 'font-size:';
+
 /* ------------------------------------------------------------------ */
 /*  State preservation keys (spec §State Preservation Keys)           */
 /* ------------------------------------------------------------------ */
 
+const REINJECT_PREFIX = '__marco_reinject_';
 const REINJECT_KEYS = {
-  wsName:        StorageKey.ReinjectPrefix + 'wsName',
-  wsId:          StorageKey.ReinjectPrefix + 'wsId',
-  loopRunning:   StorageKey.ReinjectPrefix + 'loopRunning',
-  loopDirection: StorageKey.ReinjectPrefix + 'loopDirection',
-  creditData:    StorageKey.ReinjectPrefix + 'creditData',
-  timestamp:     StorageKey.ReinjectPrefix + 'timestamp',
+  wsName:        REINJECT_PREFIX + 'wsName',
+  wsId:          REINJECT_PREFIX + 'wsId',
+  loopRunning:   REINJECT_PREFIX + 'loopRunning',
+  loopDirection: REINJECT_PREFIX + 'loopDirection',
+  creditData:    REINJECT_PREFIX + 'creditData',
+  timestamp:     REINJECT_PREFIX + 'timestamp',
 };
 
 function saveStateBeforeReinject(): void {
@@ -70,7 +73,9 @@ function saveStateBeforeReinject(): void {
 export function restoreReinjectState(): { restored: boolean; loopWasRunning: boolean } {
   try {
     const tsStr = localStorage.getItem(REINJECT_KEYS.timestamp);
-    if (!tsStr) return { restored: false, loopWasRunning: false };
+    if (!tsStr) {
+      return { restored: false, loopWasRunning: false }
+    }
 
     const ts = parseInt(tsStr, 10);
     const age = Date.now() - ts;
@@ -99,7 +104,9 @@ export function restoreReinjectState(): { restored: boolean; loopWasRunning: boo
 export function checkAndRestoreReinjectState(): { restored: boolean; loopWasRunning: boolean; wsName: string; wsId: string } {
   try {
     const tsStr = localStorage.getItem(REINJECT_KEYS.timestamp);
-    if (!tsStr) return { restored: false, loopWasRunning: false, wsName: '', wsId: '' };
+    if (!tsStr) {
+      return { restored: false, loopWasRunning: false, wsName: '', wsId: '' }
+    }
 
     const ts = parseInt(tsStr, 10);
     const age = Date.now() - ts;
@@ -120,8 +127,12 @@ export function checkAndRestoreReinjectState(): { restored: boolean; loopWasRunn
     }
 
     log('Re-inject: restored state (ws=' + wsName + ', loopWas=' + loopWasRunning + ')', 'success');
-    if (wsName) state.workspaceName = wsName;
-    if (wsId && loopCreditState.currentWs) loopCreditState.currentWs.id = wsId;
+    if (wsName) {
+      state.workspaceName = wsName;
+    }
+    if (wsId && loopCreditState.currentWs) {
+      loopCreditState.currentWs.id = wsId;
+    }
 
     if (loopWasRunning) {
       showToast('Script re-injected. Loop was running — click Start to resume.', 'info');
@@ -153,6 +164,8 @@ class ReinjectState {
 }
 
 const reinjectState = new ReinjectState();
+const REINJECT_COOLDOWN_MS = 5000;
+
 function executeReinject(scriptSource: string, version: string): void {
   log('Re-inject: starting teardown for v' + version, 'warn');
 
@@ -278,18 +291,18 @@ export function buildHotReloadSection(onVersionMismatch?: (available: string) =>
 
 function _buildVersionRows(): { runningRow: HTMLElement; availVal: HTMLElement } {
   const runningRow = document.createElement('div');
-  runningRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font-size:' + tFontTiny + CssFragment.Padding2px0;
+  runningRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font-size:' + tFontTiny + CSS_PADDING_2PX_0;
   const runningLabel = document.createElement('span');
   runningLabel.style.color = cPanelFgDim;
   runningLabel.textContent = 'Running';
   const runningVal = document.createElement('code');
-  runningVal.style.cssText = CssFragment.FontSize + tFontMicro + ';background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:3px;';
+  runningVal.style.cssText = CSS_FONT_SIZE + tFontMicro + ';background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:3px;';
   runningVal.textContent = 'v' + VERSION;
   runningRow.appendChild(runningLabel);
   runningRow.appendChild(runningVal);
 
   const availVal = document.createElement('code');
-  availVal.style.cssText = CssFragment.FontSize + tFontMicro + ';background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:3px;';
+  availVal.style.cssText = CSS_FONT_SIZE + tFontMicro + ';background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:3px;';
   availVal.textContent = '—';
 
   return { runningRow, availVal };
@@ -297,7 +310,7 @@ function _buildVersionRows(): { runningRow: HTMLElement; availVal: HTMLElement }
 
 function _buildAvailRow(availVal: HTMLElement): HTMLElement {
   const availRow = document.createElement('div');
-  availRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font-size:' + tFontTiny + CssFragment.Padding2px0;
+  availRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;font-size:' + tFontTiny + CSS_PADDING_2PX_0;
   const availLabel = document.createElement('span');
   availLabel.style.color = cPanelFgDim;
   availLabel.textContent = 'Bundled';
@@ -308,7 +321,7 @@ function _buildAvailRow(availVal: HTMLElement): HTMLElement {
 
 function _buildStatusRow(): HTMLElement {
   const statusRow = document.createElement('div');
-  statusRow.style.cssText = CssFragment.FontSize + tFontMicro + ';color:' + cPanelFgDim + CssFragment.Padding2px0;
+  statusRow.style.cssText = CSS_FONT_SIZE + tFontMicro + ';color:' + cPanelFgDim + CSS_PADDING_2PX_0;
   statusRow.textContent = 'Not checked';
   return statusRow;
 }

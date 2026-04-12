@@ -8,9 +8,7 @@
  */
 
 import { log, logSub } from './logging';
-import { nsCallTyped, nsReadTyped } from './api-namespace';
-
-const NS_UPDATE_START_STOP = '_internal.updateStartStopBtn' as const;
+import { nsCall, nsRead } from './api-namespace';
 import { showToast, setStopLoopCallback } from './toast';
 import { LoopDirection } from './types';
 import { getByXPath } from './xpath-utils';
@@ -22,7 +20,7 @@ import { CONFIG, IDS, TIMING, loopCreditState, state } from './shared-state';
 import { runCycle } from './loop-cycle';
 import { logError } from './error-utils';
 
-
+const NS_UPDATESTARTSTOPBTN = '_internal.updateStartStopBtn';
 
 // Re-export runCheck from loop-check.ts (barrel pattern)
 export { runCheck } from './loop-check';
@@ -57,7 +55,7 @@ function initLoopState(direction: LoopDirection | string): void {
   state.__cycleRetryPending = false;
   state.running = true;
   state.countdown = Math.floor(TIMING.LOOP_INTERVAL / 1000);
-  nsCallTyped(NS_UPDATE_START_STOP, true);
+  nsCall('__loopUpdateStartStopBtn', NS_UPDATESTARTSTOPBTN, true);
 }
 
 function logLoopStartInfo(): void {
@@ -75,19 +73,19 @@ function verifyControllerInjection(): boolean {
   const marker = document.getElementById(IDS.SCRIPT_MARKER);
   const uiContainer = document.getElementById(IDS.CONTAINER);
   const xpathTarget = getByXPath(CONFIG.CONTROLS_XPATH);
-  const loopStartFn = nsReadTyped('api.loop.start');
+  const loopStartFn = nsRead('__loopStart', 'api.loop.start');
 
   if (!marker || typeof loopStartFn !== 'function') {
     logError('unknown', '❌ Controller script NOT injected (marker=\' + !!marker + \', __loopStart=\' + (typeof loopStartFn) + \') — aborting');
     state.running = false;
-    nsCallTyped(NS_UPDATE_START_STOP, false);
+    nsCall('__loopUpdateStartStopBtn', NS_UPDATESTARTSTOPBTN, false);
     return false;
   }
 
   if (!uiContainer) {
     logError('unknown', '❌ Controller UI container NOT found in DOM (id=\' + IDS.CONTAINER + \') — aborting');
     state.running = false;
-    nsCallTyped(NS_UPDATE_START_STOP, false);
+    nsCall('__loopUpdateStartStopBtn', NS_UPDATESTARTSTOPBTN, false);
     return false;
   }
 
@@ -174,12 +172,16 @@ function scheduleTimersAfterCheck(checkPromise: Promise<void> | undefined): void
 // startLoop
 // ============================================
 export function startLoop(direction: LoopDirection | string): boolean {
-  if (!validateLoopPreconditions()) return false;
+  if (!validateLoopPreconditions()) {
+    return false;
+  }
 
   initLoopState(direction);
   logLoopStartInfo();
 
-  if (!verifyControllerInjection()) return false;
+  if (!verifyControllerInjection()) {
+    return false;
+  }
 
   mc().updateUI();
   handleAuthAndStartCheck();
@@ -191,7 +193,9 @@ export function startLoop(direction: LoopDirection | string): boolean {
 // stopLoop
 // ============================================
 export function stopLoop(): boolean {
-  if (!state.running) return false;
+  if (!state.running) {
+    return false;
+  }
 
   state.running = false;
   state.isDelegating = false;
@@ -204,7 +208,7 @@ export function stopLoop(): boolean {
 
   log('=== LOOP STOPPED ===', 'success');
   log('Total cycles completed: ' + state.cycleCount);
-  nsCallTyped(NS_UPDATE_START_STOP, false);
+  nsCall('__loopUpdateStartStopBtn', NS_UPDATESTARTSTOPBTN, false);
   mc().updateUI();
 
   return true;
@@ -229,7 +233,9 @@ function refreshStatusStopped(): void {
 
 function triggerBackgroundCreditFetch(): void {
   const token = resolveToken();
-  if (!token) return;
+  if (!token) {
+    return;
+  }
 
   logSub('No workspace + no credits — triggering background credit fetch', 1);
   fetchLoopCreditsAsync(false).then(function() {
@@ -295,7 +301,9 @@ export function refreshStatus(): void {
 }
 
 export function startStatusRefresh(): void {
-  if (state.statusRefreshId) return;
+  if (state.statusRefreshId) {
+    return;
+  }
   const intervalMs = state.running ? (TIMING.WS_CHECK_INTERVAL || 5000) : 30000;
   log('Starting workspace auto-check (every ' + (intervalMs / 1000) + 's)', 'success');
   state.statusRefreshId = setInterval(refreshStatus, intervalMs);

@@ -9,7 +9,12 @@
 
 import { el } from './database-schema-helpers';
 
-import { DomId } from '../types';
+const ID_MARCO_SCHEMA_VAL_ROW = 'marco-schema-val-row';
+const ID_MARCO_SCHEMA_VAL_LABEL = 'marco-schema-val-label';
+const ID_MARCO_SCHEMA_SELECT = 'marco-schema-select';
+const ID_MARCO_SCHEMA_VAL_INPUT = 'marco-schema-val-input';
+const ID_MARCO_SCHEMA_FK_ROW = 'marco-schema-fk-row';
+
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -176,17 +181,19 @@ function buildValidationTypeSelector(
   validation: ColumnValidation,
   col: ColumnEntry,
 ): HTMLElement {
-  const typeRow = el('div', DomId.SchemaValRow);
-  typeRow.appendChild(el('span', DomId.SchemaValLabel, 'Type'));
+  const typeRow = el('div', ID_MARCO_SCHEMA_VAL_ROW);
+  typeRow.appendChild(el('span', ID_MARCO_SCHEMA_VAL_LABEL, 'Type'));
 
-  const typeSelect = el('select', DomId.SchemaSelect) as HTMLSelectElement;
+  const typeSelect = el('select', ID_MARCO_SCHEMA_SELECT) as HTMLSelectElement;
 
   for (const validationType of ['string', 'date', 'regex'] as const) {
     const option = el('option');
     option.value = validationType;
     option.textContent = validationType;
     const isSelected = validationType === validation.type;
-    if (isSelected) option.selected = true;
+    if (isSelected) {
+      option.selected = true;
+    }
     typeSelect.appendChild(option);
   }
 
@@ -219,12 +226,12 @@ function renderTypeSpecificFields(panel: HTMLElement, validation: ColumnValidati
 }
 
 function renderValidationTestArea(panel: HTMLElement, col: ColumnEntry): void {
-  const testLabel = el('div', DomId.SchemaValLabel, 'Test Validation');
+  const testLabel = el('div', ID_MARCO_SCHEMA_VAL_LABEL, 'Test Validation');
   testLabel.style.marginTop = '8px';
   panel.appendChild(testLabel);
 
-  const testRow = el('div', DomId.SchemaValRow);
-  const testInput = el('input', DomId.SchemaValInput) as HTMLInputElement;
+  const testRow = el('div', ID_MARCO_SCHEMA_VAL_ROW);
+  const testInput = el('input', ID_MARCO_SCHEMA_VAL_INPUT) as HTMLInputElement;
   testInput.placeholder = 'Enter sample value…';
   testRow.appendChild(testInput);
 
@@ -252,10 +259,10 @@ function addValField(
   label: string,
   placeholder?: string,
 ): void {
-  const row = el('div', DomId.SchemaValRow);
-  row.appendChild(el('span', DomId.SchemaValLabel, label));
+  const row = el('div', ID_MARCO_SCHEMA_VAL_ROW);
+  row.appendChild(el('span', ID_MARCO_SCHEMA_VAL_LABEL, label));
 
-  const input = el('input', DomId.SchemaValInput) as HTMLInputElement;
+  const input = el('input', ID_MARCO_SCHEMA_VAL_INPUT) as HTMLInputElement;
   input.value = (validation[key] as string) || '';
   input.placeholder = placeholder || '';
   input.oninput = () => { validation[key] = input.value || undefined; };
@@ -270,10 +277,10 @@ function addValNumField(
   key: string,
   label: string,
 ): void {
-  const row = el('div', DomId.SchemaValRow);
-  row.appendChild(el('span', DomId.SchemaValLabel, label));
+  const row = el('div', ID_MARCO_SCHEMA_VAL_ROW);
+  row.appendChild(el('span', ID_MARCO_SCHEMA_VAL_LABEL, label));
 
-  const input = el('input', DomId.SchemaValInput) as HTMLInputElement;
+  const input = el('input', ID_MARCO_SCHEMA_VAL_INPUT) as HTMLInputElement;
   input.type = 'number';
   input.value = validation[key] !== undefined ? String(validation[key]) : '';
   input.placeholder = '—';
@@ -308,10 +315,10 @@ function renderFkTableSelector(
   foreignKey: ForeignKeyDef,
   tables: Array<{ name: string }>,
 ): void {
-  const row = el('div', DomId.SchemaFkRow);
-  row.appendChild(el('span', DomId.SchemaValLabel, 'Ref Table'));
+  const row = el('div', ID_MARCO_SCHEMA_FK_ROW);
+  row.appendChild(el('span', ID_MARCO_SCHEMA_VAL_LABEL, 'Ref Table'));
 
-  const tableSelect = el('select', DomId.SchemaSelect) as HTMLSelectElement;
+  const tableSelect = el('select', ID_MARCO_SCHEMA_SELECT) as HTMLSelectElement;
   const emptyOption = el('option');
   emptyOption.value = '';
   emptyOption.textContent = '— select —';
@@ -322,7 +329,9 @@ function renderFkTableSelector(
     option.value = table.name;
     option.textContent = table.name;
     const isSelected = table.name === foreignKey.table;
-    if (isSelected) option.selected = true;
+    if (isSelected) {
+      option.selected = true;
+    }
     tableSelect.appendChild(option);
   }
 
@@ -332,10 +341,10 @@ function renderFkTableSelector(
 }
 
 function renderFkColumnInput(panel: HTMLElement, foreignKey: ForeignKeyDef): void {
-  const row = el('div', DomId.SchemaFkRow);
-  row.appendChild(el('span', DomId.SchemaValLabel, 'Ref Column'));
+  const row = el('div', ID_MARCO_SCHEMA_FK_ROW);
+  row.appendChild(el('span', ID_MARCO_SCHEMA_VAL_LABEL, 'Ref Column'));
 
-  const columnInput = el('input', DomId.SchemaValInput) as HTMLInputElement;
+  const columnInput = el('input', ID_MARCO_SCHEMA_VAL_INPUT) as HTMLInputElement;
   columnInput.value = foreignKey.column;
   columnInput.placeholder = 'Id';
   columnInput.style.maxWidth = '120px';
@@ -351,17 +360,19 @@ function addCascadeSelect(
   currentValue: string,
   onChange: (value: string) => void,
 ): void {
-  const row = el('div', DomId.SchemaFkRow);
-  row.appendChild(el('span', DomId.SchemaValLabel, label));
+  const row = el('div', ID_MARCO_SCHEMA_FK_ROW);
+  row.appendChild(el('span', ID_MARCO_SCHEMA_VAL_LABEL, label));
 
-  const select = el('select', DomId.SchemaSelect) as HTMLSelectElement;
+  const select = el('select', ID_MARCO_SCHEMA_SELECT) as HTMLSelectElement;
 
   for (const cascadeOption of CASCADE_OPTS) {
     const option = el('option');
     option.value = cascadeOption;
     option.textContent = cascadeOption;
     const isSelected = cascadeOption === currentValue;
-    if (isSelected) option.selected = true;
+    if (isSelected) {
+      option.selected = true;
+    }
     select.appendChild(option);
   }
 

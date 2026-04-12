@@ -18,8 +18,7 @@ import {
   cSectionHeader,
 } from '../shared-state';
 
-import { StyleId } from '../types';
-const STYLE_ID = StyleId.DbSchema;
+const STYLE_ID = 'marco-db-schema-styles';
 
 /** Inject scoped CSS for the schema tab (idempotent). */
 export function injectSchemaStyles(): void {

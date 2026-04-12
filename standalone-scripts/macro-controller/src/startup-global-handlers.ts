@@ -9,7 +9,7 @@
 
 import { log } from './logging';
 import { logError } from './error-utils';
-import { nsWrite } from './api-namespace';
+import { dualWrite } from './api-namespace';
 import { showToast } from './toast';
 import { VERSION, loopCreditState, state } from './shared-state';
 import { extractProjectIdFromUrl } from './workspace-detection';
@@ -21,10 +21,14 @@ import type { DiagnosticDump } from './types';
 export function setupGlobalErrorHandlers(): void {
   window.addEventListener('error', function (event: ErrorEvent) {
     const hasNoMessage = !event || !event.message;
-    if (hasNoMessage) return;
+    if (hasNoMessage) {
+      return;
+    }
 
     const isUnrelatedFile = event.filename && event.filename.indexOf('macro') === -1 && event.filename.indexOf('blob:') === -1;
-    if (isUnrelatedFile) return;
+    if (isUnrelatedFile) {
+      return;
+    }
 
     const errMsg = event.message || 'Unknown error';
     const stack = event.error && event.error.stack ? event.error.stack : (event.filename + ':' + event.lineno);
@@ -40,7 +44,9 @@ export function setupGlobalErrorHandlers(): void {
 
   window.addEventListener('unhandledrejection', function (event: PromiseRejectionEvent) {
     const hasNoReason = !event || !event.reason;
-    if (hasNoReason) return;
+    if (hasNoReason) {
+      return;
+    }
 
     const errMsg = event.reason.message || String(event.reason);
     const stack = event.reason.stack || '';
@@ -86,7 +92,7 @@ function buildDiagnosticDump(): DiagnosticDump {
 
 /** Register the diagnostic dump API on window + namespace. */
 export function setupDiagnosticDump(): void {
-  nsWrite('api.loop.diagnostics', buildDiagnosticDump);
+  dualWrite('__loopDiag', 'api.loop.diagnostics', buildDiagnosticDump);
 }
 
 // Re-export overlay API for external use

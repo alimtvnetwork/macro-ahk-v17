@@ -15,15 +15,18 @@ import { SAMPLE_SCHEMA } from './database-json-types';
 import { applySchema, validateSchema } from './database-json-migrate';
 import { downloadSchemaDocs } from './database-json-docs';
 
-import { DomId, StyleId } from '../types';
-const STYLE_ID = StyleId.DbJson;
+const ID_MARCO_JSON_BTN = 'marco-json-btn';
+
+const STYLE_ID = 'marco-db-json-styles';
 
 /* ------------------------------------------------------------------ */
 /*  Styles                                                             */
 /* ------------------------------------------------------------------ */
 
 function injectJsonStyles(): void {
-  if (document.getElementById(STYLE_ID)) return;
+  if (document.getElementById(STYLE_ID)) {
+    return;
+  }
   const s = document.createElement('style');
   s.id = STYLE_ID;
   s.textContent = `
@@ -79,8 +82,12 @@ function injectJsonStyles(): void {
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
+  if (cls) {
+    e.className = cls;
+  }
+  if (text) {
+    e.textContent = text;
+  }
   return e;
 }
 
@@ -127,18 +134,18 @@ export function buildJsonTab(
   applyBtn.onclick = () => applySchema(editor.value, logEl, statusBar);
   actions.appendChild(applyBtn);
 
-  const validateBtn = el('button', DomId.JsonBtn, '✓ Validate');
+  const validateBtn = el('button', ID_MARCO_JSON_BTN, '✓ Validate');
   validateBtn.onclick = () => validateSchema(editor.value, logEl);
   actions.appendChild(validateBtn);
 
-  const sampleBtn = el('button', DomId.JsonBtn, '📋 Load Sample');
+  const sampleBtn = el('button', ID_MARCO_JSON_BTN, '📋 Load Sample');
   sampleBtn.onclick = () => {
     editor.value = JSON.stringify(SAMPLE_SCHEMA, null, 2);
     appendLog(logEl, 'info', 'Loaded sample schema');
   };
   actions.appendChild(sampleBtn);
 
-  const clearBtn = el('button', DomId.JsonBtn, '🗑️ Clear');
+  const clearBtn = el('button', ID_MARCO_JSON_BTN, '🗑️ Clear');
   clearBtn.onclick = () => { editor.value = ''; logEl.textContent = ''; };
   actions.appendChild(clearBtn);
 
