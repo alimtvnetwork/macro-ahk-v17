@@ -104,6 +104,7 @@ export function findSavePromptContainer(): Element | null {
   return findContainerViaCssFallback();
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity -- multi-stage CSS fallback with per-fallback error handling
 function findContainerViaCssFallback(): Element | null {
   for (const [fallbackIndex, fallbackSelector] of SAVE_PROMPT_CSS_FALLBACKS.entries()) {
     try {

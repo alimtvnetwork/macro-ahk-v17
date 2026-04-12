@@ -23,6 +23,7 @@ const STYLE_ID = 'marco-db-json-styles';
 /*  Styles                                                             */
 /* ------------------------------------------------------------------ */
 
+// eslint-disable-next-line max-lines-per-function -- CSS template literal block
 function injectJsonStyles(): void {
   if (document.getElementById(STYLE_ID)) {
     return;

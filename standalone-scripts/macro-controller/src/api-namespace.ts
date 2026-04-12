@@ -70,6 +70,7 @@ const nsCache = new NamespaceCache();
  * Get or create the MacroController namespace on RiseupAsiaMacroExt.
  * Safe to call multiple times — idempotent.
  */
+// eslint-disable-next-line max-lines-per-function -- namespace bootstrapper: initializes 8 sub-objects idempotently
 export function getNamespace(): MacroControllerNamespace | null {
   if (nsCache.ns) {
     return nsCache.ns;

@@ -25,6 +25,7 @@ import {
  * Get the AuthTokenUtils from the SDK.
  * Falls back to a minimal inline implementation if SDK is not loaded yet.
  */
+// eslint-disable-next-line max-lines-per-function -- inline fallback implementing full MarcoSDKAuthTokenUtils interface
 function getAuthUtils(): MarcoSDKAuthTokenUtils {
   const sdkUtils = window.marco?.authUtils;
   if (sdkUtils) {
