@@ -21,7 +21,7 @@ interface ChromeRuntime {
 
 /** Detects whether we are running inside a Chrome extension context. */
 function isExtensionContext(): boolean {
-    const win = globalThis as unknown as ChromeRuntime;
+    const win = globalThis as ChromeRuntime;
 
     return win.chrome !== undefined
         && win.chrome.runtime !== undefined

@@ -12,6 +12,7 @@ import type {
     PlatformStorage,
     PlatformTabs,
     MessagePayload,
+    SerializableValue,
 } from "./platform-adapter";
 
 /* ------------------------------------------------------------------ */
@@ -25,16 +26,29 @@ const RETRYABLE_ERROR_PATTERN =
     /(Could not establish connection|Receiving end does not exist|message port closed)/i;
 
 /* ------------------------------------------------------------------ */
+/*  Error Response Shape                                               */
+/* ------------------------------------------------------------------ */
+
+interface BackgroundErrorEnvelope {
+    isOk?: boolean;
+    errorMessage?: string;
+}
+
+interface BackgroundPingResponse {
+    isOk?: boolean;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Storage                                                            */
 /* ------------------------------------------------------------------ */
 
 const chromeStorage: PlatformStorage = {
-    async get(key: string): Promise<unknown> {
+    async get<T extends SerializableValue = SerializableValue>(key: string): Promise<T | null> {
         const result = await chrome.storage.local.get(key);
-        return result[key] ?? null;
+        return (result[key] as T) ?? null;
     },
 
-    async set(key: string, value: unknown): Promise<void> {
+    async set<T extends SerializableValue = SerializableValue>(key: string, value: T): Promise<void> {
         await chrome.storage.local.set({ [key]: value });
     },
 
@@ -68,7 +82,7 @@ const chromeTabs: PlatformTabs = {
 /* ------------------------------------------------------------------ */
 
 /** Checks whether the runtime error is a transient connection issue. */
-function isRetryableError(error: unknown): boolean {
+function isRetryableError(error: Error | string): boolean {
     const message = error instanceof Error
         ? error.message
         : String(error);
@@ -77,7 +91,7 @@ function isRetryableError(error: unknown): boolean {
 }
 
 /** Throws if the response is a standardized background error envelope. */
-function throwIfErrorResponse(response: unknown): void {
+function throwIfErrorResponse(response: SerializableValue): void {
     const isObjectResponse =
         typeof response === "object" && response !== null;
 
@@ -85,18 +99,14 @@ function throwIfErrorResponse(response: unknown): void {
         return;
     }
 
-    const hasErrorFlag =
-        "isOk" in response
-        && (response as { isOk?: boolean }).isOk === false;
+    const envelope = response as BackgroundErrorEnvelope;
 
-    const hasErrorMessage = "errorMessage" in response;
+    const hasErrorFlag = envelope.isOk === false;
+    const hasErrorMessage = typeof envelope.errorMessage === "string";
 
     if (hasErrorFlag && hasErrorMessage) {
         const fallback = "Background message failed";
-        const errorText =
-            (response as { errorMessage?: string }).errorMessage ?? fallback;
-
-        throw new Error(errorText);
+        throw new Error(envelope.errorMessage ?? fallback);
     }
 }
 
@@ -108,11 +118,15 @@ async function waitForReceiver(): Promise<void> {
                 type: "__PING__",
             });
 
-            const isReady =
+            const isObjectResponse =
                 typeof response === "object"
-                && response !== null
-                && "isOk" in response
-                && (response as { isOk?: boolean }).isOk === true;
+                && response !== null;
+
+            const ping = isObjectResponse
+                ? response as BackgroundPingResponse
+                : null;
+
+            const isReady = ping !== null && ping.isOk === true;
 
             if (isReady) {
                 return;
@@ -140,7 +154,11 @@ async function sendChromeMessage<T>(message: MessagePayload): Promise<T> {
         throwIfErrorResponse(response);
         return response as T;
     } catch (firstError) {
-        const shouldRetry = isRetryableError(firstError);
+        const errorValue = firstError instanceof Error
+            ? firstError
+            : String(firstError);
+
+        const shouldRetry = isRetryableError(errorValue);
 
         if (!shouldRetry) {
             throw firstError;
