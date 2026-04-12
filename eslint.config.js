@@ -70,7 +70,6 @@ export default tseslint.config(
       "max-lines-per-function": "off",
       "sonarjs/no-duplicate-string": "off",
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-restricted-types": "off",
     },
   },
   {
