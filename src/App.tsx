@@ -1,3 +1,4 @@
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -5,9 +6,9 @@ import Popup from "./pages/Popup";
 import Options from "./pages/Options";
 import NotFound from "./pages/NotFound";
 
-export default function App() {
+const App = React.forwardRef<HTMLDivElement>(function App(_props, ref) {
   return (
-    <ThemeProvider>
+    <ThemeProvider ref={ref}>
       <ErrorBoundary section="App Root">
         <BrowserRouter>
           <Routes>
@@ -19,4 +20,7 @@ export default function App() {
       </ErrorBoundary>
     </ThemeProvider>
   );
-}
+});
+App.displayName = "App";
+
+export default App;
