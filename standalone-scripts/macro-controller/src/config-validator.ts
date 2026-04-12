@@ -33,15 +33,18 @@ function warn(msg: string): void {
  * Recursively merge `source` into `target`, preferring source values.
  * Arrays are replaced (not merged). Only plain objects are recursed.
  */
-function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
-  const result = { ...target } as Record<string, unknown>;
+/** Internal record type for deep-merge key iteration. */
+type MergeableRecord = Record<string, string | number | boolean | null | undefined | object>;
+
+function deepMerge<T extends MergeableRecord>(target: T, source: Partial<T>): T {
+  const result = { ...target } as MergeableRecord;
 
   for (const key of Object.keys(source)) {
-    const srcVal = (source as Record<string, unknown>)[key];
+    const srcVal = (source as MergeableRecord)[key];
     const tgtVal = result[key];
 
     if (isPlainObject(srcVal) && isPlainObject(tgtVal)) {
-      result[key] = deepMerge(tgtVal as Record<string, unknown>, srcVal as Record<string, unknown>);
+      result[key] = deepMerge(tgtVal as MergeableRecord, srcVal as MergeableRecord);
     } else if (srcVal !== undefined) {
       result[key] = srcVal;
     }
