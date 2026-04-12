@@ -12,6 +12,7 @@
  * See: spec/06-coding-guidelines/coding-guidelines/database-id-convention.md
  */
 
+import type { SqlValue } from "sql.js";
 import initSqlJs, { type Database } from "sql.js";
 import JSZip from "jszip";
 import { sendMessage } from "@/lib/message-client";
@@ -234,7 +235,7 @@ export async function exportAllAsSqliteZip(): Promise<void> {
     sendMessage<{ projects: StoredProject[] }>({ type: "GET_ALL_PROJECTS" }),
     sendMessage<{ scripts: StoredScript[] }>({ type: "GET_ALL_SCRIPTS" }),
     sendMessage<{ configs: StoredConfig[] }>({ type: "GET_ALL_CONFIGS" }),
-    sendMessage<{ prompts?: unknown[] }>({ type: "GET_PROMPTS" }),
+    sendMessage<{ prompts?: PromptEntry[] }>({ type: "GET_PROMPTS" }),
   ]);
 
   const prompts: PromptEntry[] = Array.isArray(promptsRes.prompts)
@@ -346,7 +347,7 @@ export async function exportProjectAsSqliteZip(project: StoredProject): Promise<
  * Column name resolver — supports PascalCase (v3+), legacy snake_case,
  * and the new Uid column (v4+) with fallback to old Id TEXT column.
  */
-function col(obj: Record<string, unknown>, pascalName: string, snakeName: string): unknown {
+function col(obj: Record<string, SqlValue>, pascalName: string, snakeName: string): SqlValue {
   return obj[pascalName] ?? obj[snakeName];
 }
 
@@ -368,8 +369,8 @@ function readProjects(db: Database): StoredProject[] {
   if (!hasRows) return [];
 
   const cols = rows[0].columns;
-  return rows[0].values.map((row: unknown[]) => {
-    const obj = Object.fromEntries(cols.map((c: unknown, i: number) => [c, row[i]]));
+  return rows[0].values.map((row: SqlValue[]) => {
+    const obj = Object.fromEntries(cols.map((c: SqlValue, i: number) => [c, row[i]]));
     return {
       id: resolveUid(obj),
       schemaVersion: (col(obj, "SchemaVersion", "schema_version") as number) ?? 1,
@@ -396,8 +397,8 @@ function readScripts(db: Database): StoredScript[] {
   if (!hasRows) return [];
 
   const cols = rows[0].columns;
-  return rows[0].values.map((row: unknown[]) => {
-    const obj = Object.fromEntries(cols.map((c: unknown, i: number) => [c, row[i]]));
+  return rows[0].values.map((row: SqlValue[]) => {
+    const obj = Object.fromEntries(cols.map((c: SqlValue, i: number) => [c, row[i]]));
     return {
       id: resolveUid(obj),
       name: (col(obj, "Name", "name") as string),
@@ -423,8 +424,8 @@ function readConfigs(db: Database): StoredConfig[] {
   if (!hasRows) return [];
 
   const cols = rows[0].columns;
-  return rows[0].values.map((row: unknown[]) => {
-    const obj = Object.fromEntries(cols.map((c: unknown, i: number) => [c, row[i]]));
+  return rows[0].values.map((row: SqlValue[]) => {
+    const obj = Object.fromEntries(cols.map((c: SqlValue, i: number) => [c, row[i]]));
     return {
       id: resolveUid(obj),
       name: (col(obj, "Name", "name") as string),
@@ -446,8 +447,8 @@ function readPrompts(db: Database): PromptEntry[] {
     if (!hasRows) return [];
 
     const cols = rows[0].columns;
-    return rows[0].values.map((row: unknown[]) => {
-      const obj = Object.fromEntries(cols.map((c: unknown, i: number) => [c, row[i]]));
+    return rows[0].values.map((row: SqlValue[]) => {
+      const obj = Object.fromEntries(cols.map((c: SqlValue, i: number) => [c, row[i]]));
       return {
         id: resolveUid(obj),
         name: (col(obj, "Name", "name") as string),
@@ -487,7 +488,7 @@ export async function previewSqliteZip(file: File): Promise<BundlePreview> {
   // Read exported_at from Meta
   let exportedAt: string | undefined;
   try {
-    let metaRows: { columns: string[]; values: unknown[][] }[];
+    let metaRows: { columns: string[]; values: SqlValue[][] }[];
     try { metaRows = db.exec("SELECT Value FROM Meta WHERE Key = 'exported_at'"); } catch {
       try { metaRows = db.exec("SELECT value FROM meta WHERE key = 'exported_at'"); } catch { metaRows = []; }
     }
@@ -662,7 +663,7 @@ function safeJsonParse<T>(raw: string | null, fallback: T): T {
 
 /** Exports all prompts as a SQLite ZIP. */
 export async function exportPromptsAsSqliteZip(): Promise<void> {
-  const result = await sendMessage<{ prompts?: unknown[] }>({ type: "GET_PROMPTS" });
+  const result = await sendMessage<{ prompts?: PromptEntry[] }>({ type: "GET_PROMPTS" });
   const prompts: PromptEntry[] = Array.isArray(result.prompts)
     ? result.prompts.map((raw, i) => {
         const r = raw as Record<string, unknown>;
@@ -709,7 +710,7 @@ export async function importPromptsFromSqliteZip(file: File): Promise<{ promptCo
   if (prompts.length === 0) throw new Error("No prompts found in bundle");
 
   // Delete existing non-default prompts, then save imported ones
-  const existing = await sendMessage<{ prompts?: unknown[] }>({ type: "GET_PROMPTS" });
+  const existing = await sendMessage<{ prompts?: PromptEntry[] }>({ type: "GET_PROMPTS" });
   const existingList = Array.isArray(existing.prompts) ? existing.prompts : [];
   for (const raw of existingList) {
     const r = raw as Record<string, unknown>;
