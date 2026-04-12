@@ -194,7 +194,7 @@ async function readCurrentBuildId(): Promise<string | null> {
             return null;
         }
 
-        const meta = await response.json() as { buildId?: unknown; freshStart?: boolean };
+        const meta = await response.json() as { buildId?: string; freshStart?: boolean };
 
         if (meta.freshStart === true) {
             clearAllLogsAndErrors();

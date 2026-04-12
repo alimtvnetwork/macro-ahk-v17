@@ -1,4 +1,6 @@
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useEffect, useState, useCallback } from "react";
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { sendMessage } from "@/lib/message-client";
 
 interface StorageStats {
@@ -41,7 +43,7 @@ interface LogRow {
   detail?: string;
   message?: string;
   error_code?: string;
-  [key: string]: unknown;
+  [key: string]: JsonValue;
 }
 
 export function useStatus() {
@@ -123,7 +125,7 @@ export function useDataBrowser(database: "logs" | "errors", pageSize = 20, filte
 
 export interface DataStoreEntry {
   key: string;
-  value: unknown;
+  value: JsonValue;
   valuePreview: string;
   sizeBytes: number;
   projectId: string;

@@ -1,4 +1,6 @@
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useState } from "react";
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Input } from "@/components/ui/input";
@@ -230,7 +232,7 @@ function validateJson(str: string): boolean {
   }
 }
 
-function formatJson(input: unknown): string {
+function formatJson(input: JsonValue): string {
   if (typeof input === "string") {
     try {
       return JSON.stringify(JSON.parse(input), null, 2);

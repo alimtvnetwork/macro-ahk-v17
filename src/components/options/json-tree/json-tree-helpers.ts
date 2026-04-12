@@ -1,7 +1,8 @@
+import type { JsonValue } from "@/background/handlers/handler-types";
 import type { JsonValue, JsonObject, JsonArray } from "./json-tree-types";
 
 /** Safely parse a JSON string, returning null on failure. */
-export function safeParse(str: string): unknown {
+export function safeParse(str: string): JsonValue {
   try {
     return JSON.parse(str);
   } catch (parseError: unknown) {
@@ -10,7 +11,7 @@ export function safeParse(str: string): unknown {
 }
 
 /** Check if a value is a plain JSON object (not array, not null). */
-export function isObject(val: unknown): val is JsonObject {
+export function isObject(val: JsonValue): val is JsonObject {
   const isNonNull = val !== null;
   const isObjType = typeof val === "object";
   const isNotArray = !Array.isArray(val);

@@ -65,7 +65,7 @@ export function toPascalCaseKeys(obj: Record<string, unknown>): Record<string, u
   return result;
 }
 
-export function toPrettyJson(value: unknown): string {
+export function toPrettyJson(value: JsonValue): string {
   try {
     return JSON.stringify(value, null, 2);
   } catch {

@@ -6,6 +6,7 @@
  * - Raw JSON view with syntax highlighting + formatter (via MonacoCodeEditor)
  */
 
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useState, useCallback, useMemo } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { MonacoCodeEditor } from "@/components/options/LazyMonacoCodeEditor";
@@ -22,7 +23,7 @@ type ViewMode = "tree" | "raw";
 /* ------------------------------------------------------------------ */
 
 // eslint-disable-next-line max-lines-per-function
-function JsonTreeNode({ label, value, depth = 0 }: { label: string; value: unknown; depth?: number }) {
+function JsonTreeNode({ label, value, depth = 0 }: { label: string; value: JsonValue; depth?: number }) {
     const [expanded, setExpanded] = useState(depth < 2);
     const isObject = value !== null && typeof value === "object";
     const entries = isObject ? Object.entries(value as Record<string, unknown>) : [];

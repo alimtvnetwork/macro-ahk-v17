@@ -5,6 +5,7 @@
  * restoring previous versions to the visual builder.
  */
 
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,13 +22,13 @@ interface SchemaSnapshot {
   label: string;
   savedAt: string;
   tableCount: number;
-  tables: unknown[];
+  tables: Record<string, JsonValue>[];
 }
 
 interface SchemaVersionHistoryProps {
   projectSlug: string;
-  currentTables: unknown[];
-  onRestore: (tables: unknown[]) => void;
+  currentTables: Record<string, JsonValue>[];
+  onRestore: (tables: Record<string, JsonValue>[]) => void;
 }
 
 const KV_KEY = "schema_version_history";

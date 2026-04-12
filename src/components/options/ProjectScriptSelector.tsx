@@ -1,4 +1,6 @@
+import type { JsonValue } from "@/background/handlers/handler-types";
 import { useState, useCallback } from "react";
+import type { JsonValue } from "@/background/handlers/handler-types";
 import type { LibraryLinkMap } from "@/hooks/use-library-link-map";
 import { SyncBadge } from "./LibraryView";
 import { Button } from "@/components/ui/button";
@@ -527,7 +529,7 @@ function validateJson(str: string): boolean {
   try { JSON.parse(str); return true; } catch { return false; }
 }
 
-function formatJson(input: unknown): string {
+function formatJson(input: JsonValue): string {
   if (typeof input === "string") {
     try { return JSON.stringify(JSON.parse(input), null, 2); } catch { return input; }
   }

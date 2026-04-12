@@ -70,8 +70,8 @@ export function QuickActions({
         try {
             const response = await platform.sendMessage<{
                 sessionId: string;
-                logs: unknown[];
-                errors: unknown[];
+                logs: Record<string, string | number | null>[];
+                errors: Record<string, string | number | null>[];
             }>({ type: "GET_SESSION_LOGS" });
 
             const report = {
