@@ -14,7 +14,7 @@
 import { log, getProjectNameFromDom } from './logging';
 import { getCachedWorkspaceName, cacheWorkspaceName } from './workspace-cache';
 import { timingStart, timingEnd, logTimingSummary } from './startup-timing';
-import { nsWrite, nsReadTyped } from './api-namespace';
+import { dualWriteAll, nsRead } from './api-namespace';
 import { registerTokenBroadcastListener } from './token-broadcast-listener';
 import { showToast, dismissAllToasts } from './toast';
 import { updateStartupToast } from './startup-toast';
@@ -44,8 +44,11 @@ import type { MarkViewedResponse } from './types';
 import { ensureTokenReady } from './startup-token-gate';
 import { setupPersistenceObserver } from './startup-persistence';
 import { setupGlobalErrorHandlers, setupDiagnosticDump } from './startup-global-handlers';
-import { MAX_SDK_ATTEMPTS, SDK_RETRY_DELAY_MS, MAX_UI_CREATE_RETRIES, STARTUP_WS_MAX_RETRIES } from './constants';
-import { Label } from './types';
+
+const PROMPT_PREWARM = 'prompt-prewarm';
+const WS_PREFETCH = 'ws-prefetch';
+const STARTUP_RETRY = 'Startup: Retry #';
+const AUTH_AUTO_RESYNC = 'Auth auto-resync (';
 
 // Re-export sub-modules for backward compatibility
 export { setupPersistenceObserver as _setupPersistenceObserver } from './startup-persistence';
@@ -106,7 +109,7 @@ export function bootstrap(deps: {
   (state as unknown as Record<string, unknown>).__uiTimeoutId = uiCreationTimeout;
 
   // ── Background data loading ──
-  timingStart(Label.PromptPrewarm, 'Prompt Pre-warm');
+  timingStart(PROMPT_PREWARM, 'Prompt Pre-warm');
   _preWarmPrompts(0);
 
   loadWorkspacesOnStartup();
@@ -129,15 +132,17 @@ function _registerGlobals(deps: {
   updateProjectButtonXPath: (xpath: string) => void;
   updateProgressXPath: (xpath: string) => void;
 }): void {
-  nsWrite('api.loop.start', startLoop as (direction?: string) => boolean);
-  nsWrite('api.loop.stop', stopLoop);
-  nsWrite('api.loop.check', deps.runCheck);
-  nsWrite('api.loop.state', function () { return state; });
-  nsWrite('api.loop.setInterval', deps.setLoopInterval);
-  nsWrite('api.ui.toast', showToast);
-  nsWrite('_internal.delegateComplete', deps.delegateComplete);
-  nsWrite('api.config.setProjectButtonXPath', deps.updateProjectButtonXPath);
-  nsWrite('api.config.setProgressXPath', deps.updateProgressXPath);
+  dualWriteAll([
+    ['__loopStart', 'api.loop.start', startLoop as (direction?: string) => void],
+    ['__loopStop', 'api.loop.stop', stopLoop],
+    ['__loopCheck', 'api.loop.check', deps.runCheck],
+    ['__loopState', 'api.loop.state', function () { return state; }],
+    ['__loopSetInterval', 'api.loop.setInterval', deps.setLoopInterval],
+    ['__loopToast', 'api.ui.toast', showToast],
+    ['__delegateComplete', '_internal.delegateComplete', deps.delegateComplete],
+    ['__setProjectButtonXPath', 'api.config.setProjectButtonXPath', deps.updateProjectButtonXPath],
+    ['__setProgressXPath', 'api.config.setProgressXPath', deps.updateProgressXPath],
+  ]);
 }
 
 /** Logs workspace cache source for diagnostics. */
@@ -157,6 +162,8 @@ function _logWorkspaceCacheStatus(): void {
  * then falls back to direct `loadPromptsFromJson()`.
  */
 function _preWarmPrompts(attempt: number): void {
+  const MAX_SDK_ATTEMPTS = 3;
+  const SDK_RETRY_DELAY_MS = 500;
 
   const sdk = (window as unknown as Record<string, unknown>).marco as { prompts?: { preWarm(): Promise<unknown[]> } } | undefined;
 
@@ -164,7 +171,7 @@ function _preWarmPrompts(attempt: number): void {
     sdk.prompts.preWarm().then(function(prompts: unknown[]) {
       if (prompts && prompts.length > 0) {
         log('Startup: 📋 Pre-warmed ' + prompts.length + ' prompts via SDK (attempt ' + (attempt + 1) + ')', 'success');
-        timingEnd(Label.PromptPrewarm, 'ok', prompts.length + ' prompts via SDK');
+        timingEnd(PROMPT_PREWARM, 'ok', prompts.length + ' prompts via SDK');
       } else {
         log('Startup: ⚠️ SDK prompt pre-warm returned empty — falling back to loader', 'warn');
         _preWarmViaLoader();
@@ -192,15 +199,15 @@ function _preWarmViaLoader(): void {
     mod.loadPromptsFromJson().then(function(prompts) {
       if (prompts && prompts.length > 0) {
         log('Startup: 📋 Pre-warmed ' + prompts.length + ' prompts via loader fallback', 'success');
-        timingEnd(Label.PromptPrewarm, 'ok', prompts.length + ' prompts via loader');
+        timingEnd(PROMPT_PREWARM, 'ok', prompts.length + ' prompts via loader');
       } else {
         log('Startup: ⚠️ Prompt pre-warm returned empty — will use defaults on dropdown open', 'warn');
-        timingEnd(Label.PromptPrewarm, 'warn', 'empty result');
+        timingEnd(PROMPT_PREWARM, 'warn', 'empty result');
       }
     });
   }).catch(function(e: unknown) {
     logError('Startup', 'Prompt pre-warm loader import failed — ' + (e instanceof Error ? e.message : String(e)));
-    timingEnd(Label.PromptPrewarm, 'error', 'loader import failed');
+    timingEnd(PROMPT_PREWARM, 'error', 'loader import failed');
   });
 }
 
@@ -248,7 +255,7 @@ function ensureUiManagerRegistered(mc: MacroController): boolean {
     return true;
   }
 
-  const factory = nsReadTyped('_internal.createUIManager') as (() => ReturnType<typeof buildUiManagerFromFactory>) | null;
+  const factory = nsRead('__createUIManager', '_internal.createUIManager') as (() => ReturnType<typeof buildUiManagerFromFactory>) | null;
   if (factory) {
     try {
       mc.registerUI(factory());
@@ -259,7 +266,7 @@ function ensureUiManagerRegistered(mc: MacroController): boolean {
     }
   }
 
-  const legacyCreateFn = nsReadTyped('_internal.createUIWrapper') as (() => void) | null;
+  const legacyCreateFn = nsRead('__createUIWrapper', '_internal.createUIWrapper') as (() => void) | null;
   if (legacyCreateFn) {
     const uiManager = new UIManager();
     uiManager.setCreateFn(legacyCreateFn);
@@ -276,7 +283,7 @@ function buildUiManagerFromFactory(): UIManager {
 }
 
 function scheduleUiCreationRetry(mc: MacroController, attempt: number): void {
-  
+  const MAX_UI_CREATE_RETRIES = 10;
   if (attempt > MAX_UI_CREATE_RETRIES) {
     logError('Startup', '❌ UIManager recovery exhausted after \' + MAX_UI_CREATE_RETRIES + \' attempts');
     return;
@@ -354,9 +361,7 @@ function handleTokenFailure(tokenResult: { waitedMs: number; reason: string }): 
 function logAuthDiag(): void {
   try {
     const authDiag = window.marco?.auth?.getLastAuthDiag?.();
-    if (!authDiag) {
-      return;
-    }
+    if (!authDiag) return;
 
     const bridgeTag = authDiag.bridgeOutcome === 'hit' ? '✅ bridge hit'
       : authDiag.bridgeOutcome === 'timeout' ? '⏱ bridge timeout'
@@ -368,11 +373,7 @@ function logAuthDiag(): void {
       : 'warn' as const;
     timingStart('auth-source', 'Auth Source (SDK)');
     timingEnd('auth-source', status, detail);
-    if (authDiag.source === 'none') {
-      logError('emitAuthDiag', 'Startup: SDK auth diag — no token from any source, bridge=' + authDiag.bridgeOutcome + ', ' + Math.round(authDiag.durationMs) + 'ms');
-    } else {
-      log('Startup: SDK auth diag — source=' + authDiag.source + ', bridge=' + authDiag.bridgeOutcome + ', ' + Math.round(authDiag.durationMs) + 'ms', 'info');
-    }
+    log('Startup: SDK auth diag — source=' + authDiag.source + ', bridge=' + authDiag.bridgeOutcome + ', ' + Math.round(authDiag.durationMs) + 'ms', authDiag.source === 'none' ? 'error' : 'info');
   } catch (e: unknown) {
     logError('emitAuthDiag', 'SDK auth diagnostics unavailable', e);
     // SDK not available yet — skip silently
@@ -385,7 +386,7 @@ function launchCreditAndWorkspaceLoad(): void {
   timingStart('credits', 'Credit Fetch');
   const creditPromise = fetchLoopCreditsAsync(false);
 
-  timingStart(Label.WsPrefetch, 'WS Tier1 Prefetch');
+  timingStart(WS_PREFETCH, 'WS Tier1 Prefetch');
   const currentProjectId = extractProjectIdFromUrl();
   const startupToken = resolveToken();
   let tier1Data: MarkViewedResponse | null = null;
@@ -396,7 +397,7 @@ function launchCreditAndWorkspaceLoad(): void {
         return data;
       })
     : Promise.resolve(null).then(function () {
-        timingEnd(Label.WsPrefetch, 'warn', 'No projectId or token');
+        timingEnd(WS_PREFETCH, 'warn', 'No projectId or token');
         return null;
       });
 
@@ -413,9 +414,7 @@ function handleCreditSuccess(tier1Data: MarkViewedResponse | null): void {
   timingStart('workspace', 'Workspace Detection');
 
   const isResolved = tier1Data !== null && resolveTier1Workspace(tier1Data);
-  if (isResolved) {
-    return;
-  }
+  if (isResolved) return;
 
   log('Startup: Tier 1 prefetch did not resolve workspace — falling back to autoDetect', 'info');
   const freshToken = resolveToken();
@@ -473,7 +472,7 @@ function fetchTier1Prefetch(projectId: string, _token: string): Promise<MarkView
     const workspaceApi = window.marco?.api?.workspace;
     if (!workspaceApi || typeof workspaceApi.markViewed !== 'function') {
       log('Startup: Tier 1 prefetch skipped — marco-sdk workspace API unavailable', 'warn');
-      timingEnd(Label.WsPrefetch, 'warn', 'SDK workspace API unavailable');
+      timingEnd(WS_PREFETCH, 'warn', 'SDK workspace API unavailable');
       return Promise.resolve(null);
     }
     return workspaceApi.markViewed(projectId)
@@ -481,7 +480,7 @@ function fetchTier1Prefetch(projectId: string, _token: string): Promise<MarkView
       .catch(handleTier1Error);
   } catch (err: unknown) {
     log('Startup: Tier 1 prefetch error: ' + toErrorMessage(err), 'warn');
-    timingEnd(Label.WsPrefetch, 'warn', toErrorMessage(err));
+    timingEnd(WS_PREFETCH, 'warn', toErrorMessage(err));
     return Promise.resolve(null);
   }
 }
@@ -489,16 +488,16 @@ function fetchTier1Prefetch(projectId: string, _token: string): Promise<MarkView
 function handleTier1Response(resp: { ok: boolean; status?: number; data?: unknown }): MarkViewedResponse | null {
   if (!resp.ok) {
     log('Startup: Tier 1 prefetch HTTP ' + resp.status, 'warn');
-    timingEnd(Label.WsPrefetch, 'warn', 'HTTP ' + resp.status);
+    timingEnd(WS_PREFETCH, 'warn', 'HTTP ' + resp.status);
     return null;
   }
-  timingEnd(Label.WsPrefetch, 'ok');
+  timingEnd(WS_PREFETCH, 'ok');
   return (resp.data ?? null) as MarkViewedResponse | null;
 }
 
 function handleTier1Error(err: unknown): null {
   log('Startup: Tier 1 prefetch error: ' + toErrorMessage(err), 'warn');
-  timingEnd(Label.WsPrefetch, 'warn', toErrorMessage(err));
+  timingEnd(WS_PREFETCH, 'warn', toErrorMessage(err));
   return null;
 }
 
@@ -516,9 +515,7 @@ function resolveTier1Workspace(tier1Data: MarkViewedResponse): boolean {
   }
 
   const hasNoWsId = !wsId;
-  if (hasNoWsId) {
-    return false;
-  }
+  if (hasNoWsId) return false;
 
   const wsById = loopCreditState.wsById || {};
   const perWs = loopCreditState.perWorkspace || [];
@@ -536,9 +533,7 @@ function resolveTier1Workspace(tier1Data: MarkViewedResponse): boolean {
   }
 
   const hasNoMatch = !matched;
-  if (hasNoMatch) {
-    return false;
-  }
+  if (hasNoMatch) return false;
 
   state.workspaceName = matched!.fullName || matched!.name;
   state.workspaceFromApi = true;
@@ -557,6 +552,7 @@ function resolveTier1Workspace(tier1Data: MarkViewedResponse): boolean {
 // ── Workspace Retry ──
 
 // Retry policy: first retry forces cookie refresh, second retry is the final pass.
+const STARTUP_WS_MAX_RETRIES = 2;
 
 // eslint-disable-next-line max-lines-per-function -- retry orchestration with cookie fallback and async chaining
 function scheduleWorkspaceRetry(attempt: number): void {
@@ -587,12 +583,12 @@ function scheduleWorkspaceRetry(attempt: number): void {
     let retryToken = '';
 
     if (attempt === 1) {
-      log(Label.StartupRetry + attempt + ' — forcing cookie read before retry', 'check');
+      log(STARTUP_RETRY + attempt + ' — forcing cookie read before retry', 'check');
       retryToken = getBearerTokenFromCookie();
       if (retryToken) {
-        log(Label.StartupRetry + attempt + ' — cookie token resolved, using refreshed token for retry', 'success');
+        log(STARTUP_RETRY + attempt + ' — cookie token resolved, using refreshed token for retry', 'success');
       } else {
-        log(Label.StartupRetry + attempt + ' — cookie read returned no token, falling back to current resolver', 'warn');
+        log(STARTUP_RETRY + attempt + ' — cookie read returned no token, falling back to current resolver', 'warn');
       }
     }
 
@@ -601,12 +597,12 @@ function scheduleWorkspaceRetry(attempt: number): void {
     }
 
     if (!retryToken) {
-      log(Label.StartupRetry + attempt + ' — no token available after cookie fallback, moving to next retry', 'warn');
+      log(STARTUP_RETRY + attempt + ' — no token available after cookie fallback, moving to next retry', 'warn');
       scheduleWorkspaceRetry(attempt + 1);
       return;
     }
 
-    log(Label.StartupRetry + attempt + '/' + STARTUP_WS_MAX_RETRIES + ' — re-fetching credits + workspace detection...', 'check');
+    log(STARTUP_RETRY + attempt + '/' + STARTUP_WS_MAX_RETRIES + ' — re-fetching credits + workspace detection...', 'check');
     state.workspaceFromApi = false;
 
     fetchLoopCreditsAsync(false).then(function () {
@@ -618,11 +614,11 @@ function scheduleWorkspaceRetry(attempt: number): void {
         log('Startup: ✅ Retry #' + attempt + ' succeeded — workspace: "' + state.workspaceName + '"', 'success');
         cacheWorkspaceName(state.workspaceName, loopCreditState.currentWs ? loopCreditState.currentWs.id : undefined);
       } else {
-        log(Label.StartupRetry + attempt + ' — workspace still empty, scheduling next retry', 'warn');
+        log(STARTUP_RETRY + attempt + ' — workspace still empty, scheduling next retry', 'warn');
         scheduleWorkspaceRetry(attempt + 1);
       }
     }).catch(function (err: unknown) {
-      log(Label.StartupRetry + attempt + ' failed: ' + toErrorMessage(err) + ' — scheduling next retry', 'warn');
+      log(STARTUP_RETRY + attempt + ' failed: ' + toErrorMessage(err) + ' — scheduling next retry', 'warn');
       scheduleWorkspaceRetry(attempt + 1);
     });
   }, delayMs);
@@ -658,30 +654,26 @@ function setupAuthResync(): void {
 }
 
 function tryAutoAuthResync(trigger: string): void {
-  if (authResyncState.inFlight) {
-    return;
-  }
+  if (authResyncState.inFlight) return;
   authResyncState.inFlight = true;
 
-  log(Label.AuthAutoResync + trigger + '): checking bridge for restored session...', 'check');
+  log(AUTH_AUTO_RESYNC + trigger + '): checking bridge for restored session...', 'check');
 
   refreshBearerTokenFromBestSource(function (token: string, source: string) {
     authResyncState.inFlight = false;
     const hasNoToken = !token;
 
     if (hasNoToken) {
-      log(Label.AuthAutoResync + trigger + '): no token yet (user may still be logged out)', 'warn');
+      log(AUTH_AUTO_RESYNC + trigger + '): no token yet (user may still be logged out)', 'warn');
       updateAuthBadge(false, 'none');
       return;
     }
 
     setLastTokenSource(source || getLastTokenSource() || 'bridge');
     updateAuthBadge(true, getLastTokenSource());
-    log(Label.AuthAutoResync + trigger + '): ✅ token restored from ' + getLastTokenSource(), 'success');
+    log(AUTH_AUTO_RESYNC + trigger + '): ✅ token restored from ' + getLastTokenSource(), 'success');
 
-    if (state.running) {
-      return;
-    }
+    if (state.running) return;
 
     fetchLoopCreditsAsync(false)
       .then(function () {
@@ -690,10 +682,10 @@ function tryAutoAuthResync(trigger: string): void {
       .then(function () {
         syncCreditStateFromApi();
         updateUI();
-        log(Label.AuthAutoResync + trigger + '): workspace/credit UI refreshed', 'success');
+        log(AUTH_AUTO_RESYNC + trigger + '): workspace/credit UI refreshed', 'success');
       })
       .catch(function (err: Error) {
-        log(Label.AuthAutoResync + trigger + '): UI refresh failed: ' + (err && err.message ? err.message : String(err)), 'warn');
+        log(AUTH_AUTO_RESYNC + trigger + '): UI refresh failed: ' + (err && err.message ? err.message : String(err)), 'warn');
       });
   });
 }

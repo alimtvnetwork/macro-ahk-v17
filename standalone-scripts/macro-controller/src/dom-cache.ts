@@ -37,14 +37,10 @@ class DomCache {
 
   /** Get a single node by XPath, using cache if fresh */
   getByXPath(xpath: string): Node | null {
-    if (!xpath) {
-      return null;
-    }
+    if (!xpath) return null;
 
     const cached = this._cache.get(xpath);
-    if (cached && Date.now() {
-      - cached.timestamp < this._ttlMs) {
-    }
+    if (cached && Date.now() - cached.timestamp < this._ttlMs) {
       // Verify element is still in DOM
       if (cached.element === null || (cached.element instanceof Element && document.contains(cached.element))) {
         this._hits++;
@@ -67,14 +63,10 @@ class DomCache {
 
   /** Get all nodes by XPath, using cache if fresh */
   getAllByXPath(xpath: string): Node[] {
-    if (!xpath) {
-      return [];
-    }
+    if (!xpath) return [];
 
     const cached = this._cacheMulti.get(xpath);
-    if (cached && Date.now() {
-      - cached.timestamp < this._ttlMs) {
-    }
+    if (cached && Date.now() - cached.timestamp < this._ttlMs) {
       this._hits++;
       return cached.elements;
     }
@@ -103,9 +95,7 @@ class DomCache {
   querySelector(selector: string): Element | null {
     const key = 'css:' + selector;
     const cached = this._cache.get(key);
-    if (cached && Date.now() {
-      - cached.timestamp < this._ttlMs) {
-    }
+    if (cached && Date.now() - cached.timestamp < this._ttlMs) {
       if (cached.element === null || (cached.element instanceof Element && document.contains(cached.element))) {
         this._hits++;
         return cached.element as Element | null;
@@ -123,9 +113,7 @@ class DomCache {
   getElementById(id: string): HTMLElement | null {
     const key = 'id:' + id;
     const cached = this._cache.get(key);
-    if (cached && Date.now() {
-      - cached.timestamp < this._ttlMs) {
-    }
+    if (cached && Date.now() - cached.timestamp < this._ttlMs) {
       if (cached.element === null || (cached.element instanceof Element && document.contains(cached.element))) {
         this._hits++;
         return cached.element as HTMLElement | null;

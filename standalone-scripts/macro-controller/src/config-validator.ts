@@ -10,7 +10,10 @@
  */
 
 import type { MacroControllerConfig, MacroThemeRoot, ThemePreset } from './types';
-import { SUPPORTED_CONFIG_SCHEMA, SUPPORTED_THEME_SCHEMA } from './constants';
+
+// ── Supported schema versions ──
+const SUPPORTED_CONFIG_SCHEMA = 1;
+const SUPPORTED_THEME_SCHEMA = 2;
 
 // ── Validation warning collector ──
 const validationWarnings: string[] = [];
@@ -37,10 +40,8 @@ function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial
     const srcVal = (source as Record<string, unknown>)[key];
     const tgtVal = result[key];
 
-    if (isPlainObject(srcVal) {
-      && isPlainObject(tgtVal)) {
-    }
-      result[key] = deepMerge(tgtVal, srcVal);
+    if (isPlainObject(srcVal) && isPlainObject(tgtVal)) {
+      result[key] = deepMerge(tgtVal as Record<string, unknown>, srcVal as Record<string, unknown>);
     } else if (srcVal !== undefined) {
       result[key] = srcVal;
     }
@@ -131,11 +132,8 @@ const DEFAULT_THEME: MacroThemeRoot = {
  * Warns on schema version mismatch or unexpected types.
  */
 export function validateConfig(raw: unknown): MacroControllerConfig {
-  const isInvalidConfig = !isPlainObject(raw);
-
-  if (isInvalidConfig) {
+  if (!isPlainObject(raw)) {
     warn('Config: received non-object — using all defaults');
-
     return { ...DEFAULT_CONFIG };
   }
 
@@ -159,11 +157,8 @@ export function validateConfig(raw: unknown): MacroControllerConfig {
  * Warns on schema version mismatch, missing presets, or invalid activePreset.
  */
 export function validateTheme(raw: unknown): MacroThemeRoot {
-  const isInvalidTheme = !isPlainObject(raw);
-
-  if (isInvalidTheme) {
+  if (!isPlainObject(raw)) {
     warn('Theme: received non-object — using all defaults');
-
     return { ...DEFAULT_THEME };
   }
 
@@ -175,11 +170,7 @@ export function validateTheme(raw: unknown): MacroThemeRoot {
   }
 
   // Validate activePreset
-  const hasActivePreset = theme.activePreset !== undefined;
-  const isKnownPreset = theme.activePreset === 'dark' || theme.activePreset === 'light';
-  const isUnknownPreset = hasActivePreset && !isKnownPreset;
-
-  if (isUnknownPreset) {
+  if (theme.activePreset && theme.activePreset !== 'dark' && theme.activePreset !== 'light') {
     warn('Theme: activePreset "' + theme.activePreset + '" is not "dark" or "light" — falling back to "dark"');
     theme.activePreset = 'dark';
   }
@@ -198,17 +189,11 @@ export function validateTheme(raw: unknown): MacroThemeRoot {
 // ── Internal helpers ──
 
 function validateSchemaVersion(label: string, version: unknown, supported: number): void {
-  const isNotNumber = typeof version !== 'number';
-
-  if (isNotNumber) {
+  if (typeof version !== 'number') {
     warn(label + ': schemaVersion is not a number (got ' + typeof version + ')');
-
     return;
   }
-
-  const isNewerThanSupported = version > supported;
-
-  if (isNewerThanSupported) {
+  if (version > supported) {
     warn(label + ': schemaVersion ' + version + ' is newer than supported (' + supported + ') — some fields may be ignored');
   }
 }
@@ -220,16 +205,9 @@ function validateFieldType(
   label: string,
 ): void {
   const val = obj[field];
-  const isNullish = val === undefined || val === null;
-
-  if (isNullish) {
-    return;
-  }
-
+  if (val === undefined || val === null) return;
   const actual = Array.isArray(val) ? 'array' : typeof val;
-  const isTypeMismatch = actual !== expected;
-
-  if (isTypeMismatch) {
+  if (actual !== expected) {
     warn(label + '.' + field + ': expected ' + expected + ', got ' + actual + ' — using default');
     delete obj[field];
   }

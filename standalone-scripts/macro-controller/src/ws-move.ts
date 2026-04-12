@@ -21,7 +21,7 @@ import { CREDIT_API_BASE, state } from './shared-state';
 import { clearResolvedWorkspace } from './credit-balance';
 import { logError } from './error-utils';
 
-import { Label } from './types';
+const LOG_SESSIONCHECK = '[SessionCheck/';
 
 function mc() { return MacroController.getInstance(); }
 
@@ -70,13 +70,13 @@ export function updateLoopMoveStatus(statusState: string, message: string): void
 async function probeSessionWithToken(context: string, token: string): Promise<void> {
   const authLabel = 'Bearer ' + token.substring(0, 12) + '...REDACTED';
 
-  log(Label.LogSessionCheck + context + '] Probing workspace session (auth: ' + authLabel + ')', 'info');
+  log(LOG_SESSIONCHECK + context + '] Probing workspace session (auth: ' + authLabel + ')', 'info');
 
   try {
     const resp = await window.marco!.api!.workspace.probe({ baseUrl: CREDIT_API_BASE });
 
     if (!resp.ok) {
-      logError('unknown', Label.LogSessionCheck + context + '] ❌ Session probe failed: HTTP ' + resp.status + ' (auth: ' + authLabel + ')');
+      logError('unknown', LOG_SESSIONCHECK + context + '] ❌ Session probe failed: HTTP ' + resp.status + ' (auth: ' + authLabel + ')');
       showToast(context + ' failed — session also broken (HTTP ' + resp.status + '). Re-auth needed.', 'error');
 
       return;
@@ -89,10 +89,10 @@ async function probeSessionWithToken(context: string, token: string): Promise<vo
         ? ((data as Record<string, unknown[]>).workspaces).length
         : '?');
 
-    log(Label.LogSessionCheck + context + '] ✅ Session valid — ' + wsCount + ' workspaces loaded (auth: ' + authLabel + ')', 'success');
+    log(LOG_SESSIONCHECK + context + '] ✅ Session valid — ' + wsCount + ' workspaces loaded (auth: ' + authLabel + ')', 'success');
     showToast(context + ' failed but session is valid (' + wsCount + ' workspaces)', 'info');
   } catch (err) {
-    logError('unknown', Label.LogSessionCheck + context + '] ❌ Network error: ' + (err as Error).message);
+    logError('unknown', LOG_SESSIONCHECK + context + '] ❌ Network error: ' + (err as Error).message);
     showToast(context + ' failed — network error on session check', 'error');
   }
 }
@@ -110,14 +110,14 @@ export async function verifyWorkspaceSessionAfterFailure(context: string): Promi
     return;
   }
 
-  log(Label.LogSessionCheck + context + '] No bearer token — recovering before probe', 'warn');
+  log(LOG_SESSIONCHECK + context + '] No bearer token — recovering before probe', 'warn');
 
   try {
     const recoveredToken = await recoverAuthOnce();
     const fallbackToken = recoveredToken || resolveToken();
 
     if (!fallbackToken) {
-      logError('unknown', Label.LogSessionCheck + context + '] Recovery failed — skipping unauthenticated session probe');
+      logError('unknown', LOG_SESSIONCHECK + context + '] Recovery failed — skipping unauthenticated session probe');
       showToast(context + ' failed — no bearer token available for session check', 'error', { noStop: true });
 
       return;
@@ -125,7 +125,7 @@ export async function verifyWorkspaceSessionAfterFailure(context: string): Promi
 
     await probeSessionWithToken(context, fallbackToken);
   } catch {
-    logError('unknown', Label.LogSessionCheck + context + '] Recovery error — skipping unauthenticated session probe');
+    logError('unknown', LOG_SESSIONCHECK + context + '] Recovery error — skipping unauthenticated session probe');
     showToast(context + ' failed — no bearer token available for session check', 'error', { noStop: true });
   }
 }
@@ -291,9 +291,7 @@ async function executeMove(
   try {
     const resp = await window.marco!.api!.workspace.move(projectId, targetWorkspaceId, { baseUrl: CREDIT_API_BASE });
 
-    if (isAuthFailure(resp.status) {
-      && !isRetry) {
-    }
+    if (isAuthFailure(resp.status) && !isRetry) {
       await handleMoveAuthFailure(projectId, targetWorkspaceId, targetWorkspaceName, token, resp.status);
 
       return;

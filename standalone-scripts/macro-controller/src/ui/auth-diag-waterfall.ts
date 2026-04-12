@@ -10,7 +10,9 @@
 import { getTimingEntries, getTimingSinceLoadMs } from '../startup-timing';
 import { createSkeletonBar } from './skeleton';
 import { cPanelFgDim } from '../shared-state';
-import { CssFragment } from '../types';
+
+const CSS_FONT_SIZE_9PX_COLOR = 'font-size:9px;color:';
+
 const STATUS_COLORS: Record<string, string> = {
   ok: '#4ade80',
   warn: '#fbbf24',
@@ -116,9 +118,7 @@ function renderWaterfallEntries(
   }
 
   const isMaxTooSmall = maxEnd < 100;
-  if (isMaxTooSmall) {
-    maxEnd = 100;
-  }
+  if (isMaxTooSmall) maxEnd = 100;
 
   waterfallBody.innerHTML = '';
 
@@ -128,7 +128,7 @@ function renderWaterfallEntries(
   }
 
   const totalRow = document.createElement('div');
-  totalRow.style.cssText = CssFragment.FontSize9pxColor + cPanelFgDim + ';text-align:right;margin-top:2px;border-top:1px solid rgba(255,255,255,0.08);padding-top:2px;';
+  totalRow.style.cssText = CSS_FONT_SIZE_9PX_COLOR + cPanelFgDim + ';text-align:right;margin-top:2px;border-top:1px solid rgba(255,255,255,0.08);padding-top:2px;';
   const isUnderOneSecond = totalMs < 1000;
   totalRow.textContent = 'Total: ' + (isUnderOneSecond ? totalMs + 'ms' : (totalMs / 1000).toFixed(1) + 's');
   waterfallBody.appendChild(totalRow);
@@ -144,7 +144,7 @@ function buildWaterfallRow(
   setTimeout(function () { row.style.opacity = '1'; }, 60 * index);
 
   const label = document.createElement('span');
-  label.style.cssText = CssFragment.FontSize9pxColor + cPanelFgDim + ';min-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+  label.style.cssText = CSS_FONT_SIZE_9PX_COLOR + cPanelFgDim + ';min-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
   label.textContent = entry.label;
   label.title = entry.detail || '';
 
@@ -166,7 +166,7 @@ function buildWaterfallRow(
 
   const durationMs = entry.endMs - entry.startMs;
   const dur = document.createElement('span');
-  dur.style.cssText = CssFragment.FontSize9pxColor + color + ';min-width:36px;text-align:right;white-space:nowrap;';
+  dur.style.cssText = CSS_FONT_SIZE_9PX_COLOR + color + ';min-width:36px;text-align:right;white-space:nowrap;';
   const isUnderOneSecond = durationMs < 1000;
   dur.textContent = isUnderOneSecond ? durationMs + 'ms' : (durationMs / 1000).toFixed(1) + 's';
 

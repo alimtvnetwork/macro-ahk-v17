@@ -7,8 +7,9 @@
 import { VERSION, IDS, cPanelFg, cPanelFgDim } from '../shared-state';
 import { log, logSub } from '../logging';
 import { logError } from '../error-utils';
-import { LOOP_JS_HISTORY_MAX } from '../constants';
-import { CssFragment } from '../types';
+
+const CSS_SPAN_STYLE_COLOR = '<span style="color:';
+
 // === Module-level state ===
 const loopJsHistory: Array<{time: string, code: string, success: boolean, result: string}> = [];
 // CQ11: Singleton for JS history navigation index
@@ -25,6 +26,8 @@ class JsHistoryState {
 }
 
 const jsHistoryState = new JsHistoryState();
+const LOOP_JS_HISTORY_MAX = 20;
+
 export function addLoopJsHistoryEntry(code: string, success: boolean, resultText: string): void {
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -32,9 +35,7 @@ export function addLoopJsHistoryEntry(code: string, success: boolean, resultText
   const isDuplicate = loopJsHistory.length > 0 && loopJsHistory[0].code === code;
   if (!isDuplicate) {
     loopJsHistory.unshift(entry);
-    if (loopJsHistory.length > LOOP_JS_HISTORY_MAX) {
-      loopJsHistory.pop();
-    }
+    if (loopJsHistory.length > LOOP_JS_HISTORY_MAX) loopJsHistory.pop();
     logSub('JS history updated: ' + loopJsHistory.length + ' entries');
   }
   jsHistoryState.index = -1;
@@ -43,9 +44,7 @@ export function addLoopJsHistoryEntry(code: string, success: boolean, resultText
 
 export function renderLoopJsHistory(): void {
   const el = document.getElementById('loop-js-history');
-  if (!el) {
-    return;
-  }
+  if (!el) return;
   if (loopJsHistory.length === 0) {
     el.innerHTML = '<span style="color:#64748b;font-size:10px;">No commands yet</span>';
     return;
@@ -57,9 +56,9 @@ export function renderLoopJsHistory(): void {
     html += '<div class="loop-js-hist-item" data-hist-idx="' + histIndex + '" style="display:flex;gap:4px;align-items:flex-start;padding:3px 4px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);font-size:10px;font-family:monospace;"'
       + ' onmouseover="(this as HTMLElement).style.background=\'rgba(139,92,246,0.15)\'"'
       + ' onmouseout="(this as HTMLElement).style.background=\'transparent\'">'
-      + CssFragment.SpanStyleColor + statusColor + ';font-size:10px;">' + statusIcon + '</span>'
-      + CssFragment.SpanStyleColor + cPanelFgDim + ';font-size:9px;min-width:40px;">' + e.time + '</span>'
-      + CssFragment.SpanStyleColor + cPanelFg + ';flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + e.code.substring(0, 60) + '</span>'
+      + CSS_SPAN_STYLE_COLOR + statusColor + ';font-size:10px;">' + statusIcon + '</span>'
+      + CSS_SPAN_STYLE_COLOR + cPanelFgDim + ';font-size:9px;min-width:40px;">' + e.time + '</span>'
+      + CSS_SPAN_STYLE_COLOR + cPanelFg + ';flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + e.code.substring(0, 60) + '</span>'
       + '</div>';
   }
   el.innerHTML = html;
@@ -81,9 +80,7 @@ export function renderLoopJsHistory(): void {
 
 export function navigateLoopJsHistory(direction: string): void {
   const ta = document.getElementById(IDS.JS_EXECUTOR) as HTMLTextAreaElement | null;
-  if (!ta || loopJsHistory.length === 0) {
-    return;
-  }
+  if (!ta || loopJsHistory.length === 0) return;
   if (direction === 'up') {
     if (jsHistoryState.index < loopJsHistory.length - 1) {
       jsHistoryState.index++;

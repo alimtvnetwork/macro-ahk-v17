@@ -62,9 +62,7 @@ function getAboutData() {
 // ── Inline styles (applied via CSS classes → style injection) ──
 
 function injectAboutStyles(): void {
-  if (document.getElementById('marco-about-styles')) {
-    return;
-  }
+  if (document.getElementById('marco-about-styles')) return;
 
   const style = document.createElement('style');
   style.id = 'marco-about-styles';

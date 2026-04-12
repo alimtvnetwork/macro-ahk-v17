@@ -421,8 +421,6 @@ export interface ControllerState {
   projectNameFromApi: string;
   /** Project name resolved from DOM XPath on page load. */
   projectNameFromDom: string;
-  /** Custom display name set by user in settings — highest priority for title bar. */
-  customDisplayName: string;
   hasFreeCredit: boolean;
   lastStatusCheck: number;
   statusRefreshId: ReturnType<typeof setTimeout> | null;

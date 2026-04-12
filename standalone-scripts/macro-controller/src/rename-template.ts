@@ -48,9 +48,7 @@ function normalizeStartNumbers(startNums: number | Record<string, number>): Vari
 
 function applyVars(str: string, starts: VariableStartNumbers, index: number): string {
   const isEmpty = !str;
-  if (isEmpty) {
-    return str;
-  }
+  if (isEmpty) return str;
 
   str = str.replace(/(\$+)/, function (m: string) {
     return zeroPad((starts.dollar || 1) + index, m.length);

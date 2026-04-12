@@ -22,7 +22,7 @@ import { VERSION, state, loopCreditState } from '../shared-state';
 import type { WorkspaceCredit, LoopCreditState } from '../types';
 import { log } from '../logging';
 import { domCache } from '../dom-cache';
-import { nsReadTyped } from '../api-namespace';
+import { nsRead } from '../api-namespace';
 import { wsRenderStats } from '../ws-selection-ui';
 import { statusRenderStats } from '../ui/ui-updaters';
 import { logError } from '../error-utils';
@@ -150,56 +150,48 @@ export class MacroController {
 
   get auth(): AuthManagerInterface {
     if (!this._auth) {
-      const factory = nsReadTyped('_internal.createAuthManager') as (() => AuthManagerInterface) | null;
+      const factory = nsRead('__createAuthManager', '_internal.createAuthManager') as (() => AuthManagerInterface) | null;
       if (factory) {
         log('[MacroController] Self-healing: auto-registering AuthManager from persisted factory', 'warn');
         this._auth = factory();
       }
-      if (!this._auth) {
-        throw this._notRegisteredError('AuthManager');
-      }
+      if (!this._auth) throw this._notRegisteredError('AuthManager');
     }
     return this._auth;
   }
 
   get credits(): CreditManagerInterface {
     if (!this._credits) {
-      const factory = nsReadTyped('_internal.createCreditManager') as (() => CreditManagerInterface) | null;
+      const factory = nsRead('__createCreditManager', '_internal.createCreditManager') as (() => CreditManagerInterface) | null;
       if (factory) {
         log('[MacroController] Self-healing: auto-registering CreditManager from persisted factory', 'warn');
         this._credits = factory();
       }
-      if (!this._credits) {
-        throw this._notRegisteredError('CreditManager');
-      }
+      if (!this._credits) throw this._notRegisteredError('CreditManager');
     }
     return this._credits;
   }
 
   get workspaces(): WorkspaceManagerInterface {
     if (!this._workspaces) {
-      const factory = nsReadTyped('_internal.createWorkspaceManager') as (() => WorkspaceManagerInterface) | null;
+      const factory = nsRead('__createWorkspaceManager', '_internal.createWorkspaceManager') as (() => WorkspaceManagerInterface) | null;
       if (factory) {
         log('[MacroController] Self-healing: auto-registering WorkspaceManager from persisted factory', 'warn');
         this._workspaces = factory();
       }
-      if (!this._workspaces) {
-        throw this._notRegisteredError('WorkspaceManager');
-      }
+      if (!this._workspaces) throw this._notRegisteredError('WorkspaceManager');
     }
     return this._workspaces;
   }
 
   get loop(): LoopEngineInterface {
     if (!this._loop) {
-      const factory = nsReadTyped('_internal.createLoopEngine') as (() => LoopEngineInterface) | null;
+      const factory = nsRead('__createLoopEngine', '_internal.createLoopEngine') as (() => LoopEngineInterface) | null;
       if (factory) {
         log('[MacroController] Self-healing: auto-registering LoopEngine from persisted factory', 'warn');
         this._loop = factory();
       }
-      if (!this._loop) {
-        throw this._notRegisteredError('LoopEngine');
-      }
+      if (!this._loop) throw this._notRegisteredError('LoopEngine');
     }
     return this._loop;
   }
@@ -210,7 +202,7 @@ export class MacroController {
    */
   get ui(): UIManagerInterface | null {
     if (!this._ui) {
-      const factory = nsReadTyped('_internal.createUIManager') as (() => UIManagerInterface) | null;
+      const factory = nsRead('__createUIManager', '_internal.createUIManager') as (() => UIManagerInterface) | null;
       if (factory) {
         log('[MacroController] Self-healing: auto-registering UIManager from persisted factory', 'warn');
         this._ui = factory();
@@ -251,8 +243,8 @@ export class MacroController {
     ];
     let factoryStatus = '';
     try {
-      factoryStatus = factoryKeys.map(([nsPath]) => {
-        const f = nsReadTyped(nsPath as keyof import('../api-namespace').NsPathMap);
+      factoryStatus = factoryKeys.map(([nsPath, winKey]) => {
+        const f = nsRead(winKey, nsPath);
         return `  ${nsPath}: ${f ? '✅ available' : '❌ missing'}`;
       }).join('\n');
     } catch (e) {
@@ -261,7 +253,7 @@ export class MacroController {
     }
 
     const nsKey = '_internal.create' + managerName;
-    const factoryPresent = !!nsReadTyped(nsKey as keyof import('../api-namespace').NsPathMap);
+    const factoryPresent = !!nsRead('__create' + managerName, nsKey);
 
     const msg =
       `MacroController: ${managerName} not registered\n` +
@@ -292,16 +284,12 @@ export class MacroController {
 
   /** Safe UI update — no-op if UIManager not yet registered. */
   updateUI(): void {
-    if (this._ui) {
-      this._ui.update();
-    }
+    if (this._ui) this._ui.update();
   }
 
   /** Lightweight UI update — status/buttons only, no workspace list rebuild. */
   updateUILight(): void {
-    if (this._ui) {
-      this._ui.updateLight();
-    }
+    if (this._ui) this._ui.updateLight();
   }
 
   // ---- Lifecycle ----

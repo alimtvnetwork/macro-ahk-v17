@@ -231,9 +231,7 @@ async function doFetchWorkspacesForMove(
 
   const resp = await window.marco!.api!.credits.fetchWorkspaces({ baseUrl: CREDIT_API_BASE });
 
-  if (isAuthFailure(resp.status) {
-    && !isRetry) {
-  }
+  if (isAuthFailure(resp.status) && !isRetry) {
     await handleAdjacentAuthFailure(token, resp.status);
 
     return;

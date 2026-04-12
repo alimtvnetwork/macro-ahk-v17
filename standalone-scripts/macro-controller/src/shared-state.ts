@@ -16,7 +16,6 @@ import {
   type ElementIds,
 } from './types';
 import { validateConfig, validateTheme, drainValidationWarnings } from './config-validator';
-import { logDebug } from './error-utils';
 
 // ============================================
 // Config: Validated + deep-merged with defaults (Phase 05)
@@ -47,23 +46,17 @@ if (_configWarnings.length > 0) {
 /** Get config validation warnings (for diagnostics). */
 export function getConfigValidationWarnings(): string[] { return _configWarnings; }
 
-import { StorageKey } from './types';
+const FORCED_THEME_KEY = 'dark';
 
 export function resolvePreset(key: string): ThemePreset {
   const darkPreset = themeRoot.presets?.dark;
-  if (darkPreset) {
-    return darkPreset;
-  }
-  if (themeRoot.presets && themeRoot.presets[key]) {
-    return themeRoot.presets[key];
-  }
-  if (themeRoot.colors) {
-    return { colors: themeRoot.colors };
-  }
+  if (darkPreset) return darkPreset;
+  if (themeRoot.presets && themeRoot.presets[key]) return themeRoot.presets[key];
+  if (themeRoot.colors) return { colors: themeRoot.colors };
   return {} as ThemePreset;
 }
 
-const theme = resolvePreset(StorageKey.ForcedTheme);
+const theme = resolvePreset(FORCED_THEME_KEY);
 const TC = theme.colors || {};
 const TP = TC.panel || {};
 const TPri = TC.primary || {};
@@ -84,19 +77,17 @@ const TTypo = theme.typography || {};
 // ============================================
 // Exported constants
 // ============================================
-export { FILE_NAME } from './constants';
-export const VERSION = '2.133.0';
+export const FILE_NAME = 'macro-looping.js';
+export const VERSION = '2.121.0';
 
 // Expose version via RiseupAsiaMacroExt namespace (Issue 78 — no bare window globals)
 try {
   const root = RiseupAsiaMacroExt;
   if (root && root.Projects && root.Projects.MacroController) {
-    if (!root.Projects.MacroController.meta) {
-      root.Projects.MacroController.meta = {};
-    }
+    if (!root.Projects.MacroController.meta) root.Projects.MacroController.meta = {};
     root.Projects.MacroController.meta.version = VERSION;
   }
-} catch (_e) { logDebug('shared-state', 'SDK namespace not yet registered — version set at injection time'); }
+} catch (_e) { console.debug('[RiseupAsia] [shared-state] SDK namespace not yet registered — version set at injection time'); }
 
 // ============================================
 // Panel colors
@@ -225,7 +216,8 @@ export const lPanelFloatSh = TLayout.panelFloatShadow    || '0 8px 32px rgba(0,0
 
 // ── Default panel dimensions (single source of truth) ──
 // Change these two values to adjust the default load size everywhere.
-export { PANEL_DEFAULT_WIDTH, PANEL_DEFAULT_HEIGHT } from './constants';
+export const PANEL_DEFAULT_WIDTH  = 494;
+export const PANEL_DEFAULT_HEIGHT = 517;
 export const lDropdownRadius= TLayout.dropdownBorderRadius || '4px';
 export const lDropdownShadow= TLayout.dropdownShadow      || '0 8px 24px rgba(0,0,0,0.6)';
 export const lModalRadius  = TLayout.modalBorderRadius    || '12px';
@@ -300,12 +292,15 @@ export const autoAttachCfg = cfg.autoAttach || {};
 export const autoAttachTiming = autoAttachCfg.timing || {};
 export const autoAttachGroups = autoAttachCfg.groups || [];
 
-// Storage constants — centralized in types/ enums and constants.ts
-export { StorageKey } from './types';
-export const LOG_STORAGE_KEY = StorageKey.LogStorage;
-export const WS_HISTORY_KEY = StorageKey.WsHistory;
-export const WS_SHARED_KEY = StorageKey.WsShared;
-export { LOG_MAX_ENTRIES, WS_HISTORY_MAX_ENTRIES, BLOATED_KEY_PATTERNS } from './constants';
+// ============================================
+// Storage constants
+// ============================================
+export const LOG_STORAGE_KEY = 'ahk_macroloop_logs';
+export const WS_HISTORY_KEY = 'ml_workspace_history';
+export const WS_SHARED_KEY = 'ml_known_workspaces';
+export const LOG_MAX_ENTRIES = 500;
+export const WS_HISTORY_MAX_ENTRIES = 50;
+export const BLOATED_KEY_PATTERNS = ['console-history', 'previously-viewed-files', 'ai-code-completion'];
 
 // ============================================
 // Runtime state — re-exported from shared-state-runtime.ts (Phase 5 split)

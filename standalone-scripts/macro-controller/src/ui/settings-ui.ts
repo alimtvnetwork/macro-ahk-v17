@@ -10,8 +10,6 @@
  * @see spec/04-macro-controller/ts-migration-v2/05-module-splitting.md
  */
 
-import { state } from '../shared-state';
-
 import { taskNextState, saveTaskNextSettings, type TaskNextDeps } from './task-next-ui';
 import type { ExtensionResponse, ResolvedPromptsConfig } from '../types';
 import { updateLogConfig, type LogManagerConfig } from '../log-manager';
@@ -43,7 +41,9 @@ import {
   buildConfigDbPanel,
   buildGeneralPanel,
 } from './settings-tab-panels';
-import { CssFragment } from '../types';
+
+const CSS_BACKGROUND = 'background:';
+
 // ============================================
 // Dependencies injected from createUI closure
 // ============================================
@@ -139,7 +139,7 @@ export function showSettingsDialog(deps: SettingsDeps) {
 
 function _buildSettingsDialogShell(tFontSystem: string): HTMLElement {
   const dialog = document.createElement('div');
-  dialog.style.cssText = CssFragment.Background + cPanelBg + ';border:1px solid ' + cPanelBorder + ';border-radius:12px;padding:0;max-width:560px;width:92%;max-height:80vh;display:flex;flex-direction:column;color:' + cPanelText + ';font-family:' + tFontSystem + ';box-shadow:0 25px 60px rgba(0,0,0,0.5);';
+  dialog.style.cssText = CSS_BACKGROUND + cPanelBg + ';border:1px solid ' + cPanelBorder + ';border-radius:12px;padding:0;max-width:560px;width:92%;max-height:80vh;display:flex;flex-direction:column;color:' + cPanelText + ';font-family:' + tFontSystem + ';box-shadow:0 25px 60px rgba(0,0,0,0.5);';
   dialog.className = 'marco-enter';
   dialog.onclick = function(e) { e.stopPropagation(); };
   return dialog;
@@ -162,7 +162,7 @@ function _buildSettingsHeader(_fontSystem: string, overlay: HTMLElement): HTMLEl
   return hdr;
 }
 
-function _buildSettingsTabs(deps: SettingsDeps, getPromptsConfig: () => ResolvedPromptsConfig): { tabBtns: HTMLElement[]; panels: HTMLElement[]; tabPanels: { tabBar: HTMLElement; panelsContainer: HTMLElement } } {
+function _buildSettingsTabs(deps: SettingsDeps, getPromptsConfig: () => any): { tabBtns: HTMLElement[]; panels: HTMLElement[]; tabPanels: { tabBar: HTMLElement; panelsContainer: HTMLElement } } {
   const tabs = ['XPaths', 'Timing', 'Task Next', 'Logging', 'Config (DB)', 'General'];
   const tabBar = document.createElement('div');
   tabBar.style.cssText = 'display:flex;gap:0;border-bottom:1px solid ' + cPanelBorder + ';padding:0 20px;flex-shrink:0;';
@@ -198,20 +198,20 @@ function _buildSettingsFooter(btnStyle: string, deps: SettingsDeps, _panels: HTM
 
   const cancelBtn2 = document.createElement('button');
   cancelBtn2.textContent = 'Cancel';
-  cancelBtn2.style.cssText = btnStyle + CssFragment.Background + cNeutral600 + ';color:' + cPanelFg + ';padding:6px 16px;font-size:12px;';
+  cancelBtn2.style.cssText = btnStyle + CSS_BACKGROUND + cNeutral600 + ';color:' + cPanelFg + ';padding:6px 16px;font-size:12px;';
   cancelBtn2.onclick = function() { overlay.remove(); };
 
   const resetBtn = document.createElement('button');
   resetBtn.textContent = '↺ Reset';
   resetBtn.title = 'Reset fields to current running values';
-  resetBtn.style.cssText = btnStyle + CssFragment.Background + cWarning + ';color:#1e1e2e;padding:6px 16px;font-size:12px;';
+  resetBtn.style.cssText = btnStyle + CSS_BACKGROUND + cWarning + ';color:#1e1e2e;padding:6px 16px;font-size:12px;';
   resetBtn.onclick = function() {
     showToast('Fields reset to current values', 'info');
   };
 
   const saveBtn2 = document.createElement('button');
   saveBtn2.textContent = '💾 Save';
-  saveBtn2.style.cssText = btnStyle + CssFragment.Background + cSuccess + ';color:#1e1e2e;padding:6px 20px;font-size:12px;font-weight:600;';
+  saveBtn2.style.cssText = btnStyle + CSS_BACKGROUND + cSuccess + ';color:#1e1e2e;padding:6px 20px;font-size:12px;font-weight:600;';
   saveBtn2.onclick = function() {
     log('Settings saved', 'info');
     showToast('✅ Settings saved', 'info');
@@ -229,25 +229,17 @@ function _applyXPathSettings(xpResult: XPathPanelResult): void {
     CONFIG[k] = xpResult.inputs[k].value;
   }
   const pInp = document.getElementById('xpath-project-btn') as HTMLInputElement;
-  if (pInp) {
-    pInp.value = CONFIG.PROJECT_BUTTON_XPATH;
-  }
+  if (pInp) pInp.value = CONFIG.PROJECT_BUTTON_XPATH;
   const prInp = document.getElementById('xpath-progress-bar') as HTMLInputElement;
-  if (prInp) {
-    prInp.value = CONFIG.PROGRESS_XPATH;
-  }
+  if (prInp) prInp.value = CONFIG.PROGRESS_XPATH;
   const wInp = document.getElementById('xpath-workspace-name') as HTMLInputElement;
-  if (wInp) {
-    wInp.value = CONFIG.WORKSPACE_XPATH;
-  }
+  if (wInp) wInp.value = CONFIG.WORKSPACE_XPATH;
 }
 
 function _applyTimingSettings(tmResult: TimingPanelResult): void {
   for (const k in tmResult.inputs) {
     const val = parseInt(tmResult.inputs[k].value, 10);
-    if (!isNaN(val) {
-      && val >= 0) TIMING[k] = val;
-    }
+    if (!isNaN(val) && val >= 0) TIMING[k] = val;
   }
 }
 
@@ -256,9 +248,7 @@ function _applyTaskNextSettings(tnResult: TaskNextPanelResult, taskNextDeps: Tas
     const isNum = k !== 'buttonXPath' && k !== 'promptSlug';
     if (isNum) {
       const v = parseInt(tnResult.inputs[k].value, 10);
-      if (!isNaN(v)) {
-        taskNextState.settings[k] = v;
-      }
+      if (!isNaN(v)) taskNextState.settings[k] = v;
     } else {
       taskNextState.settings[k] = tnResult.inputs[k].value;
     }
@@ -291,17 +281,6 @@ function _saveConfigEdits(configResult: ConfigDbPanelResult, deps: SettingsDeps)
 }
 
 function _saveGeneralSettings(genResult: GeneralPanelResult, deps: SettingsDeps): void {
-  // Save custom display name to state + localStorage
-  const customName = (genResult.inputs.customDisplayName?.value || '').trim();
-  state.customDisplayName = customName;
-  try {
-    if (customName) {
-      localStorage.setItem('marco_custom_display_name', customName);
-    } else {
-      localStorage.removeItem('marco_custom_display_name');
-    }
-  } catch { /* localStorage unavailable */ }
-
   const newChatXPath = genResult.inputs.pasteTargetXPath.value;
   if (newChatXPath) {
     deps.sendToExtension('KV_SET', { key: 'chatbox_xpath_override', value: newChatXPath, projectId: '_global' });

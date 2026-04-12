@@ -14,8 +14,9 @@
  * @see spec/17-app-issues/89-chrome-extension-load-workspace-prompt-root-cause/03-rc02-missing-startup-toast.md
  */
 
-import { TOAST_AUTO_DISMISS_MS as AUTO_DISMISS_MS, TOAST_FADE_DURATION_MS as FADE_DURATION_MS } from './constants';
-import { DomId } from './types';
+const TOAST_ID = 'mcl-startup-toast';
+const AUTO_DISMISS_MS = 10_000;
+const FADE_DURATION_MS = 300;
 
 let dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -28,7 +29,7 @@ export function showStartupToast(version: string): void {
   removeStartupToast(); // idempotent
 
   const el = document.createElement('div');
-  el.id = DomId.StartupToast;
+  el.id = TOAST_ID;
   el.setAttribute('role', 'status');
   el.setAttribute('aria-live', 'polite');
 
@@ -99,10 +100,8 @@ export function showStartupToast(version: string): void {
  * No-op if the toast has already been dismissed.
  */
 export function updateStartupToast(message: string): void {
-  const el = document.getElementById(DomId.StartupToast);
-  if (!el) {
-    return;
-  }
+  const el = document.getElementById(TOAST_ID);
+  if (!el) return;
 
   const textSpan = el.querySelector('span:last-child');
   if (textSpan) {
@@ -120,10 +119,8 @@ export function removeStartupToast(): void {
     dismissTimer = null;
   }
 
-  const el = document.getElementById(DomId.StartupToast);
-  if (!el) {
-    return;
-  }
+  const el = document.getElementById(TOAST_ID);
+  if (!el) return;
 
   el.style.opacity = '0';
   setTimeout(function () {
@@ -135,5 +132,5 @@ export function removeStartupToast(): void {
  * Check if the startup toast is still visible.
  */
 export function isStartupToastVisible(): boolean {
-  return !!document.getElementById(DomId.StartupToast);
+  return !!document.getElementById(TOAST_ID);
 }

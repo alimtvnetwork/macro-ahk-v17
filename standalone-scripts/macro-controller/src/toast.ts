@@ -16,7 +16,6 @@
  */
 
 import { pushOverlayError } from './ui/error-overlay';
-import { logDebug } from './error-utils';
 
 import { VERSION } from './shared-state';
 import { log } from './logging';
@@ -93,7 +92,10 @@ interface QueuedToast {
 // ToastManager — All mutable state encapsulated
 // ============================================
 
-import { RECENT_ERRORS_MAX, TOAST_QUEUE_MAX, TOAST_QUEUE_POLL_MS, TOAST_QUEUE_TTL_MS } from './constants';
+const RECENT_ERRORS_MAX = 50;
+const TOAST_QUEUE_MAX = 20;
+const TOAST_QUEUE_POLL_MS = 250;
+const TOAST_QUEUE_TTL_MS = 30_000;
 
 class ToastManager {
   private isVersionSeeded = false;
@@ -170,7 +172,7 @@ class ToastManager {
       try {
         listener();
       } catch (_e) {
-        logDebug('ToastManager', 'Error change listener threw: ' + (_e instanceof Error ? _e.message : String(_e)));
+        console.debug('[RiseupAsia] [ToastManager] Error change listener threw: ' + (_e instanceof Error ? _e.message : String(_e)));
       }
     }
   }

@@ -34,7 +34,6 @@ export {
   extractTokenFromAuthBridgeResponse,
   requestTokenFromExtension,
   isRelayActive,
-  wakeBridge,
 } from './auth-bridge';
 
 export type { AuthDebugSnapshot } from './auth-bridge';

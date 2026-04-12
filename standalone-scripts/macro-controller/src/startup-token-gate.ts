@@ -9,7 +9,6 @@
  */
 
 import { resolveToken, refreshBearerTokenFromBestSource } from './auth';
-import { TOKEN_POLL_INTERVAL_MS as POLL_INTERVAL_MS, TOKEN_REFRESH_RETRY_MS as REFRESH_RETRY_MS } from './constants';
 
 export interface TokenReadyResult {
   token: string;
@@ -31,24 +30,21 @@ interface TokenGateCtx {
   resolve: (result: TokenReadyResult) => void;
 }
 
+const POLL_INTERVAL_MS = 250;
+const REFRESH_RETRY_MS = 1500;
+
 function finishTokenGate(ctx: TokenGateCtx, result: TokenReadyResult): void {
-  if (ctx.settled) {
-    return;
-  }
+  if (ctx.settled) return;
   ctx.settled = true;
   if (ctx.timer !== null) { clearInterval(ctx.timer); }
   ctx.resolve(result);
 }
 
 function maybeRefreshFromExtension(ctx: TokenGateCtx): void {
-  if (ctx.refreshInFlight) {
-    return;
-  }
+  if (ctx.refreshInFlight) return;
   const now = Date.now();
   const isTooSoon = (now - ctx.lastRefreshAt) < REFRESH_RETRY_MS;
-  if (isTooSoon) {
-    return;
-  }
+  if (isTooSoon) return;
 
   ctx.refreshInFlight = true;
   ctx.lastRefreshAt = now;

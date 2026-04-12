@@ -12,7 +12,9 @@ import { showPasteToast, pasteIntoEditor } from './prompt-utils';
 
 import { cPanelBg, cPanelFg, cPrimary, cPrimaryLight } from '../shared-state';
 import { logError } from '../error-utils';
-import { Label } from '../types';
+
+const NEXT_TASKS = 'next-tasks';
+
 /** Settings shape for Task Next */
 export interface TaskNextSettings {
   [key: string]: TaskNextSettingValue;
@@ -39,7 +41,7 @@ export const taskNextState: {
     retryCount: 3,
     retryDelayMs: 1000,
     buttonXPath: '/html/body/div[3]/div/div[2]/main/div/div/div[1]/div/div[2]/div/form/div[2]/div/button[2]',
-    promptSlug: Label.NextTasks
+    promptSlug: NEXT_TASKS
   },
   running: false,
   cancelled: false,
@@ -78,7 +80,7 @@ export function saveTaskNextSettings(deps: TaskNextDeps) {
 export function findNextTasksPrompt(deps: TaskNextDeps) {
   const promptsCfg = deps.getPromptsConfig();
   const entries = promptsCfg.entries || [];
-  const targetSlug = taskNextState.settings.promptSlug || Label.NextTasks;
+  const targetSlug = taskNextState.settings.promptSlug || NEXT_TASKS;
 
   // Diagnostic: log slug/id of every entry to confirm fields survived the pipeline
   const slugMap = entries.map(function(e) { return e.name + ' → slug=' + (e.slug || '⚠️ MISSING') + ', id=' + (e.id || '—'); });
@@ -99,9 +101,7 @@ export function findNextTasksPrompt(deps: TaskNextDeps) {
   for (const entry of entries) {
     const id = (entry.id || '').toLowerCase();
 
-    if (id === targetSlug || id === 'default-' + targetSlug || id.indexOf(targetSlug) {
-      !== -1) {
-    }
+    if (id === targetSlug || id === 'default-' + targetSlug || id.indexOf(targetSlug) !== -1) {
       log('Task Next: Found prompt by id: "' + entry.name + '" (id=' + entry.id + ')', 'info');
 
       return entry;
@@ -123,9 +123,7 @@ export function findNextTasksPrompt(deps: TaskNextDeps) {
   for (const entry of entries) {
     const name = (entry.name || '').toLowerCase();
 
-    if (name.indexOf('next') {
-      !== -1 && name.indexOf('task') !== -1) {
-    }
+    if (name.indexOf('next') !== -1 && name.indexOf('task') !== -1) {
       log('Task Next: Found prompt by name keywords: "' + entry.name + '"', 'info');
 
       return entry;
@@ -145,9 +143,7 @@ function findButtonByXPath(): HTMLElement | null {
   try {
     const result = document.evaluate(taskNextState.settings.buttonXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
     const btn = result.singleNodeValue;
-    if (btn && (btn as HTMLElement).tagName && !(btn as HTMLButtonElement).disabled) {
-      return btn as HTMLElement;
-    }
+    if (btn && (btn as HTMLElement).tagName && !(btn as HTMLButtonElement).disabled) return btn as HTMLElement;
   } catch (e) { log('Task Next: XPath evaluation failed — ' + (e instanceof Error ? e.message : String(e)), 'warn'); }
   return null;
 }
@@ -168,14 +164,10 @@ function findButtonBySelectors(): HTMLElement | null {
   for (const selector of sendSelectors) {
     try {
       const el = document.querySelector(selector);
-      if (!el) {
-        continue;
-      }
+      if (!el) continue;
 
       const btn = el.tagName === 'BUTTON' ? el : el.closest('button');
-      if (!btn || (btn as HTMLButtonElement).disabled) {
-        continue;
-      }
+      if (!btn || (btn as HTMLButtonElement).disabled) continue;
 
       log('Task Next: Found submit button via selector: ' + selector, 'info');
       return btn as HTMLElement;
@@ -402,7 +394,7 @@ export function openTaskNextSettingsModal(deps: TaskNextDeps) {
     taskNextState.settings.retryCount = parseInt(inputs.retryCount.value) || 3;
     taskNextState.settings.retryDelayMs = parseInt(inputs.retryDelayMs.value) || 1000;
     taskNextState.settings.buttonXPath = inputs.buttonXPath.value || taskNextState.settings.buttonXPath;
-    taskNextState.settings.promptSlug = inputs.promptSlug.value || Label.NextTasks;
+    taskNextState.settings.promptSlug = inputs.promptSlug.value || NEXT_TASKS;
     saveTaskNextSettings(deps);
     overlay.remove();
     showPasteToast('✅ Task Next settings saved', false);

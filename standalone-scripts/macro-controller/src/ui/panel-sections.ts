@@ -26,11 +26,10 @@ import {
   recoverAuthOnce,
   refreshBearerTokenFromBestSource,
   resolveToken,
-  wakeBridge,
 } from '../auth';
 import { setRecordRefreshOutcome } from '../auth';
 import { showToast } from '../toast';
-import { nsWrite } from '../api-namespace';
+import { dualWrite } from '../api-namespace';
 import { buildWsDropdownSection } from './ws-dropdown-builder';
 import { buildToolsSections } from './tools-sections-builder';
 import {
@@ -133,9 +132,8 @@ function _buildAuthDiagnostics(): { row: HTMLElement; updateAuthDiagRow: () => v
     getSessionCookieNames: getSessionCookieNames,
     getLastBridgeOutcome: getLastBridgeOutcome,
     refreshFromBestSource: refreshBearerTokenFromBestSource,
-    wakeBridge: wakeBridge,
   });
-  nsWrite('_internal.updateAuthDiag', authDiagResult.updateAuthDiagRow);
+  dualWrite('__loopUpdateAuthDiag', '_internal.updateAuthDiag', authDiagResult.updateAuthDiagRow);
   setRecordRefreshOutcome(recordRefreshOutcome);
   return { row: authDiagResult.row, updateAuthDiagRow: authDiagResult.updateAuthDiagRow };
 }

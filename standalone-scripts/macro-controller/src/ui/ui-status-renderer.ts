@@ -44,9 +44,7 @@ export const statusRenderStats = statusRenderState.stats;
  */
 export function updateStatus(): void {
   const el = document.getElementById(IDS.STATUS);
-  if (!el) {
-    return;
-  }
+  if (!el) return;
 
   // Clear skeleton placeholders on first real data hydration
   clearSkeletons(el);
@@ -107,9 +105,7 @@ export function updateStatus(): void {
 }
 
 function buildCreditBarsHtml(): string {
-  if (!loopCreditState.lastCheckedAt) {
-    return '';
-  }
+  if (!loopCreditState.lastCheckedAt) return '';
 
   const cacheKey = (loopCreditState.lastCheckedAt || 0) + '|' + (loopCreditState.currentWs ? loopCreditState.currentWs.name : '');
   if (window._creditBarCache && window._creditBarCache.key === cacheKey) {
@@ -117,9 +113,7 @@ function buildCreditBarsHtml(): string {
   }
 
   const cws = loopCreditState.currentWs;
-  if (!cws) {
-    return '';
-  }
+  if (!cws) return '';
 
   const df = Math.round(cws.dailyFree || 0);
   const ro = Math.round(cws.rollover || 0);
@@ -131,9 +125,7 @@ function buildCreditBarsHtml(): string {
   let _maxTc = 0;
   for (const _ws of _perWs) {
     const _mtc = Math.round(_ws.totalCredits || calcTotalCredits(_ws.freeGranted, _ws.dailyLimit, _ws.limit, _ws.topupLimit, _ws.rolloverLimit));
-    if (_mtc > _maxTc) {
-      _maxTc = _mtc;
-    }
+    if (_mtc > _maxTc) _maxTc = _mtc;
   }
 
   const html = renderCreditBar({
@@ -156,15 +148,9 @@ function renderRunningStatus(statusLine: HTMLElement, progressContainer: HTMLEle
   for (const p of parts) {
     const span = document.createElement('span');
     span.textContent = p.text;
-    if (p.color) {
-      span.style.color = p.color;
-    }
-    if (p.bold) {
-      span.style.fontWeight = '700';
-    }
-    if (p.id) {
-      span.id = p.id;
-    }
+    if (p.color) span.style.color = p.color;
+    if (p.bold) span.style.fontWeight = '700';
+    if (p.id) span.id = p.id;
     statusLine.appendChild(span);
   }
 
@@ -172,9 +158,7 @@ function renderRunningStatus(statusLine: HTMLElement, progressContainer: HTMLEle
 }
 
 function buildDelegateText(): string {
-  if (!state.isDelegating) {
-    return '';
-  }
+  if (!state.isDelegating) return '';
   return state.forceDirection
     ? ' | FORCE ' + state.forceDirection.toUpperCase()
     : ' | SWITCHING...';
@@ -184,9 +168,7 @@ function buildRunningStatusParts(creditIcon: string, creditLabel: string, delega
   const parts: Array<{ text: string; color?: string; bold?: boolean; id?: string }> = [];
   if (state.workspaceName) {
     parts.push({ text: state.workspaceName, color: '#fbbf24', bold: true });
-    if (state.workspaceJustChanged) {
-      parts.push({ text: ' ⚡ WS Changed', color: '#f97316', bold: true });
-    }
+    if (state.workspaceJustChanged) parts.push({ text: ' ⚡ WS Changed', color: '#f97316', bold: true });
     parts.push({ text: ' | ' });
   }
   parts.push({ text: '● ', color: '#10b981' });
@@ -283,9 +265,7 @@ function ensureRecordChildren(el: HTMLElement): { dot: HTMLSpanElement; label: T
 
 export function updateRecordIndicator(): void {
   const el = document.getElementById(IDS.RECORD_INDICATOR);
-  if (!el) {
-    return;
-  }
+  if (!el) return;
 
   if (state.running) {
     el.style.display = 'flex';

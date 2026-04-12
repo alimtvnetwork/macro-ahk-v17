@@ -35,12 +35,12 @@ import { CreditManager } from './core/CreditManager';
 import { LoopEngine } from './core/LoopEngine';
 import { UIManager } from './core/UIManager';
 import { WorkspaceManager } from './core/WorkspaceManager';
-import { nsWrite, getNamespace } from './api-namespace';
+import { dualWrite, dualWriteAll, initNamespace } from './api-namespace';
 import { updateWsSelectionUI, triggerLoopMoveFromSelection, setLoopWsNavIndex, populateLoopWorkspaceDropdown, renderBulkRenameDialog, getLoopWsCompactMode, setLoopWsCompactMode, getLoopWsFreeOnly, setLoopWsFreeOnly, getLoopWsNavIndex } from './ws-selection-ui';
 import { shouldInject } from './startup-domain-guard';
 import { runIdempotentCheck } from './startup-idempotent-check';
 
-import { Label } from './types';
+const DOMAIN_GUARD = 'domain-guard';
 
 (function macroLoopController() {
   'use strict';
@@ -48,52 +48,54 @@ import { Label } from './types';
   console.log('%c[MacroLoop v' + VERSION + '] IIFE entry — hostname: ' + window.location.hostname + ', href: ' + window.location.href.substring(0, 80), 'color: #a78bfa; font-weight: bold;');
 
   // ── Domain guard ──
-  timingStart(Label.DomainGuard, 'Domain Guard');
+  timingStart(DOMAIN_GUARD, 'Domain Guard');
   if (!shouldInject()) {
-    timingEnd(Label.DomainGuard, 'error', 'Injection blocked');
+    timingEnd(DOMAIN_GUARD, 'error', 'Injection blocked');
     return;
   }
-  timingEnd(Label.DomainGuard, 'ok');
+  timingEnd(DOMAIN_GUARD, 'ok');
 
   // ── Idempotent check (handles re-injection, version mismatch, SPA recovery) ──
   timingStart('idempotent', 'Idempotent Check');
-  if (runIdempotentCheck() {
-    === 'abort') {
-  }
+  if (runIdempotentCheck() === 'abort') {
     timingEnd('idempotent', 'warn', 'Aborted (already injected)');
     return;
   }
   timingEnd('idempotent', 'ok');
 
   // ── Auth global ──
-  nsWrite('api.auth.getToken', resolveToken);
+  dualWrite('__loopGetBearerToken', 'api.auth.getToken', resolveToken);
 
   // ── Credit fetch wrapper ──
   const fetchLoopCreditsWithDetect = function(isRetry?: boolean) {
     fetchLoopCredits(isRetry, autoDetectLoopCurrentWorkspace);
   };
-  nsWrite('api.credits.fetch', fetchLoopCreditsWithDetect);
+  dualWrite('__loopFetchCredits', 'api.credits.fetch', fetchLoopCreditsWithDetect);
 
   // ── Workspace API globals ──
-  nsWrite('api.workspace.moveTo', moveToWorkspace);
-  nsWrite('api.workspace.getRenameDelay', function() { return getRenameDelayMs(); });
-  nsWrite('api.workspace.setRenameDelay', function(ms: number) { setRenameDelayMs(ms); });
-  nsWrite('api.workspace.cancelRename', function() { cancelRename(); });
-  nsWrite('api.workspace.undoRename', function() { undoLastRename(function(_r: unknown, done: boolean) { if (done) populateLoopWorkspaceDropdown(); }); });
-  nsWrite('api.workspace.renameHistory', function() { return getRenameHistory(); });
+  dualWrite('__loopMoveToWorkspace', 'api.workspace.moveTo', moveToWorkspace);
+  dualWriteAll([
+    ['__loopGetRenameDelay', 'api.workspace.getRenameDelay', function() { return getRenameDelayMs(); }],
+    ['__loopSetRenameDelay', 'api.workspace.setRenameDelay', function(ms: number) { setRenameDelayMs(ms); }],
+    ['__loopCancelRename', 'api.workspace.cancelRename', function() { cancelRename(); }],
+    ['__loopUndoRename', 'api.workspace.undoRename', function() { undoLastRename(function(_r: unknown, done: boolean) { if (done) populateLoopWorkspaceDropdown(); }); }],
+    ['__loopRenameHistory', 'api.workspace.renameHistory', function() { return getRenameHistory(); }],
+  ]);
 
   // ── Bulk rename global ──
-  nsWrite('api.workspace.bulkRename', buildBulkRenameFn());
+  dualWrite('__loopBulkRename', 'api.workspace.bulkRename', buildBulkRenameFn());
 
   // ── XPath init ──
   initXPathUtils();
 
   // ── Loop control globals ──
-  nsWrite('api.workspace.forceSwitch', forceSwitch);
-  nsWrite('api.ui.refreshStatus', refreshStatus);
-  nsWrite('api.ui.startStatusRefresh', startStatusRefresh);
-  nsWrite('api.ui.stopStatusRefresh', stopStatusRefresh);
-  nsWrite('api.ui.destroy', destroyPanel);
+  dualWriteAll([
+    ['__forceSwitch', 'api.workspace.forceSwitch', forceSwitch],
+    ['__refreshStatus', 'api.ui.refreshStatus', refreshStatus],
+    ['__startStatusRefresh', 'api.ui.startStatusRefresh', startStatusRefresh],
+    ['__stopStatusRefresh', 'api.ui.stopStatusRefresh', stopStatusRefresh],
+    ['__loopDestroy', 'api.ui.destroy', destroyPanel],
+  ]);
 
   // ── Panel builder deps ──
   const panelBuilderDeps: PanelBuilderDeps = {
@@ -112,12 +114,12 @@ import { Label } from './types';
   const createUIWrapper = function() { createUI(panelBuilderDeps); };
 
   // ── Persist factories for self-healing ──
-  nsWrite('_internal.createUIWrapper', createUIWrapper);
-  nsWrite('_internal.createUIManager', function() { const ui = new UIManager(); ui.setCreateFn(createUIWrapper); return ui; });
-  nsWrite('_internal.createWorkspaceManager', function() { return new WorkspaceManager(); });
-  nsWrite('_internal.createAuthManager', function() { return new AuthManager(); });
-  nsWrite('_internal.createCreditManager', function() { return new CreditManager(); });
-  nsWrite('_internal.createLoopEngine', function() { return new LoopEngine(); });
+  dualWrite('__createUIWrapper', '_internal.createUIWrapper', createUIWrapper);
+  dualWrite('__createUIManager', '_internal.createUIManager', function() { const ui = new UIManager(); ui.setCreateFn(createUIWrapper); return ui; });
+  dualWrite('__createWorkspaceManager', '_internal.createWorkspaceManager', function() { return new WorkspaceManager(); });
+  dualWrite('__createAuthManager', '_internal.createAuthManager', function() { return new AuthManager(); });
+  dualWrite('__createCreditManager', '_internal.createCreditManager', function() { return new CreditManager(); });
+  dualWrite('__createLoopEngine', '_internal.createLoopEngine', function() { return new LoopEngine(); });
 
   // ── Wire sub-managers into MacroController singleton ──
   const mc = MacroController.getInstance();
@@ -128,8 +130,8 @@ import { Label } from './types';
   const uiManager = new UIManager();
   uiManager.setCreateFn(createUIWrapper);
   mc.registerUI(uiManager);
-  getNamespace();
-  nsWrite('api.mc', mc);
+  initNamespace();
+  dualWrite('__mc', 'api.mc', mc);
   installWindowFacade();
 
   // ── Bootstrap ──

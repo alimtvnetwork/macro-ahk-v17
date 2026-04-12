@@ -9,7 +9,7 @@
  */
 
 import { MacroController } from '../core/MacroController';
-import { nsWrite, nsCallTyped } from '../api-namespace';
+import { dualWrite, nsCall } from '../api-namespace';
 import { clearSkeletons } from './skeleton';
 import { cacheWorkspaceName } from '../workspace-cache';
 
@@ -72,32 +72,27 @@ export function updateProjectNameDisplay(): void {
  */
 export function updateTitleBarWorkspaceName(): void {
   const el = document.getElementById('loop-title-ws-name');
-  if (!el) {
-    return;
-  }
+  if (!el) return;
 
   clearSkeletons(el);
 
   const syncIcon = document.getElementById('loop-ws-sync-icon');
-  if (syncIcon) {
-    syncIcon.remove();
-  }
+  if (syncIcon) syncIcon.remove();
 
   const wsName = state.workspaceName
     || (loopCreditState.currentWs ? (loopCreditState.currentWs.fullName || loopCreditState.currentWs.name) : '');
   const projectName = getDisplayProjectName();
 
-  // Title bar prioritizes project name; workspace shown in status bar (line 2)
-  if (projectName && projectName !== 'Unknown Project') {
-    el.textContent = projectName;
-    el.style.color = '#fbbf24';
-    el.style.opacity = '1';
-    el.title = 'Project: ' + projectName + (wsName ? ' | Workspace: ' + wsName : '') + ' — click to re-detect';
-  } else if (wsName) {
+  if (wsName) {
     el.textContent = wsName;
     el.style.color = '#fbbf24';
+    el.style.opacity = '1';
+    el.title = 'Workspace: ' + wsName + (projectName ? ' | Project: ' + projectName : '') + ' — click to re-detect';
+  } else if (projectName && projectName !== 'Unknown Project') {
+    el.textContent = projectName;
+    el.style.color = '#fbbf24';
     el.style.opacity = '0.7';
-    el.title = 'Workspace: ' + wsName + ' (project name not yet resolved) — click to re-detect';
+    el.title = 'Project: ' + projectName + ' (workspace not yet detected) — click to re-detect';
   } else {
     el.textContent = '⟳ detecting…';
     el.style.color = '#9ca3af';
@@ -110,7 +105,7 @@ export function updateTitleBarWorkspaceName(): void {
  * Sync the start/stop button visual state.
  */
 export function updateButtons(): void {
-  nsCallTyped('_internal.updateStartStopBtn', !!state.running);
+  nsCall('__loopUpdateStartStopBtn', '_internal.updateStartStopBtn', !!state.running);
 
   const stopBtn = document.getElementById(IDS.STOP_BTN);
   if (stopBtn) {
@@ -124,9 +119,7 @@ export function updateButtons(): void {
  * Button click animation — color flash only, no scale (v1.56).
  */
 export function animateBtn(btn: HTMLElement): void {
-  if (!btn) {
-    return;
-  }
+  if (!btn) return;
   const origBg = btn.style.background || '';
   btn.style.transition = 'filter 100ms ease, background 150ms ease, opacity 100ms ease';
   btn.style.filter = 'brightness(0.75)';
@@ -145,14 +138,10 @@ export function animateBtn(btn: HTMLElement): void {
  * Consistent hover feedback — color transition only, no scale/translate (v1.56).
  */
 export function attachButtonHoverFx(btn: HTMLElement): void {
-  if (!btn) {
-    return;
-  }
+  if (!btn) return;
   btn.style.transition = 'filter 150ms ease, background-color 150ms ease, box-shadow 150ms ease';
   btn.onmouseenter = function() {
-    if ((btn as HTMLButtonElement).disabled) {
-      return;
-    }
+    if ((btn as HTMLButtonElement).disabled) return;
     btn.style.filter = 'brightness(1.12)';
     btn.style.boxShadow = '0 2px 8px rgba(0,0,0,.3)';
   };
@@ -187,18 +176,14 @@ export function setLoopInterval(newIntervalMs: number): boolean {
  */
 export function destroyPanel(): void {
   log('MacroLoop panel DESTROYED by user — remove marker + globals for clean re-inject', 'warn');
-  nsWrite('_internal.destroyed', true);
+  dualWrite('__loopDestroyed', '_internal.destroyed', true);
 
-  try { nsCallTyped('api.loop.stop'); } catch (e) { log('destroyPanel: loop stop failed — ' + (e instanceof Error ? e.message : String(e)), 'warn'); }
+  try { nsCall('__loopStop', 'api.loop.stop'); } catch (e) { log('destroyPanel: loop stop failed — ' + (e instanceof Error ? e.message : String(e)), 'warn'); }
 
   const marker = document.getElementById(IDS.SCRIPT_MARKER);
-  if (marker) {
-    marker.remove();
-  }
+  if (marker) marker.remove();
   const container = document.getElementById(IDS.CONTAINER);
-  if (container) {
-    container.remove();
-  }
+  if (container) container.remove();
 
   log('Teardown complete — re-inject script to restore controller', 'success');
 }

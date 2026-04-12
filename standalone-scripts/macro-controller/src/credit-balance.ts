@@ -37,7 +37,7 @@ export const BALANCE_CONFIG: CreditBalanceConfig = {
 // ============================================
 // CreditBalanceState — encapsulated module state (CQ11, CQ17)
 // ============================================
-import { MIN_CREDIT_CALL_GAP_MS as MIN_CALL_GAP_MS } from './constants';
+const MIN_CALL_GAP_MS = 10_000;
 
 class CreditBalanceState {
   private _lastBalanceCallAt = 0;
@@ -183,9 +183,7 @@ export async function fetchCreditBalance(
     const resp = await window.marco!.api!.credits.fetchBalance(wsId, { baseUrl: CREDIT_API_BASE });
 
     if (!resp.ok) {
-      if (isAuthFailure(resp.status) {
-        && !isRetry) {
-      }
+      if (isAuthFailure(resp.status) && !isRetry) {
         markBearerTokenExpired('credit-balance');
         log('CreditBalance: Auth ' + resp.status + ' — recovering...', 'warn');
         const newToken = await recoverAuthOnce();

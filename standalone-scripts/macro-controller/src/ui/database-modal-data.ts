@@ -14,9 +14,10 @@ import type { ExtensionCallbackResponse } from '../types';
 import { buildFilterBar } from './database-data-filter';
 import { escapeHtml, buildPagination, buildDataTableElement } from './database-data-table';
 
-import { MACRO_CONTROLLER_NS, DB_PAGE_SIZE } from '../constants';
-import { DomId } from '../types';
-const PAGE_SIZE = DB_PAGE_SIZE;
+const MACRO_CONTROLLER = 'macro-controller';
+const ID_MARCO_DB_EMPTY = 'marco-db-empty';
+
+const PAGE_SIZE = 25;
 
 /** Filter state for a single table. */
 export interface FilterState {
@@ -44,7 +45,7 @@ export function loadTables(
   existingTables?: Array<{ name: string }>,
 ): void {
   sendToExtension('PROJECT_DB_LIST_TABLES', {
-    project: MACRO_CONTROLLER_NS,
+    project: MACRO_CONTROLLER,
     method: 'SCHEMA',
     endpoint: 'listTables',
   }).then((response: ExtensionCallbackResponse) => {
@@ -100,7 +101,7 @@ function renderTableListError(
 ): void {
   tableList.textContent = '';
   const failDiv = document.createElement('div');
-  failDiv.className = DomId.DbEmpty;
+  failDiv.className = ID_MARCO_DB_EMPTY;
   failDiv.textContent = 'Failed to load';
   tableList.appendChild(failDiv);
   statusBar.textContent = 'Error: ' + (response?.errorMessage || 'unknown');
@@ -112,7 +113,7 @@ function renderEmptyTableList(
 ): void {
   tableList.textContent = '';
   const emptyDiv = document.createElement('div');
-  emptyDiv.className = DomId.DbEmpty;
+  emptyDiv.className = ID_MARCO_DB_EMPTY;
   emptyDiv.style.padding = '12px';
   emptyDiv.textContent = 'No tables found';
   tableList.appendChild(emptyDiv);
@@ -131,9 +132,7 @@ function renderTableListItems(
     const item = createTableListItem(table);
 
     item.onclick = () => {
-      if (activeItem) {
-        activeItem.classList.remove('active');
-      }
+      if (activeItem) activeItem.classList.remove('active');
       item.classList.add('active');
       activeItem = item;
       loadTableData(table.name, 0, content, statusBar);
@@ -180,7 +179,7 @@ export function loadTableData(
   const whereClause = buildWhereClause(tableName);
 
   sendToExtension('PROJECT_API', {
-    project: MACRO_CONTROLLER_NS,
+    project: MACRO_CONTROLLER,
     method: 'GET',
     endpoint: tableName,
     params: {
@@ -257,7 +256,7 @@ function fetchCountAndRender(
   statusBar: HTMLElement,
 ): void {
   sendToExtension('PROJECT_API', {
-    project: MACRO_CONTROLLER_NS,
+    project: MACRO_CONTROLLER,
     method: 'GET',
     endpoint: tableName,
     params: { count: true, ...(whereClause ? { where: whereClause } : {}) },
@@ -274,7 +273,7 @@ function renderDataError(
 ): void {
   content.textContent = '';
   const errorDiv = document.createElement('div');
-  errorDiv.className = DomId.DbEmpty;
+  errorDiv.className = ID_MARCO_DB_EMPTY;
   errorDiv.textContent = '❌ ' + (response?.errorMessage || 'Failed to load data');
   content.appendChild(errorDiv);
 }
@@ -326,7 +325,7 @@ function renderEmptyTableState(
     : 'Table <b>' + escapeHtml(tableName) + '</b> is empty';
 
   const emptyDiv = document.createElement('div');
-  emptyDiv.className = DomId.DbEmpty;
+  emptyDiv.className = ID_MARCO_DB_EMPTY;
   emptyDiv.innerHTML = emptyMessage;
   content.appendChild(emptyDiv);
   statusBar.textContent = tableName + ' — 0 rows';

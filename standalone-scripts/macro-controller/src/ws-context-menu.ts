@@ -16,9 +16,9 @@ import {
 } from './shared-state';
 import { log } from './logging';
 import { renameWorkspace } from './workspace-rename';
+import {
 import { logError } from './error-utils';
 import { showToast } from './toast';
-import {
   populateLoopWorkspaceDropdown,
   fetchLoopCreditsWithDetect,
 } from './ws-list-renderer';
@@ -74,9 +74,7 @@ export function showWsContextMenu(
  */
 export function removeWsContextMenu(): void {
   const existing = document.getElementById('loop-ws-ctx-menu');
-  if (existing) {
-    existing.remove();
-  }
+  if (existing) existing.remove();
 }
 
 /**
@@ -88,19 +86,13 @@ export function startInlineRename(
   currentName: string,
 ): void {
   const listEl = document.getElementById('loop-ws-list');
-  if (!listEl) {
-    return;
-  }
+  if (!listEl) return;
   const items = listEl.querySelectorAll('.loop-ws-item');
   for (const item of items) {
-    if (item.getAttribute('data-ws-id') {
-      !== wsId) { continue; }
-    }
+    if (item.getAttribute('data-ws-id') !== wsId) { continue; }
 
     const nameDiv = item.querySelector('.loop-ws-name');
-    if (!nameDiv) {
-      break;
-    }
+    if (!nameDiv) break;
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -138,8 +130,8 @@ export function startInlineRename(
             populateLoopWorkspaceDropdown();
             fetchLoopCreditsWithDetect(false);
           })
-          .catch(function (e: unknown) {
-            logError('wsContextMenu', 'Workspace context action failed', e);
+          .catch(function () {
+            logError('wsContextMenu', 'Workspace context action failed', function);
             showToast('❌ Workspace context action failed', 'error');
             populateLoopWorkspaceDropdown();
           });

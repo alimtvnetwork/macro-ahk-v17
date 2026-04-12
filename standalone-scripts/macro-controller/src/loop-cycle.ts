@@ -252,9 +252,7 @@ async function doCycleFetchWithToken(isRetryAttempt: boolean): Promise<void> {
   try {
     const resp = await window.marco!.api!.credits.fetchWorkspaces({ baseUrl: CREDIT_API_BASE });
 
-    if (isAuthFailure(resp.status) {
-      && !isRetryAttempt) {
-    }
+    if (isAuthFailure(resp.status) && !isRetryAttempt) {
       await handleFallbackAuthRecovery(
         freshToken,
         resp.status,
@@ -264,9 +262,7 @@ async function doCycleFetchWithToken(isRetryAttempt: boolean): Promise<void> {
       return;
     }
 
-    if (isAuthFailure(resp.status) {
-      && freshToken) {
-    }
+    if (isAuthFailure(resp.status) && freshToken) {
       markBearerTokenExpired('loop-cycle');
     }
 
@@ -407,7 +403,7 @@ export function runCycle(): void {
       doCycleFetchFallback();
     })
     .catch(function (err: Error) {
-      logError('runCycle', 'Credit balance check error — falling back to workspace API', err);
+      logError('Step 1', 'Credit balance check error: \' + err.message + \' — falling back');
 
       if (!BALANCE_CONFIG.fallbackToXPath) {
         releaseCycleLock();

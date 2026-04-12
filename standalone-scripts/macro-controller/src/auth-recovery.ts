@@ -13,7 +13,6 @@
  */
 
 import { log } from './logging';
-import { logDebug } from './error-utils';
 import { getLastSessionBridgeSource } from './shared-state';
 import {
   getBearerTokenFromSessionBridge,
@@ -160,7 +159,7 @@ const authRecoveryManager = new AuthRecoveryManager();
 // TTL-aware getBearerToken (Phase A: Auth Bridge)
 // ============================================
 
-import { DEFAULT_TOKEN_TTL_MS } from './constants';
+const DEFAULT_TOKEN_TTL_MS = 120_000;
 
 /** Read configured TTL from marco_config_overrides or config JSON. */
 function resolveTokenTtlMs(): number {
@@ -172,7 +171,7 @@ function resolveTokenTtlMs(): number {
       return overrides.tokenTtlMs;
     }
   } catch (_e) {
-    logDebug('getTokenTtlMs', 'Config override read failed: ' + (_e instanceof Error ? _e.message : String(_e)));
+    console.debug('[RiseupAsia] [getTokenTtlMs] Config override read failed: ' + (_e instanceof Error ? _e.message : String(_e)));
   }
 
   try {
@@ -183,7 +182,7 @@ function resolveTokenTtlMs(): number {
       return cfg.authBridge.tokenTtlMs;
     }
   } catch (_e) {
-    logDebug('getTokenTtlMs', '__MARCO_CONFIG__ read failed: ' + (_e instanceof Error ? _e.message : String(_e)));
+    console.debug('[RiseupAsia] [getTokenTtlMs] __MARCO_CONFIG__ read failed: ' + (_e instanceof Error ? _e.message : String(_e)));
   }
 
   return DEFAULT_TOKEN_TTL_MS;

@@ -31,7 +31,7 @@ import { log } from '../logging';
 import { getByXPath } from '../xpath-utils';
 import { pollUntil } from '../async-utils';
 import { getBearerToken, updateAuthBadge } from '../auth';
-import { nsWrite } from '../api-namespace';
+import { dualWrite } from '../api-namespace';
 import { buildHamburgerMenu } from './menu-builder';
 import { createCheckButton } from './check-button';
 import { createCountdownCtx, updateStartStopBtn } from './countdown';
@@ -56,7 +56,10 @@ import type { PromptEntry } from '../types';
 import type { TaskNextDeps } from './task-next-ui';
 import { logError } from '../error-utils';
 import { showToast } from '../toast';
-import { CssFragment } from '../types';
+
+const CSS_BACKGROUND = 'background:';
+const CSS_BORDER_1PX_SOLID_RGBA_255_255_255_0_08 = ';border:1px solid rgba(255,255,255,0.08);';
+
 // ============================================
 
 // ============================================
@@ -66,9 +69,7 @@ import { CssFragment } from '../types';
 
 function focusCurrentWorkspaceInList(): void {
   const listEl = document.getElementById('loop-ws-list');
-  if (!listEl) {
-    return;
-  }
+  if (!listEl) return;
   const currentName = state.workspaceName;
   if (!currentName) {
     log('Credits: no current workspace name to focus', 'warn');
@@ -163,7 +164,7 @@ function buildStartStopButton(deps: PanelBuilderDeps, btnStyle: string): { wrap:
   startStopBtn.id = IDS.START_BTN;
   startStopBtn.textContent = '▶';
   startStopBtn.title = 'Start loop';
-  startStopBtn.style.cssText = btnStyle + CssFragment.Background + cBtnStartGrad + ';color:#fff;border-radius:8px;min-width:36px;width:36px;font-size:14px;text-align:center;padding:6px 0;box-shadow:' + cBtnStartGlow + CssFragment.Border1pxSolidRgba;
+  startStopBtn.style.cssText = btnStyle + CSS_BACKGROUND + cBtnStartGrad + ';color:#fff;border-radius:8px;min-width:36px;width:36px;font-size:14px;text-align:center;padding:6px 0;box-shadow:' + cBtnStartGlow + CSS_BORDER_1PX_SOLID_RGBA_255_255_255_0_08;
   startStopBtn.onmouseenter = function() { startStopBtn.style.filter = 'brightness(1.12)'; startStopBtn.style.boxShadow = '0 2px 8px rgba(0,200,83,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'; };
   startStopBtn.onmouseleave = function() { startStopBtn.style.filter = ''; startStopBtn.style.boxShadow = cBtnStartGlow; };
   startStopBtn.onclick = function() {
@@ -184,7 +185,7 @@ function buildStartStopButton(deps: PanelBuilderDeps, btnStyle: string): { wrap:
   startStopWrap.appendChild(countdownBadge);
 
   const cdCtx = createCountdownCtx(startStopBtn, countdownBadge, function(d: string) { deps.startLoop(d); }, deps.stopLoop);
-  nsWrite('_internal.updateStartStopBtn', function(running: boolean) { updateStartStopBtn(cdCtx, running); });
+  dualWrite('__loopUpdateStartStopBtn', '_internal.updateStartStopBtn', function(running: boolean) { updateStartStopBtn(cdCtx, running); });
   updateStartStopBtn(cdCtx, !!state.running);
 
   return { wrap: startStopWrap, btn: startStopBtn };
@@ -239,7 +240,7 @@ function buildCreditButton(deps: PanelBuilderDeps, btnStyle: string): HTMLElemen
   const creditBtn = document.createElement('button');
   creditBtn.textContent = '💰 Credits';
   creditBtn.title = 'Fetch credit status via API and refresh workspace bars';
-  creditBtn.style.cssText = btnStyle + CssFragment.Background + cBtnCreditGrad + ';color:#1a1a2e;font-size:' + tFontTiny + ';padding:6px 12px;box-shadow:' + cBtnCreditGlow + CssFragment.Border1pxSolidRgba;
+  creditBtn.style.cssText = btnStyle + CSS_BACKGROUND + cBtnCreditGrad + ';color:#1a1a2e;font-size:' + tFontTiny + ';padding:6px 12px;box-shadow:' + cBtnCreditGlow + CSS_BORDER_1PX_SOLID_RGBA_255_255_255_0_08;
   creditBtn.onmouseenter = function() { creditBtn.style.filter = 'brightness(1.12)'; creditBtn.style.boxShadow = '0 2px 8px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.2)'; };
   creditBtn.onmouseleave = function() { creditBtn.style.filter = ''; creditBtn.style.boxShadow = cBtnCreditGlow; };
 
@@ -285,7 +286,7 @@ function buildPromptsDropdown(_deps: PanelBuilderDeps, btnStyle: string): Prompt
   const promptsBtn = document.createElement('button');
   promptsBtn.textContent = '📋 Prompts';
   promptsBtn.title = 'Select a prompt to paste or copy';
-  promptsBtn.style.cssText = btnStyle + CssFragment.Background + cBtnPromptGrad + ';color:#fff;font-size:' + tFontTiny + ';padding:6px 12px;box-shadow:' + cBtnPromptGlow + CssFragment.Border1pxSolidRgba;
+  promptsBtn.style.cssText = btnStyle + CSS_BACKGROUND + cBtnPromptGrad + ';color:#fff;font-size:' + tFontTiny + ';padding:6px 12px;box-shadow:' + cBtnPromptGlow + CSS_BORDER_1PX_SOLID_RGBA_255_255_255_0_08;
   promptsBtn.onmouseenter = function() { promptsBtn.style.filter = 'brightness(1.15)'; promptsBtn.style.boxShadow = '0 0 20px rgba(0,198,255,0.55)'; };
   promptsBtn.onmouseleave = function() { promptsBtn.style.filter = ''; promptsBtn.style.boxShadow = cBtnPromptGlow; };
 
@@ -319,8 +320,8 @@ function buildPromptsDropdown(_deps: PanelBuilderDeps, btnStyle: string): Prompt
         promptsDropdown.appendChild(createPromptsListSkeleton());
         loadPromptsFromJson().then(function(_loaded: PromptEntry[] | null) {
           renderPromptsDropdown(promptCtx, taskNextDeps);
-        }).catch(function(e: unknown) {
-          logError('loadPrompts', 'Failed to load prompts from JSON', e);
+        }).catch(function() {
+          logError('loadPrompts', 'Failed to load prompts from JSON', function);
           showToast('❌ Failed to load prompts from JSON', 'error');
           // Show error state if load completely fails
           promptsDropdown.innerHTML = '';

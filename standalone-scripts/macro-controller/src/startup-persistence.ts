@@ -9,13 +9,13 @@
  */
 
 import { log } from './logging';
-import { nsReadTyped } from './api-namespace';
+import { nsRead } from './api-namespace';
 import { IDS, VERSION } from './shared-state';
 import { resetRedockState } from './ui/redock-observer';
 
 // CQ16: Extracted from setupPersistenceObserver closure
 function tryReinjectUI(createUI: () => void): void {
-  const isDestroyed = nsReadTyped('_internal.destroyed');
+  const isDestroyed = nsRead('__loopDestroyed', '_internal.destroyed');
 
   if (isDestroyed) {
     log('Panel was destroyed by user — skipping re-injection', 'info');
@@ -50,13 +50,9 @@ export function setupPersistenceObserver(createUI: () => void): void {
   // MC-04 fix: Use childList-only (no subtree) on a narrow parent.
   const observer = new MutationObserver(function (_mutations: MutationRecord[]) {
     const isBothPresent = !!document.getElementById(IDS.SCRIPT_MARKER) && !!document.getElementById(IDS.CONTAINER);
-    if (isBothPresent) {
-      return;
-    }
+    if (isBothPresent) return;
 
-    if (reinjectDebounce) {
-      clearTimeout(reinjectDebounce);
-    }
+    if (reinjectDebounce) clearTimeout(reinjectDebounce);
     reinjectDebounce = setTimeout(function () {
       log('SPA navigation detected - checking UI state', 'check');
       tryReinjectUI(createUI);

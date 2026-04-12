@@ -9,7 +9,6 @@
  */
 
 import { log } from '../logging';
-import { logDebug } from '../error-utils';
 import { sendToExtension } from './prompt-manager';
 import type { ExtensionCallbackResponse } from '../types';
 import { injectSchemaStyles } from './database-schema-styles';
@@ -20,8 +19,9 @@ import {
   type ColumnEntry,
 } from './database-schema-editors';
 
-import { MACRO_CONTROLLER_NS } from '../constants';
-import { DomId } from '../types';
+const ID_MARCO_SCHEMA_LABEL = 'marco-schema-label';
+const MACRO_CONTROLLER = 'macro-controller';
+
 // Re-export for backward compatibility
 export type { ColumnValidation, ForeignKeyDef } from './database-schema-editors';
 
@@ -59,7 +59,7 @@ export function buildSchemaTab(
 
 function buildExistingTablesSection(wrap: HTMLElement): HTMLElement {
   const listSection = el('div', 'marco-schema-section');
-  const listLabel = el('div', DomId.SchemaLabel, 'Existing Tables');
+  const listLabel = el('div', ID_MARCO_SCHEMA_LABEL, 'Existing Tables');
   listSection.appendChild(listLabel);
 
   const tableListElement = el('div', 'marco-schema-table-list');
@@ -83,13 +83,13 @@ function buildCreateTableForm(
   statusBar: HTMLElement,
 ): void {
   const createSection = el('div', 'marco-schema-section');
-  const createLabel = el('div', DomId.SchemaLabel, 'Create New Table');
+  const createLabel = el('div', ID_MARCO_SCHEMA_LABEL, 'Create New Table');
   createSection.appendChild(createLabel);
 
   const nameInput = buildTableNameInput();
   createSection.appendChild(nameInput.row);
 
-  const colsLabel = el('div', DomId.SchemaLabel, 'Columns');
+  const colsLabel = el('div', ID_MARCO_SCHEMA_LABEL, 'Columns');
   colsLabel.style.marginTop = '8px';
   createSection.appendChild(colsLabel);
   createSection.appendChild(colsContainer);
@@ -178,9 +178,7 @@ function buildColumnMainRow(
     option.value = colType;
     option.textContent = colType;
     const isSelected = colType === col.type;
-    if (isSelected) {
-      option.selected = true;
-    }
+    if (isSelected) option.selected = true;
     typeSelect.appendChild(option);
   }
   typeSelect.onchange = () => { col.type = typeSelect.value as ColumnEntry['type']; };
@@ -221,9 +219,7 @@ function buildColumnExtras(
 
   const valPanel = el('div', 'marco-schema-val-panel');
   valPanel.style.display = col.validation ? 'block' : 'none';
-  if (col.validation) {
-    renderValidationPanel(valPanel, col);
-  }
+  if (col.validation) renderValidationPanel(valPanel, col);
 
   const valToggle = el('button', 'marco-schema-btn marco-schema-btn-sm',
     col.validation ? '📏 Validation ✓' : '📏 Validation');
@@ -244,9 +240,7 @@ function buildColumnExtras(
 
   const fkPanel = el('div', 'marco-schema-fk-panel');
   fkPanel.style.display = col.foreignKey ? 'block' : 'none';
-  if (col.foreignKey) {
-    renderFkPanel(fkPanel, col, existingTables);
-  }
+  if (col.foreignKey) renderFkPanel(fkPanel, col, existingTables);
 
   const fkToggle = el('button', 'marco-schema-btn marco-schema-btn-sm',
     col.foreignKey ? '🔗 FK ✓' : '🔗 FK');
@@ -291,7 +285,7 @@ function handleCreateTable(
   const columnDefinitions = columns.map(buildColumnDefinition);
 
   sendToExtension('PROJECT_DB_CREATE_TABLE', {
-    project: MACRO_CONTROLLER_NS,
+    project: MACRO_CONTROLLER,
     tableName,
     columns: columnDefinitions,
   }).then((response: ExtensionCallbackResponse) => {
@@ -376,7 +370,7 @@ function refreshTableList(
   statusBar: HTMLElement,
 ): void {
   sendToExtension('PROJECT_DB_LIST_TABLES', {
-    project: MACRO_CONTROLLER_NS,
+    project: MACRO_CONTROLLER,
     method: 'SCHEMA',
     endpoint: 'listTables',
   }).then((response: ExtensionCallbackResponse) => {
@@ -448,7 +442,7 @@ function buildTableEntry(
       const colInfo = el('div', 'marco-schema-table-cols',
         columns.map(column => column.Name + ' (' + column.Type + ')').join(', '));
       info.appendChild(colInfo);
-    } catch (_e) { logDebug('database-schema-tab', 'Column JSON parse failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
+    } catch (_e) { console.debug('[RiseupAsia] [database-schema-tab] Column JSON parse failed: ' + (_e instanceof Error ? _e.message : String(_e))); }
   }
 
   entry.appendChild(info);
@@ -459,7 +453,7 @@ function buildTableEntry(
 
     if (isConfirmed) {
       sendToExtension('PROJECT_DB_DROP_TABLE', {
-        project: MACRO_CONTROLLER_NS,
+        project: MACRO_CONTROLLER,
         tableName,
       }).then((response: ExtensionCallbackResponse) => {
         const isSuccess = response?.isOk === true;

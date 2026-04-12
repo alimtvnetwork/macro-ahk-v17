@@ -32,7 +32,6 @@ vi.mock('../auth', () => ({
   getLastBridgeOutcome: vi.fn(() => null),
   setRecordRefreshOutcome: vi.fn(),
   getLastTokenSource: vi.fn(() => 'test'),
-  wakeBridge: vi.fn(() => Promise.resolve(false)),
   LAST_TOKEN_SOURCE: 'test',
 }));
 

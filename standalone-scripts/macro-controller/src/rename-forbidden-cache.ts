@@ -11,12 +11,13 @@
 import { log } from './logging';
 import { sendToExtension } from './ui/prompt-manager';
 import type { ExtensionResponse } from './types';
-import { StorageKey } from './types';
+
+const FORBIDDEN_GROUP = 'rename_forbidden';
 const forbiddenWsIds = new Set<string>();
 
 /** Load forbidden workspace IDs from GroupedKv on controller init. */
 export function loadForbiddenRenameCache(): void {
-  sendToExtension('GKV_LIST', { group: StorageKey.GkvForbiddenGroup }).then(function (resp: ExtensionResponse) {
+  sendToExtension('GKV_LIST', { group: FORBIDDEN_GROUP }).then(function (resp: ExtensionResponse) {
     const hasEntries = resp !== null && resp !== undefined && resp.entries !== undefined;
 
     if (hasEntries) {
@@ -45,7 +46,7 @@ export function getForbiddenCount(): number {
 /** Clear entire forbidden cache. */
 export function clearForbiddenRenameCache(): void {
   forbiddenWsIds.clear();
-  sendToExtension('GKV_CLEAR_GROUP', { group: StorageKey.GkvForbiddenGroup }).then(function () {
+  sendToExtension('GKV_CLEAR_GROUP', { group: FORBIDDEN_GROUP }).then(function () {
     log('[Rename] Forbidden rename cache cleared', 'success');
   });
 }
@@ -54,7 +55,7 @@ export function clearForbiddenRenameCache(): void {
 export function addForbidden(wsId: string, message: string): void {
   forbiddenWsIds.add(wsId);
   sendToExtension('GKV_SET', {
-    group: StorageKey.GkvForbiddenGroup,
+    group: FORBIDDEN_GROUP,
     key: wsId,
     value: JSON.stringify({ message: message, timestamp: new Date().toISOString() }),
   });
@@ -64,7 +65,7 @@ export function addForbidden(wsId: string, message: string): void {
 /** Remove a workspace from the forbidden cache. */
 export function removeForbidden(wsId: string): void {
   forbiddenWsIds.delete(wsId);
-  sendToExtension('GKV_DELETE', { group: StorageKey.GkvForbiddenGroup, key: wsId });
+  sendToExtension('GKV_DELETE', { group: FORBIDDEN_GROUP, key: wsId });
   log('[Rename] Removed workspace ' + wsId + ' from forbidden cache', 'info');
 }
 

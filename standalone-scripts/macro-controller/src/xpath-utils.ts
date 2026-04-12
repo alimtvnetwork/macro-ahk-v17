@@ -12,7 +12,7 @@ import { CONFIG } from './shared-state';
 import { log, logSub } from './logging';
 import { domCache } from './dom-cache';
 
-import { Label } from './types';
+const LOG_XPATHUTILS = '[XPathUtils.';
 
 // ============================================
 // XPathUtils integration
@@ -36,9 +36,9 @@ export const hasXPathUtils = (): boolean => xpathUtilsState.detected;
 export function initXPathUtils(): void {
   if (hasXPathUtils()) {
     window.XPathUtils.setLogger(
-      function(fn: string, msg: string) { log(Label.LogXpathUtils + fn + '] ' + msg, 'check'); },
+      function(fn: string, msg: string) { log(LOG_XPATHUTILS + fn + '] ' + msg, 'check'); },
       function(_fn: string, msg: string) { logSub(msg); },
-      function(fn: string, msg: string) { log(Label.LogXpathUtils + fn + '] WARN: ' + msg, 'warn'); }
+      function(fn: string, msg: string) { log(LOG_XPATHUTILS + fn + '] WARN: ' + msg, 'warn'); }
     );
     log('XPathUtils v' + window.XPathUtils.version + ' detected — using shared utilities', 'success');
   } else {
@@ -47,9 +47,9 @@ export function initXPathUtils(): void {
       if (typeof window.XPathUtils !== 'undefined' && !hasXPathUtils()) {
         xpathUtilsState.detected = true;
         window.XPathUtils.setLogger(
-          function(fn: string, msg: string) { log(Label.LogXpathUtils + fn + '] ' + msg, 'check'); },
+          function(fn: string, msg: string) { log(LOG_XPATHUTILS + fn + '] ' + msg, 'check'); },
           function(_fn: string, msg: string) { logSub(msg); },
-          function(fn: string, msg: string) { log(Label.LogXpathUtils + fn + '] WARN: ' + msg, 'warn'); }
+          function(fn: string, msg: string) { log(LOG_XPATHUTILS + fn + '] WARN: ' + msg, 'warn'); }
         );
         log('XPathUtils detected on deferred retry (500ms)', 'success');
       }
@@ -117,9 +117,7 @@ interface ElementDescriptor {
 
 /** Try finding element via configured XPath. */
 function findViaXPath(desc: ElementDescriptor): Element | null {
-  if (!desc.xpath) {
-    return null;
-  }
+  if (!desc.xpath) return null;
   log('  Method 1 (XPath) for ' + desc.name + ': ' + desc.xpath, 'check');
   const result = getByXPath(desc.xpath);
   if (result) {
@@ -132,18 +130,14 @@ function findViaXPath(desc: ElementDescriptor): Element | null {
 
 /** Try finding element via text content matching. */
 function findViaTextScan(desc: ElementDescriptor): Element | null {
-  if (!desc.textMatch) {
-    return null;
-  }
+  if (!desc.textMatch) return null;
   const tag = desc.tag || 'button';
   const texts = Array.isArray(desc.textMatch) ? desc.textMatch : [desc.textMatch];
   log('  Method 2 (text scan): looking in <' + tag + '> for ' + JSON.stringify(texts), 'check');
   for (const tagEl of document.querySelectorAll(tag)) {
     const elText = (tagEl.textContent || '').trim();
     for (const text of texts) {
-      if (elText === text || elText.indexOf(text) {
-        !== -1) {
-      }
+      if (elText === text || elText.indexOf(text) !== -1) {
         log('  ' + desc.name + ' FOUND via text: "' + elText.substring(0, 40) + '"', 'success');
         return tagEl;
       }
@@ -154,9 +148,7 @@ function findViaTextScan(desc: ElementDescriptor): Element | null {
 
 /** Try finding element via CSS selectors. */
 function findViaCssSelector(desc: ElementDescriptor): Element | null {
-  if (!desc.selector) {
-    return null;
-  }
+  if (!desc.selector) return null;
   const selectors = Array.isArray(desc.selector) ? desc.selector : [desc.selector];
   log('  Method 3 (CSS selector): trying ' + selectors.length + ' selectors', 'check');
   for (const [sIdx, sel] of selectors.entries()) {
@@ -177,9 +169,7 @@ function findViaCssSelector(desc: ElementDescriptor): Element | null {
 
 /** Try finding element via ARIA label attributes. */
 function findViaAriaLabel(desc: ElementDescriptor): Element | null {
-  if (!desc.ariaLabel) {
-    return null;
-  }
+  if (!desc.ariaLabel) return null;
   const labels = Array.isArray(desc.ariaLabel) ? desc.ariaLabel : [desc.ariaLabel];
   for (const label of labels) {
     try {
@@ -195,9 +185,7 @@ function findViaAriaLabel(desc: ElementDescriptor): Element | null {
 
 /** Try finding element via role attribute. */
 function findViaRole(desc: ElementDescriptor): Element | null {
-  if (!desc.role) {
-    return null;
-  }
+  if (!desc.role) return null;
   const result = document.querySelector('[role="' + desc.role + '"]');
   if (result) {
     log('  ' + desc.name + ' FOUND via role: ' + desc.role, 'success');
@@ -208,9 +196,7 @@ function findViaRole(desc: ElementDescriptor): Element | null {
 
 /** Try finding element via ARIA labels or role attributes. */
 function findViaAria(desc: ElementDescriptor): Element | null {
-  if (!desc.ariaLabel && !desc.role) {
-    return null;
-  }
+  if (!desc.ariaLabel && !desc.role) return null;
   log('  Method 4 (ARIA/role)', 'check');
   return findViaAriaLabel(desc) || findViaRole(desc);
 }

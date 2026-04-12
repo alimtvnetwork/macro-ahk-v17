@@ -21,7 +21,8 @@ import { getAuthRecoveryExhausted, setAuthRecoveryExhausted } from './rename-bul
 import type { RenameStrategy } from './types';
 import { delay } from './async-utils';
 import { logError } from './error-utils';
-import { ApiPath } from './types';
+
+const API_USER_WORKSPACES_ = '/user/workspaces/';
 
 // ============================================
 // Types
@@ -105,7 +106,7 @@ function rejectNoBearerToken(wsId: string): Error {
   logError('Rename', '\' + msg + \' — request blocked');
   showToast(msg + '. Please refresh authentication.', 'error', {
     noStop: true,
-    requestDetail: { method: 'PUT', url: ApiPath.UserWorkspacesSlash + wsId },
+    requestDetail: { method: 'PUT', url: API_USER_WORKSPACES_ + wsId },
   });
 
   return new Error('NO_BEARER_TOKEN');
@@ -122,7 +123,7 @@ function handleCreditLimitFallback(
   const bodyPreview = JSON.stringify(resp.data).substring(0, 500);
   log('[Rename] 403 with default_monthly_member_credit_limit — retrying without limit field', 'warn');
   showToast('Rename 403 with monthly-limit field — retrying without it...\nResponse: HTTP 403\nBody: ' + bodyPreview, 'warn', {
-    requestDetail: { method: 'PUT', url: ApiPath.UserWorkspacesSlash + wsId, status: resp.status, responseBody: bodyPreview },
+    requestDetail: { method: 'PUT', url: API_USER_WORKSPACES_ + wsId, status: resp.status, responseBody: bodyPreview },
   });
 }
 
@@ -141,7 +142,7 @@ async function handleRenameAuthRecovery(
   const invalidatedKey = invalidateSessionBridgeKey(token);
   log('[Rename] Got 401 — invalidated "' + invalidatedKey + '", recovering auth...', 'warn');
   showToast('Rename auth 401 — recovering session...', 'warn', {
-    requestDetail: { method: 'PUT', url: ApiPath.UserWorkspacesSlash + wsId, status: 401 },
+    requestDetail: { method: 'PUT', url: API_USER_WORKSPACES_ + wsId, status: 401 },
   });
 
   try {
@@ -174,7 +175,7 @@ function handleRenameError(
   const bodyPreview = JSON.stringify(resp.data).substring(0, 500);
   logError('Rename', '❌ HTTP ' + resp.status + ': ' + bodyPreview.substring(0, 200));
   showToast('Rename failed: HTTP ' + resp.status + '\nResponse: ' + bodyPreview, 'error', {
-    requestDetail: { method: 'PUT', url: ApiPath.UserWorkspacesSlash + wsId, status: resp.status, responseBody: bodyPreview },
+    requestDetail: { method: 'PUT', url: API_USER_WORKSPACES_ + wsId, status: resp.status, responseBody: bodyPreview },
   });
 
   const isForbiddenAfterFallback = resp.status === 403 && attempt.didLimitFallback;
