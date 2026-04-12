@@ -39,6 +39,7 @@ export type LibraryLinkMap = Map<string, LinkInfo>;
 /** Set of slugs that exist in the library */
 export type LibraryAssetSet = Set<string>;
 
+// eslint-disable-next-line max-lines-per-function -- 42 lines, slightly over hook limit of 40
 export function useLibraryLinkMap(projectId?: number | null): {
   linkMap: LibraryLinkMap;
   assetSlugs: LibraryAssetSet;

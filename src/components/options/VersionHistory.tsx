@@ -89,6 +89,7 @@ interface VersionRowProps {
   onRollback: (versionId: number) => void;
 }
 
+// eslint-disable-next-line max-lines-per-function -- cohesive timeline row with badges and collapsible
 function VersionRow({ version, isCurrent, isFirst, isLast, prevHash, onRollback }: VersionRowProps) {
   const [expanded, setExpanded] = useState(false);
   const { label, className } = getChangeLabel(version.ChangedBy);

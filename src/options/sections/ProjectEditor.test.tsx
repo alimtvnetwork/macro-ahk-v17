@@ -24,6 +24,7 @@ const mockProject = {
     updatedAt: "2026-03-15T00:00:00.000Z",
 };
 
+// eslint-disable-next-line max-lines-per-function -- test suite with multiple render cases
 describe("ProjectEditor", () => {
     const onBack = vi.fn();
 

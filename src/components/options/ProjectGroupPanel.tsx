@@ -81,6 +81,7 @@ interface GroupFormDialogProps {
   editGroup?: ProjectGroup | null;
 }
 
+// eslint-disable-next-line max-lines-per-function -- cohesive dialog with form fields
 function GroupFormDialog({ open, onOpenChange, onSaved, editGroup }: GroupFormDialogProps) {
   const [name, setName] = useState(editGroup?.Name ?? "");
   const [settings, setSettings] = useState(editGroup?.SharedSettingsJson ?? "");
