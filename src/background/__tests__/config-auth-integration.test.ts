@@ -160,7 +160,6 @@ function makeCookieStore(entries: Array<{ url: string; name: string; value: stri
 /*  fetchAuthToken Tests                                               */
 /* ------------------------------------------------------------------ */
 
-// eslint-disable-next-line max-lines-per-function
 describe("fetchAuthToken — integration", () => {
     it("returns JWT directly from a JWT session cookie", async () => {
         const tabs = [
@@ -234,7 +233,6 @@ describe("fetchAuthToken — integration", () => {
 /*  handleGetToken Tests                                               */
 /* ------------------------------------------------------------------ */
 
-// eslint-disable-next-line max-lines-per-function
 describe("handleGetToken — integration", () => {
     it("returns cached JWT when cache is valid", async () => {
         const tabs = [
