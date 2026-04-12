@@ -14,7 +14,7 @@ export function useErrorCount(pollIntervalMs = 30_000) {
 
   const refresh = useCallback(async () => {
     try {
-      const result = await sendMessage<{ errors: unknown[] }>({ type: "GET_ACTIVE_ERRORS" });
+      const result = await sendMessage<{ errors: Array<{ id: string }> }>({ type: "GET_ACTIVE_ERRORS" });
       setCount(result.errors?.length ?? 0);
     } catch {
       setCount(0);

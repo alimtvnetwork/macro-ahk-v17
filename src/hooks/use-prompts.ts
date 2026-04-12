@@ -19,10 +19,10 @@ export interface PromptEntry {
 }
 
 interface GetPromptsResponse {
-    prompts?: unknown;
+    prompts?: PromptEntry[];
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value: PromptEntry | Record<string, unknown>): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
@@ -30,7 +30,7 @@ function toError(error: unknown, fallback: string): Error {
     return error instanceof Error ? error : new Error(fallback);
 }
 
-function normalizePrompt(raw: unknown, index: number): PromptEntry {
+function normalizePrompt(raw: PromptEntry | Record<string, unknown>, index: number): PromptEntry {
     if (!isRecord(raw)) {
         throw new Error(`[Prompts] Invalid prompt at index ${index}: expected object`);
     }

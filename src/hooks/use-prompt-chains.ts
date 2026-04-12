@@ -38,13 +38,13 @@ export interface ChainExecutionState {
 }
 
 interface GetPromptChainsResponse {
-    chains?: unknown;
+    chains?: PromptChain[];
 }
 
 const MAX_CHAIN_LENGTH = 10;
 const DEFAULT_TIMEOUT_SEC = 300;
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value: PromptChain | Record<string, unknown>): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
 }
 
@@ -52,7 +52,7 @@ function toError(error: unknown, fallback: string): Error {
     return error instanceof Error ? error : new Error(fallback);
 }
 
-function normalizeChain(raw: unknown, index: number): PromptChain {
+function normalizeChain(raw: PromptChain | Record<string, unknown>, index: number): PromptChain {
     if (!isRecord(raw)) {
         throw new Error(`[PromptChains] Invalid chain at index ${index}: expected object`);
     }
