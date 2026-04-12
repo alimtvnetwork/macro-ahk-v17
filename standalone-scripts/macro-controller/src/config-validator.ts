@@ -141,11 +141,11 @@ export function validateConfig(raw: Partial<MacroControllerConfig>): MacroContro
   }
 
   // Type-check critical fields
-  validateFieldType(raw as Record<string, unknown>, 'macroLoop', 'object', 'Config');
-  validateFieldType(raw as Record<string, unknown>, 'general', 'object', 'Config');
-  validateFieldType(raw as Record<string, unknown>, 'autoAttach', 'object', 'Config');
+  validateFieldType(raw as MergeableRecord, 'macroLoop', 'object', 'Config');
+  validateFieldType(raw as MergeableRecord, 'general', 'object', 'Config');
+  validateFieldType(raw as MergeableRecord, 'autoAttach', 'object', 'Config');
 
-  return deepMerge(DEFAULT_CONFIG as Record<string, unknown>, raw as Record<string, unknown>) as unknown as MacroControllerConfig;
+  return deepMerge(DEFAULT_CONFIG as MergeableRecord, raw as MergeableRecord) as MacroControllerConfig;
 }
 
 /**
@@ -169,12 +169,12 @@ export function validateTheme(raw: Partial<MacroThemeRoot>): MacroThemeRoot {
   }
 
   // Ensure presets object has at least the active preset
-  const merged = deepMerge(DEFAULT_THEME as Record<string, unknown>, raw as Record<string, unknown>) as unknown as MacroThemeRoot;
+  const merged = deepMerge(DEFAULT_THEME as MergeableRecord, raw as MergeableRecord) as MacroThemeRoot;
   const activeKey = (merged.activePreset || 'dark') as string;
 
-  if (merged.presets && !(merged.presets as Record<string, unknown>)[activeKey]) {
+  if (merged.presets && !(merged.presets as MergeableRecord)[activeKey]) {
     warn('Theme: active preset "' + activeKey + '" not found in presets — using default');
-    (merged.presets as Record<string, unknown>)[activeKey] = DEFAULT_THEME_PRESET;
+    (merged.presets as MergeableRecord)[activeKey] = DEFAULT_THEME_PRESET;
   }
 
   return merged;
