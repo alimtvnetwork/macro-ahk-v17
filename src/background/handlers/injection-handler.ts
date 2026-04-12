@@ -18,7 +18,7 @@
 import type { MessageRequest, OkResponse } from "../../shared/messages";
 import { logBgWarnError, logCaughtError, BgLogTag } from "../bg-logger";
 import type { InjectableScript, InjectionResult, SkipReason } from "../../shared/injection-types";
-import type { StoredProject } from "../../shared/project-types";
+import type { StoredProject, ScriptEntry } from "../../shared/project-types";
 import { handleLogEntry, handleLogError } from "./logging-handler";
 import {
     getTabInjections,
