@@ -5,7 +5,7 @@ import Popup from "./pages/Popup";
 import Options from "./pages/Options";
 import NotFound from "./pages/NotFound";
 
-const App = () => {
+export default function App() {
   return (
     <ThemeProvider>
       <ErrorBoundary section="App Root">
@@ -19,6 +19,4 @@ const App = () => {
       </ErrorBoundary>
     </ThemeProvider>
   );
-};
-
-export default App;
+}
