@@ -325,7 +325,7 @@ export function loadPromptsFromJson(): Promise<PromptEntry[] | null> {
 
     return fetchAndCacheFromExtension();
   }).catch(function() {
-    logError('loadPrompts', 'Prompt loading failed', function);
+    logError('loadPrompts', 'Prompt loading failed', e);
     showToast('❌ Prompt loading failed', 'error');
     return fetchAndCacheFromExtension();
   });

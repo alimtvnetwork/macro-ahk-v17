@@ -162,7 +162,7 @@ function _buildSettingsHeader(_fontSystem: string, overlay: HTMLElement): HTMLEl
   return hdr;
 }
 
-function _buildSettingsTabs(deps: SettingsDeps, getPromptsConfig: () => any): { tabBtns: HTMLElement[]; panels: HTMLElement[]; tabPanels: { tabBar: HTMLElement; panelsContainer: HTMLElement } } {
+function _buildSettingsTabs(deps: SettingsDeps, getPromptsConfig: () => ResolvedPromptsConfig): { tabBtns: HTMLElement[]; panels: HTMLElement[]; tabPanels: { tabBar: HTMLElement; panelsContainer: HTMLElement } } {
   const tabs = ['XPaths', 'Timing', 'Task Next', 'Logging', 'Config (DB)', 'General'];
   const tabBar = document.createElement('div');
   tabBar.style.cssText = 'display:flex;gap:0;border-bottom:1px solid ' + cPanelBorder + ';padding:0 20px;flex-shrink:0;';

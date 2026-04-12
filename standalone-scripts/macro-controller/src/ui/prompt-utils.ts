@@ -277,7 +277,7 @@ export function pasteIntoEditor(rawText: string, promptsCfg: PromptsCfg, getByXP
     navigator.clipboard.writeText(text).then(function() {
       showPasteToast('⚠️ Inject failed — copied to clipboard, try Ctrl+V', true);
     }).catch(function() {
-      logError('copyPrompt', 'Prompt copy to clipboard failed', function);
+      logError('copyPrompt', 'Prompt copy to clipboard failed', e);
       showToast('❌ Prompt copy to clipboard failed', 'error');
       showPasteToast('❌ Inject and clipboard both failed', true);
     });

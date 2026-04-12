@@ -179,7 +179,7 @@ function buildWorkspaceNameBadge(deps: PanelBuilderDeps): HTMLElement {
       }
       updateUI();
     }).catch(function() {
-      logError('switchWorkspace', 'Workspace switch failed', function);
+      logError('switchWorkspace', 'Workspace switch failed', e);
       showToast('❌ Workspace switch failed', 'error');
       wsNameEl.style.color = '#f87171';
       wsNameEl.textContent = '❌ failed';
