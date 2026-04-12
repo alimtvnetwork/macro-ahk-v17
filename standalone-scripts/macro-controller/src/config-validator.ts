@@ -129,8 +129,11 @@ const DEFAULT_THEME: MacroThemeRoot = {
  * Warns on schema version mismatch or unexpected types.
  */
 export function validateConfig(raw: unknown): MacroControllerConfig {
-  if (!isPlainObject(raw)) {
+  const isInvalidConfig = !isPlainObject(raw);
+
+  if (isInvalidConfig) {
     warn('Config: received non-object — using all defaults');
+
     return { ...DEFAULT_CONFIG };
   }
 
@@ -154,8 +157,11 @@ export function validateConfig(raw: unknown): MacroControllerConfig {
  * Warns on schema version mismatch, missing presets, or invalid activePreset.
  */
 export function validateTheme(raw: unknown): MacroThemeRoot {
-  if (!isPlainObject(raw)) {
+  const isInvalidTheme = !isPlainObject(raw);
+
+  if (isInvalidTheme) {
     warn('Theme: received non-object — using all defaults');
+
     return { ...DEFAULT_THEME };
   }
 
@@ -167,7 +173,11 @@ export function validateTheme(raw: unknown): MacroThemeRoot {
   }
 
   // Validate activePreset
-  if (theme.activePreset && theme.activePreset !== 'dark' && theme.activePreset !== 'light') {
+  const hasActivePreset = theme.activePreset !== undefined;
+  const isKnownPreset = theme.activePreset === 'dark' || theme.activePreset === 'light';
+  const isUnknownPreset = hasActivePreset && !isKnownPreset;
+
+  if (isUnknownPreset) {
     warn('Theme: activePreset "' + theme.activePreset + '" is not "dark" or "light" — falling back to "dark"');
     theme.activePreset = 'dark';
   }
@@ -186,11 +196,17 @@ export function validateTheme(raw: unknown): MacroThemeRoot {
 // ── Internal helpers ──
 
 function validateSchemaVersion(label: string, version: unknown, supported: number): void {
-  if (typeof version !== 'number') {
+  const isNotNumber = typeof version !== 'number';
+
+  if (isNotNumber) {
     warn(label + ': schemaVersion is not a number (got ' + typeof version + ')');
+
     return;
   }
-  if (version > supported) {
+
+  const isNewerThanSupported = version > supported;
+
+  if (isNewerThanSupported) {
     warn(label + ': schemaVersion ' + version + ' is newer than supported (' + supported + ') — some fields may be ignored');
   }
 }
@@ -202,9 +218,16 @@ function validateFieldType(
   label: string,
 ): void {
   const val = obj[field];
-  if (val === undefined || val === null) return;
+  const isNullish = val === undefined || val === null;
+
+  if (isNullish) {
+    return;
+  }
+
   const actual = Array.isArray(val) ? 'array' : typeof val;
-  if (actual !== expected) {
+  const isTypeMismatch = actual !== expected;
+
+  if (isTypeMismatch) {
     warn(label + '.' + field + ': expected ' + expected + ', got ' + actual + ' — using default');
     delete obj[field];
   }
