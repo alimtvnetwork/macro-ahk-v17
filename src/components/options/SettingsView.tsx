@@ -471,3 +471,5 @@ function SettingRow({
     </div>
   );
 }
+
+export default SettingsView;

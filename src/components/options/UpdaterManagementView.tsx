@@ -777,3 +777,5 @@ export function UpdaterManagementView() {
     </div>
   );
 }
+
+export default UpdaterManagementView;

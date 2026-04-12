@@ -424,3 +424,5 @@ export function AutomationView() {
     </div>
   );
 }
+
+export default AutomationView;

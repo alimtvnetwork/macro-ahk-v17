@@ -78,3 +78,5 @@ export function GlobalAboutView() {
     </div>
   );
 }
+
+export default GlobalAboutView;

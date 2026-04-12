@@ -674,3 +674,5 @@ export function PromptManagerPanel() {
         </Card>
     );
 }
+
+export default PromptManagerPanel;

@@ -569,3 +569,5 @@ export function ScriptBundleDetailView({ script, configs, onSave, onSaveConfig, 
     </div>
   );
 }
+
+export default ScriptBundleDetailView;

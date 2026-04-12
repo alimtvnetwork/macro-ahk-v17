@@ -399,3 +399,5 @@ export function PromptChainPanel() {
         </div>
     );
 }
+
+export default PromptChainPanel;

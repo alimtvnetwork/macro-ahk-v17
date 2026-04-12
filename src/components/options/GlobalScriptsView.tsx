@@ -73,3 +73,5 @@ export function GlobalScriptsView({
     />
   );
 }
+
+export default GlobalScriptsView;

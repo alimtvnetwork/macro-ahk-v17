@@ -659,3 +659,5 @@ export function ActivityLogTimeline() {
     </div>
   );
 }
+
+export default ActivityLogTimeline;

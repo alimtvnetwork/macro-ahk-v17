@@ -1665,3 +1665,5 @@ function formatJson(input: unknown): string {
     return "{}";
   }
 }
+
+export default ProjectDetailView;
