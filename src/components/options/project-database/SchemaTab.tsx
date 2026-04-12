@@ -104,7 +104,7 @@ function SchemaToolbar({
   tableCount: number;
   loadingExisting: boolean;
   applying: boolean;
-  importRef: React.RefObject<HTMLInputElement | null>;
+  importRef: React.RefObject<HTMLInputElement>;
   onLoadExisting: () => void;
   onImport: (file: File) => void;
   onExport: () => void;
