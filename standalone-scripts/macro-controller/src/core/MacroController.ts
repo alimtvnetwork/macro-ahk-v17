@@ -327,7 +327,7 @@ export class MacroController {
 
   // ---- Diagnostics ----
 
-  diagnostics(): DiagnosticDump {
+  diagnostics(): Record<string, string | number | boolean | object | string[] | undefined> {
     return {
       version: this.version,
       initialized: this._initialized,
