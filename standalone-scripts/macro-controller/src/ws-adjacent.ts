@@ -241,7 +241,7 @@ async function doFetchWorkspacesForMove(
     throw new Error('HTTP ' + resp.status);
   }
 
-  const data = resp.data as Record<string, unknown>;
+  const data = resp.data as ApiResponseData;
   const isParseOk = parseLoopApiResponse(data);
 
   if (!isParseOk) {

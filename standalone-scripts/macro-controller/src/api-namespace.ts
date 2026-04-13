@@ -86,7 +86,7 @@ export function getNamespace(): MacroControllerNamespace | null {
       root.Projects.MacroController = {};
     }
 
-    const mc = root.Projects.MacroController as Record<string, Record<string, unknown>>;
+    const mc = root.Projects.MacroController as MacroControllerNamespaceShape;
 
     // Ensure sub-objects exist
     if (!mc.meta) {
@@ -95,7 +95,7 @@ export function getNamespace(): MacroControllerNamespace | null {
     if (!mc.api) {
       mc.api = {}
     }
-    const api = mc.api as Record<string, unknown>;
+    const api = mc.api as MacroControllerApiShape;
     if (!api.loop) {
       api.loop = {}
     }
