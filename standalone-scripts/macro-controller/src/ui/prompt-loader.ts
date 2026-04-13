@@ -7,6 +7,7 @@
 
 import { log, logSub } from '../logging';
 import type { ExtensionResponse, PromptEntry, ResolvedPromptsConfig } from '../types';
+import type { ExtensionPayload } from '../types/api-data-types';
 import type { CachedPromptEntry } from './prompt-cache';
 import {
   clearPromptCache,
@@ -176,7 +177,7 @@ function handleRelayResponse(ctx: RelayCtx, event: MessageEvent): void {
  * Send a message to the extension via chrome.runtime or window.postMessage relay.
  * Returns a Promise that resolves with the extension response.
  */
-export function sendToExtension(type: string, payload: Record<string, unknown>): Promise<ExtensionResponse> {
+export function sendToExtension(type: string, payload: ExtensionPayload): Promise<ExtensionResponse> {
   return new Promise<ExtensionResponse>(function(resolve) {
     if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
       try {
@@ -264,7 +265,7 @@ export function loadPromptsFromJson(): Promise<PromptEntry[] | null> {
   const loadStartMs = Date.now();
 
   // ── SDK delegation (preferred path) ──
-  const sdk = window.marco as { prompts?: { getAll(): Promise<unknown[]> } } | undefined;
+  const sdk = window.marco as { prompts?: { getAll(): Promise<MarcoSDKPromptEntry[]> } } | undefined;
   if (sdk && sdk.prompts && typeof sdk.prompts.getAll === 'function') {
     if (promptLoaderState.loadedJsonPrompts) {
       log('[PromptLoad] ✅ In-memory cache hit (' + promptLoaderState.loadedJsonPrompts.length + ' prompts, 0ms)', 'info');

@@ -12,6 +12,7 @@
 
 import { taskNextState, saveTaskNextSettings, type TaskNextDeps } from './task-next-ui';
 import type { ExtensionResponse, ResolvedPromptsConfig } from '../types';
+import type { ExtensionPayload } from '../types/api-data-types';
 import { updateLogConfig, type LogManagerConfig } from '../log-manager';
 import type { XPathPanelResult, TimingPanelResult, TaskNextPanelResult, LoggingPanelResult, ConfigDbPanelResult, GeneralPanelResult } from './settings-tab-panels';
 
@@ -53,7 +54,7 @@ export interface SettingsDeps {
   getPromptsConfig: () => ResolvedPromptsConfig;
   showToast: (msg: string, level?: string) => void;
   log: (msg: string, level?: string) => void;
-  sendToExtension: (type: string, payload: Record<string, unknown>) => Promise<ExtensionResponse>;
+  sendToExtension: (type: string, payload: ExtensionPayload) => Promise<ExtensionResponse>;
 }
 
 // ============================================

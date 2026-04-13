@@ -10,6 +10,7 @@
 
 import type { MacroControllerConfig, MacroThemeRoot, PromptEntry } from './types';
 import type { NamespaceValue } from './api-namespace';
+import type { MarcoConfigOverrides } from './types/api-data-types';
 
 interface XPathUtilsAPI {
   version: string;
@@ -177,6 +178,9 @@ declare global {
 
     // Marco SDK (injected by marco-sdk.js)
     marco?: MarcoSDK;
+
+    /** Optional config overrides set by test harness or debug tools. */
+    marco_config_overrides?: MarcoConfigOverrides;
 
     // SDK namespace
     RiseupAsiaMacroExt?: RiseupAsiaMacroExtNamespace;

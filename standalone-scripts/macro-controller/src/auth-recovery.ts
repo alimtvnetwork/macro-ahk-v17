@@ -164,8 +164,7 @@ const DEFAULT_TOKEN_TTL_MS = 120_000;
 /** Read configured TTL from marco_config_overrides or config JSON. */
 function resolveTokenTtlMs(): number {
   try {
-    const overrides = (window as unknown as Record<string, unknown>).marco_config_overrides as
-      { tokenTtlMs?: number } | undefined;
+    const overrides = window.marco_config_overrides;
 
     if (overrides && typeof overrides.tokenTtlMs === 'number') {
       return overrides.tokenTtlMs;
@@ -175,7 +174,7 @@ function resolveTokenTtlMs(): number {
   }
 
   try {
-    const cfg = (window as unknown as Record<string, unknown>).__MARCO_CONFIG__ as
+    const cfg = window.__MARCO_CONFIG__ as
       { authBridge?: { tokenTtlMs?: number } } | undefined;
 
     if (cfg?.authBridge?.tokenTtlMs) {

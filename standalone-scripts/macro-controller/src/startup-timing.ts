@@ -106,8 +106,7 @@ export function logTimingSummary(): void {
 
   // Append version number for quick identification in console
   try {
-    const ext = (window as unknown as Record<string, Record<string, Record<string, Record<string, Record<string, string>>>>>)
-      ?.RiseupAsiaMacroExt?.Projects?.MacroController?.meta;
+    const ext = window.RiseupAsiaMacroExt?.Projects?.MacroController?.meta;
     const ver = ext?.version || '?';
     lines.push('│  Version: v' + ver + '                                                    │'.substring(0, 55) + '│');
   } catch {

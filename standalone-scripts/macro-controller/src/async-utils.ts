@@ -59,7 +59,7 @@ interface SdkUtils {
 
 function getSdkUtils(): SdkUtils | null {
   try {
-    const w = window as unknown as { marco?: { utils?: SdkUtils } };
+    const w = window as { marco?: { utils?: SdkUtils } };
 
     if (w.marco && w.marco.utils) {
       return w.marco.utils;

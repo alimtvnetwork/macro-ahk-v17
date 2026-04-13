@@ -20,6 +20,7 @@ import { showToast } from './toast';
 import { CREDIT_API_BASE, state } from './shared-state';
 import { clearResolvedWorkspace } from './credit-balance';
 import { logError } from './error-utils';
+import type { WorkspaceProbeData } from './types/api-data-types';
 
 const LOG_SESSIONCHECK = '[SessionCheck/';
 
@@ -85,8 +86,8 @@ async function probeSessionWithToken(context: string, token: string): Promise<vo
     const data = resp.data;
     const wsCount = Array.isArray(data)
       ? data.length
-      : (data && typeof data === 'object' && 'workspaces' in (data as Record<string, unknown>) && Array.isArray((data as Record<string, unknown>).workspaces)
-        ? ((data as Record<string, unknown[]>).workspaces).length
+      : (data && typeof data === 'object' && 'workspaces' in (data as WorkspaceProbeData) && Array.isArray((data as WorkspaceProbeData).workspaces)
+        ? ((data as WorkspaceProbeData).workspaces!).length
         : '?');
 
     log(LOG_SESSIONCHECK + context + '] ✅ Session valid — ' + wsCount + ' workspaces loaded (auth: ' + authLabel + ')', 'success');

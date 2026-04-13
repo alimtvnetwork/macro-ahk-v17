@@ -9,6 +9,7 @@
 import { log } from '../logging';
 import { logError } from '../error-utils';
 import { showToast } from '../toast';
+import type { IdbRecord } from '../types/api-data-types';
 
 const DB_NAME = 'marco_prompts_cache';
 const DB_VERSION = 3;
@@ -136,7 +137,7 @@ function readRecord<T>(storeName: string, key: string): Promise<T | null> {
 }
 
 /** Write a record to a store. */
-function writeRecord(storeName: string, record: Record<string, unknown>): Promise<void> {
+function writeRecord(storeName: string, record: IdbRecord): Promise<void> {
   return openDb().then(function(db) {
     return new Promise<void>(function(resolve) {
       try {
