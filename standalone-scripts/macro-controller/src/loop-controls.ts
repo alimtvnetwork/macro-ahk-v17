@@ -125,24 +125,22 @@ function startLoopTimers(): void {
 
 async function handleAuthAndStartCheck(): Promise<void> {
   log('Step 1: Resolving auth token before workspace check...', 'check');
-  // Dynamic import to break circular dependency (was require())
   const { runCheck: runCheckFn } = await import('./loop-check');
+  const tokenResult = await ensureTokenReady(AUTH_READY_TIMEOUT_MS);
 
-  refreshBearerTokenFromBestSource(function(authToken: string, authSource: string) {
-    logAuthResult(authToken, authSource);
-    if (!state.running) { log('Loop was stopped during auth resolution — aborting', 'warn'); return; }
+  logAuthResult(tokenResult.token, tokenResult.token ? getLastTokenSource() : tokenResult.reason);
+  if (!state.running) { log('Loop was stopped during auth resolution — aborting', 'warn'); return; }
 
-    log('Step 2: Running initial workspace check...', 'check');
-    let checkPromise;
-    try { checkPromise = runCheckFn(); } catch(e) {
-      log('Initial check threw error: ' + (e as Error).message + ' — starting loop anyway', 'warn');
-    }
+  log('Step 2: Running initial workspace check...', 'check');
+  let checkPromise;
+  try { checkPromise = runCheckFn(); } catch(e) {
+    log('Initial check threw error: ' + (e as Error).message + ' — starting loop anyway', 'warn');
+  }
 
-    log('Step 3: Fetching initial credit data...', 'check');
-    mc().credits.fetch(false);
+  log('Step 3: Fetching initial credit data...', 'check');
+  mc().credits.fetch(false);
 
-    scheduleTimersAfterCheck(checkPromise);
-  });
+  scheduleTimersAfterCheck(checkPromise);
 }
 
 function logAuthResult(authToken: string, authSource: string): void {
