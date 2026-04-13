@@ -18,7 +18,7 @@ export interface RetryOptions {
   readonly maxAttempts: number;
   readonly delayMs: number;
   readonly backoffMultiplier?: number;
-  readonly onRetry?: (attempt: number, error: Error) => void;
+  readonly onRetry?: (attempt: number, error: CaughtError) => void;
 }
 
 export interface ConcurrencyLockResult<T> {

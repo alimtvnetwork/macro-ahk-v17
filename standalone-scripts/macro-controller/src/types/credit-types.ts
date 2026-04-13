@@ -118,9 +118,16 @@ export interface DiagnosticDump {
   workspaceFromApi: boolean;
   currentWsName: string;
   currentWsId: string;
-  loopRunning: boolean;
-  tokenSource: string;
-  creditBarVisible: boolean;
-  lastCreditCheckAt: string;
-  lastError: string;
+  loopRunning?: boolean;
+  tokenSource?: string;
+  creditBarVisible?: boolean;
+  lastCreditCheckAt?: string;
+  lastError?: string;
+  wsCount?: number;
+  wsByIdKeys?: string[];
+  projectId?: string;
+  lastCheckedAt?: string;
+  source?: string;
+  initialized?: boolean;
+  [key: string]: string | number | boolean | string[] | object | undefined;
 }

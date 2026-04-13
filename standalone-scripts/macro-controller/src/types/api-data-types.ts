@@ -72,13 +72,19 @@ export type AutoAttachRawConfig = Record<string, string | number | boolean | Arr
  * Column definition payload for schema operations.
  */
 export interface ColumnDefinition {
-  name: string;
-  type: string;
+  name?: string;
+  Name?: string;
+  type?: string;
+  Type?: string;
   primaryKey?: boolean;
   notNull?: boolean;
+  Nullable?: boolean;
   defaultValue?: string | number | boolean | null;
+  Default?: string | number | boolean | null;
   unique?: boolean;
   validation?: ValidationRules;
+  Validation?: ValidationRules;
+  ForeignKey?: { table: string; column: string; onDelete: string; onUpdate: string } | null;
 }
 
 /* ================================================================== */
@@ -102,7 +108,7 @@ export type TemplateDataItem = Record<string, FieldValue>;
  * Payload sent to the extension via sendToExtension().
  * Keys are message-specific; values are always primitives.
  */
-export type ExtensionPayload = Record<string, FieldValue | undefined>;
+export type ExtensionPayload = Record<string, FieldValue | undefined | object | FieldValue[]>;
 
 /* ================================================================== */
 /*  Prompt Form Data (modal initial values)                            */
@@ -126,7 +132,7 @@ export interface PromptFormData {
 /**
  * A generic IndexedDB record with a string key and primitive values.
  */
-export type IdbRecord = Record<string, FieldValue | undefined>;
+export type IdbRecord = Record<string, FieldValue | undefined | object | FieldValue[]>;
 
 /* ================================================================== */
 /*  Window Global Accessors                                            */

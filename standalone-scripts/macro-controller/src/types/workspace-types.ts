@@ -47,4 +47,11 @@ export interface ExtensionResponse {
   isOk?: boolean;
   errorMessage?: string;
   status?: string;
+  bundledVersion?: string;
+  scriptSource?: string;
+  version?: string;
+  prompts?: Array<Record<string, string | number | boolean | null>>;
+  rows?: Array<Record<string, string | number | boolean | null>>;
+  value?: string;
+  count?: number;
 }
