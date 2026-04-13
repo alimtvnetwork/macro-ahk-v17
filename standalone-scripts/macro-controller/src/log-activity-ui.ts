@@ -44,13 +44,16 @@ export function addActivityLog(time: string | null, level: string, message: stri
 
 function _buildLogEntryHtml(entry: ActivityLogEntry): string {
   let color = cLogDefault;
-  if (entry.level === 'ERROR' || entry.level === 'error') {
+  const isErrorLevel = entry.level === 'ERROR' || entry.level === 'error';
+  const isWarnLevel = entry.level === 'WARN' || entry.level === 'warn';
+
+  if (isErrorLevel) {
     color = cLogError;
   }
   else if (entry.level === 'INFO') color = cLogInfo;
   else if (entry.level === 'success') color = cLogSuccess;
   else if (entry.level === 'DEBUG') color = cLogDebug;
-  else if (entry.level === 'WARN' || entry.level === 'warn') color = cLogWarn;
+  else if (isWarnLevel) color = cLogWarn;
   else if (entry.level === 'delegate') color = cLogDelegate;
   else if (entry.level === 'check') color = cLogCheck;
 

@@ -78,7 +78,9 @@ function attemptUiRecovery(marker: HTMLElement): IdempotentResult {
 
     healAllManagers(existingController);
 
-    if (existingController?.ui && typeof existingController.ui.create === 'function') {
+    const hasUiCreateFn = existingController?.ui && typeof existingController.ui.create === 'function';
+
+    if (hasUiCreateFn) {
       existingController.ui.create();
       if (typeof existingController.ui.update === 'function') {
         existingController.ui.update();
@@ -111,12 +113,16 @@ function healAllManagers(existingController: MacroControllerFacade): void {
   // Self-heal UIManager
   if (!existingController.ui) {
     const savedUIFactory = nsRead('__createUIManager', '_internal.createUIManager') as (() => ManagerInstance) | null;
-    if (savedUIFactory && typeof existingController.registerUI === 'function') {
+    const canRegisterFactory = savedUIFactory && typeof existingController.registerUI === 'function';
+
+    if (canRegisterFactory) {
       console.warn(LOG_MACROLOOP_V + VERSION + '] Self-healing: auto-registering UIManager from persisted factory');
       existingController.registerUI(savedUIFactory());
     } else {
       const savedCreateFn = nsRead('__createUIWrapper', '_internal.createUIWrapper') as (() => void) | null;
-      if (savedCreateFn && typeof existingController.registerUI === 'function') {
+      const canRegisterLegacy = savedCreateFn && typeof existingController.registerUI === 'function';
+
+      if (canRegisterLegacy) {
         console.warn(LOG_MACROLOOP_V + VERSION + '] Self-healing: auto-registering UIManager from persisted createFn (legacy)');
         const healedUI = new UIManager();
         healedUI.setCreateFn(savedCreateFn);

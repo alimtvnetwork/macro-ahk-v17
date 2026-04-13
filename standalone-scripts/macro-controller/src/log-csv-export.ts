@@ -14,11 +14,13 @@ import { log } from './logging';
 // ── CSV Helpers ──
 
 function csvVal(v: string | number | boolean | null | undefined): string {
-  if (v === null || v === undefined) {
+  if (v == null) {
     return '';
   }
   const s = String(v);
-  if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+  const needsQuoting = s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1;
+
+  if (needsQuoting) {
     return '"' + s.replace(/"/g, '""') + '"';
   }
   return s;

@@ -142,7 +142,9 @@ function extractTokenFromContainer(
   raw: BridgePayloadValue,
   depth: number,
 ): string {
-  if (depth > 4 || !raw || typeof raw !== 'object') {
+  const isInvalidContainer = depth > 4 || !raw || typeof raw !== 'object';
+
+  if (isInvalidContainer) {
     return '';
   }
 

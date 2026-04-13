@@ -45,18 +45,24 @@ export function resolveWsTier(plan: string, subStatus: string, billingLimit: num
   }
 
   // Has billing = was/is pro
-  if (billingLimit > 0 || (p && p !== 'free')) {
+  const hasBillingOrPaidPlan = billingLimit > 0 || (p && p !== 'free');
+
+  if (hasBillingOrPaidPlan) {
     if (s === 'active') {
       return 'PRO';
     }
-    if (s === 'canceled' || s === 'cancelled' || s === 'past_due') {
+    const isCancelledOrPastDue = s === 'canceled' || s === 'cancelled' || s === 'past_due';
+
+    if (isCancelledOrPastDue) {
       return 'EXPIRED';
     }
     return 'PRO'; // default if billing exists
   }
 
   // Free plan + canceled sub = expired trial/pro
-  if (s === 'canceled' || s === 'cancelled') {
+  const isCancelledSub = s === 'canceled' || s === 'cancelled';
+
+  if (isCancelledSub) {
     return 'EXPIRED';
   }
 
@@ -138,7 +144,9 @@ function matchCurrentWorkspace(perWs: import('./types').WorkspaceCredit[]): void
     return;
   }
   for (const ws of perWs) {
-    if (ws.fullName === state.workspaceName || ws.name === state.workspaceName) {
+    const isNameMatch = ws.fullName === state.workspaceName || ws.name === state.workspaceName;
+
+    if (isNameMatch) {
       loopCreditState.currentWs = ws;
       return;
     }
