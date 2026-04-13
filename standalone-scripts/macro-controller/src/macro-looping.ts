@@ -78,7 +78,7 @@ const DOMAIN_GUARD = 'domain-guard';
     ['__loopGetRenameDelay', 'api.workspace.getRenameDelay', function() { return getRenameDelayMs(); }],
     ['__loopSetRenameDelay', 'api.workspace.setRenameDelay', function(ms: number) { setRenameDelayMs(ms); }],
     ['__loopCancelRename', 'api.workspace.cancelRename', function() { cancelRename(); }],
-    ['__loopUndoRename', 'api.workspace.undoRename', function() { undoLastRename(function(_r: boolean, done: boolean) { if (done) populateLoopWorkspaceDropdown(); }); }],
+    ['__loopUndoRename', 'api.workspace.undoRename', function() { undoLastRename(function(_r: { success: number; failed: number; total: number }, done: boolean) { if (done) populateLoopWorkspaceDropdown(); }); }],
     ['__loopRenameHistory', 'api.workspace.renameHistory', function() { return getRenameHistory(); }],
   ]);
 

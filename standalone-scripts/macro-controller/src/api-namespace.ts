@@ -42,7 +42,7 @@ export interface MacroControllerNamespace {
 }
 
 /** Generic namespace value — replaces explicit `unknown` across namespace operations. */
-export type NamespaceValue = string | number | boolean | null | undefined | object | NamespaceFunction | Record<string, NamespaceValue>;
+export type NamespaceValue = string | number | boolean | null | undefined | object | NamespaceFunction;
 
 /** Callable namespace function signature. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -23,7 +23,7 @@
  * Usage: NEVER annotate catch variables with this type.
  * Instead, use bare `catch (e)` and pass `e` to `logError()` or `toErrorMessage()`.
  */
-export type CaughtError = Error | string | null | undefined | object;
+export type CaughtError = unknown;
 
 /**
  * Extract a human-readable message from any caught value.

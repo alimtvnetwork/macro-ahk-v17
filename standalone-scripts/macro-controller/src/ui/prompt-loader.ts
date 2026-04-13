@@ -325,7 +325,7 @@ export function loadPromptsFromJson(): Promise<PromptEntry[] | null> {
     log('[PromptCache] No IndexedDB cache — fetching from extension...', 'info');
 
     return fetchAndCacheFromExtension();
-  }).catch(function() {
+  }).catch(function(e) {
     logError('loadPrompts', 'Prompt loading failed', e);
     showToast('❌ Prompt loading failed', 'error');
     return fetchAndCacheFromExtension();

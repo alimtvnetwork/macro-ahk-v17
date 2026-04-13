@@ -403,7 +403,7 @@ export function runCycle(): void {
       log('Step 1: Credit balance API failed — falling back to full workspace API...', 'warn');
       doCycleFetchFallback();
     })
-    .catch(function (err: Error) {
+    .catch(function (_err: Error) {
       logError('Step 1', 'Credit balance check error: \' + err.message + \' — falling back');
 
       if (!BALANCE_CONFIG.fallbackToXPath) {

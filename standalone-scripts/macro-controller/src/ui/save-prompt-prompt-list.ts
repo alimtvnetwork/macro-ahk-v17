@@ -248,7 +248,7 @@ function buildCopyButton(prompt: PromptEntry): HTMLElement {
     event.stopPropagation();
     navigator.clipboard.writeText(prompt.text || '').then(function () {
       showPasteToast('📋 Copied "' + (prompt.name || '') + '" to clipboard', false);
-    }).catch(function () {
+    }).catch(function (e) {
       logError('deletePrompt', 'Prompt deletion failed', e);
       showToast('❌ Prompt deletion failed', 'error');
       showPasteToast('❌ Failed to copy', true);

@@ -105,7 +105,7 @@ export function renderPromptsDropdown(ctx: PromptContext, taskNextDeps: TaskNext
     }
     // No valid snapshot — full render
     _renderFresh(promptsDropdown, entries, promptsCfg, ctx, taskNextDeps, currentHash, currentFilter);
-  }).catch(function() {
+  }).catch(function(e) {
     logError('renderPrompts', 'Prompt dropdown render failed', e);
     showToast('❌ Prompt dropdown render failed', 'error');
     _renderFresh(promptsDropdown, entries, promptsCfg, ctx, taskNextDeps, currentHash, currentFilter);
