@@ -30,6 +30,7 @@ export interface ColumnValidation {
   format?: string;
   pattern?: string;
   flags?: string;
+  [key: string]: string | number | undefined;
 }
 
 export interface ForeignKeyDef {

@@ -13,7 +13,8 @@
 import { MacroController } from './core/MacroController';
 import { log, logSub } from './logging';
 import { resolveToken, invalidateSessionBridgeKey, recoverAuthOnce } from './auth';
-import { parseLoopApiResponse } from './credit-fetch';
+import { parseLoopApiResponse } from './credit-parser';
+import type { WorkspacesApiResponse } from './types';
 import { showToast } from './toast';
 import { CREDIT_API_BASE, loopCreditState, state } from './shared-state';
 import { moveToWorkspace, updateLoopMoveStatus } from './ws-move';
