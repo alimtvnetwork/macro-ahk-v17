@@ -242,7 +242,7 @@ async function doFetchWorkspacesForMove(
     throw new Error('HTTP ' + resp.status);
   }
 
-  const data = resp.data as ApiResponseData;
+  const data = resp.data as WorkspacesApiResponse;
   const isParseOk = parseLoopApiResponse(data);
 
   if (!isParseOk) {

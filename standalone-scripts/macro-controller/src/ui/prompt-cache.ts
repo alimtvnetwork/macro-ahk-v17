@@ -7,7 +7,7 @@
  */
 
 import { log } from '../logging';
-import { logError } from '../error-utils';
+import { logError, type CaughtError } from '../error-utils';
 import { showToast } from '../toast';
 import type { IdbRecord } from '../types/api-data-types';
 

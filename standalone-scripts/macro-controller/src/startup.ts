@@ -18,7 +18,7 @@ import { dualWriteAll, nsRead } from './api-namespace';
 import { registerTokenBroadcastListener } from './token-broadcast-listener';
 import { showToast, dismissAllToasts } from './toast';
 import { updateStartupToast } from './startup-toast';
-import { toErrorMessage , logError } from './error-utils';
+import { toErrorMessage , logError, type CaughtError } from './error-utils';
 import {
   resolveToken,
   refreshBearerTokenFromBestSource,

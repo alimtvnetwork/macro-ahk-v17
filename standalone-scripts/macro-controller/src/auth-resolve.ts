@@ -176,7 +176,7 @@ export function getBearerTokenFromSessionBridge(): string {
         setLastSessionBridgeSource(key);
         log('resolveToken: ✅ Found Supabase auth in localStorage[' + key + '] (len=' + tokenLength + ')', 'success');
       },
-      (scanErr) => {
+      (scanErr: Error) => {
         log('resolveToken: Supabase localStorage scan failed — ' + toErrorMessage(scanErr), 'warn');
       },
     );
@@ -249,7 +249,10 @@ export function getSessionCookieNames(): string[] {
 
     const names: string[] = [];
     for (const projectKey of Object.keys(root.Projects)) {
-      names.push(...extractSessionNamesFromProject(root.Projects[projectKey]));
+      const project = root.Projects[projectKey];
+      if (project) {
+        names.push(...extractSessionNamesFromProject(project));
+      }
     }
 
     return Array.from(new Set(names.concat(FALLBACK_SESSION_COOKIE_NAMES)));
