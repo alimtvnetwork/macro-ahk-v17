@@ -41,6 +41,7 @@ import { MacroController } from './core/MacroController';
 import { UIManager } from './core/UIManager';
 import { startLoop, stopLoop } from './loop-engine';
 import type { MarkViewedResponse } from './types';
+import type { StartupStateWithTimeout } from './types/api-data-types';
 import { ensureTokenReady } from './startup-token-gate';
 import { setupPersistenceObserver } from './startup-persistence';
 import { setupGlobalErrorHandlers, setupDiagnosticDump } from './startup-global-handlers';
