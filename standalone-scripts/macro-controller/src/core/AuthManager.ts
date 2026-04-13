@@ -10,13 +10,13 @@
 import type { AuthManagerInterface } from './MacroController';
 import { verifyWorkspaceSessionAfterFailure } from '../workspace-management';
 
-import { getLastTokenSource, getBearerTokenFromCookie, getBearerTokenFromSessionBridge, invalidateSessionBridgeKey, markBearerTokenExpired, persistResolvedBearerToken, refreshBearerTokenFromBestSource, requestTokenFromExtension, setLastTokenSource, updateAuthBadge, getBearerToken } from '../auth';
+import { getLastTokenSource, getBearerTokenFromCookie, getBearerTokenFromSessionBridge, invalidateSessionBridgeKey, markBearerTokenExpired, persistResolvedBearerToken, recoverAuthOnce, refreshBearerTokenFromBestSource, requestTokenFromExtension, resolveToken, setLastTokenSource, updateAuthBadge } from '../auth';
 
 export class AuthManager implements AuthManagerInterface {
 
-  /** Unified token retrieval — returns TTL-aware cached token or recovers */
-  getToken(): Promise<string> {
-    return getBearerToken();
+  /** Synchronous token retrieval — mirrors the v1.133 root contract */
+  getToken(): string {
+    return resolveToken();
   }
 
   /** Async refresh from best source (waterfall: localStorage → extension bridge → cookie) */
@@ -69,9 +69,9 @@ export class AuthManager implements AuthManagerInterface {
     requestTokenFromExtension(forceRefresh, onDone);
   }
 
-  /** Forced auth recovery via unified contract */
+  /** Forced auth recovery via legacy single-flight recovery path */
   recoverOnce(): Promise<string> {
-    return getBearerToken({ force: true });
+    return recoverAuthOnce();
   }
 
   /** Verify session health after a failed API call */
