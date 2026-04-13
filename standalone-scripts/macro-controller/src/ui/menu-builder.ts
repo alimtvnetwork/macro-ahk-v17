@@ -225,7 +225,7 @@ function _addReadSubmenu(menuCtx: { menuBtnStyle: string; menuDropdown: HTMLElem
 
 // ── Auto Attach Section ──
 function _addAutoAttachSection(menuCtx: { menuBtnStyle: string; menuDropdown: HTMLElement }, menuDropdown: HTMLElement): void {
-  dualWrite('__autoAttachRunGroup', 'api.autoAttach.runGroup', function(group: AutoAttachGroupRuntime) { runAutoAttachGroup(group, autoAttachCfg as Record<string, unknown>, showToast); });
+  dualWrite('__autoAttachRunGroup', 'api.autoAttach.runGroup', function(group: AutoAttachGroupRuntime) { runAutoAttachGroup(group, autoAttachCfg as AutoAttachRawConfig, showToast); });
   menuDropdown.appendChild(createMenuSep());
 
   const aaHeader = document.createElement('div');
@@ -244,7 +244,7 @@ function _addAutoAttachSection(menuCtx: { menuBtnStyle: string; menuDropdown: HT
       const fileCount = (group.files || []).length;
       const label = group.name + ' (' + fileCount + ' file' + (fileCount !== 1 ? 's' : '') + ')';
       menuDropdown.appendChild(createMenuItem(menuCtx, '📁', label, 'Attach files from: ' + group.name + (group.prompt ? '\nPrompt: ' + group.prompt.substring(0, 60) + '...' : ''), function() {
-        runAutoAttachGroup(group, autoAttachCfg as Record<string, unknown>, showToast);
+        runAutoAttachGroup(group, autoAttachCfg as AutoAttachRawConfig, showToast);
       }));
     }
   }

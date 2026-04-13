@@ -1,5 +1,6 @@
  
 import { toErrorMessage , logError } from '../error-utils';
+import type { AutoAttachRawConfig } from '../types/api-data-types';
 /**
  * MacroLoop Controller — Auto-Attach File Automation
  * Step 03f: Extracted from createUI() closure
@@ -28,10 +29,10 @@ export interface AutoAttachConfig {
 /**
  * Resolve auto-attach config from window.__MARCO_CONFIG__ or fallback.
  */
-export function resolveAutoAttachConfig(autoAttachCfg?: Record<string, unknown>): AutoAttachConfig {
+export function resolveAutoAttachConfig(autoAttachCfg?: AutoAttachRawConfig): AutoAttachConfig {
   const rawCfg = (window.__MARCO_CONFIG__ || {}).autoAttach;
-  const liveCfg: Record<string, unknown> = (rawCfg && typeof rawCfg === 'object')
-    ? rawCfg as Record<string, unknown>
+  const liveCfg: AutoAttachRawConfig = (rawCfg && typeof rawCfg === 'object')
+    ? rawCfg as AutoAttachRawConfig
     : ((autoAttachCfg && typeof autoAttachCfg === 'object') ? autoAttachCfg : {});
 
   const timing = (liveCfg.timing && typeof liveCfg.timing === 'object') ? liveCfg.timing as AutoAttachConfig['timing'] : {};
@@ -85,7 +86,7 @@ export function insertTextIntoElement(xpath: string, text: string, label: string
 
 export async function runAutoAttachGroup(
   group: AutoAttachGroupRuntime,
-  autoAttachCfg: Record<string, unknown>,
+  autoAttachCfg: AutoAttachRawConfig,
   showToast: (msg: string, type: string) => void,
 ) {
   const aaCfg = resolveAutoAttachConfig(autoAttachCfg);
