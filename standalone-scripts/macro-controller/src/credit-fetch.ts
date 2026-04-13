@@ -8,6 +8,12 @@
  *        Auth toasts now use noStop:true to avoid stopping loop on recoverable errors.
  * v7.40: Migrated from raw fetch() to httpRequest() (XMLHttpRequest + Promise).
  * v7.50: Migrated to marco.api centralized SDK (Axios + registry).
+ * v2.136: Removed recursive self-calls per issue #88. Sequential pattern only.
+ *
+ * NO RETRY POLICY: Auth recovery uses getBearerToken({ force: true }) once.
+ * If it fails, emit error. No recursive fetchLoopCredits(true) calls.
+ * @see spec/17-app-issues/88-auth-loading-failure-retry-inconsistency/00-overview.md
+ * @see standalone-scripts/macro-controller/diagrams/inconsistencies/auth-retry-inconsistencies.mmd
  *
  * @see spec/17-app-issues/authentication-freeze-and-retry-loop.md (RCA-1, RCA-2)
  * @see memory/architecture/networking/centralized-api-registry
@@ -185,6 +191,12 @@ async function processSuccessData(
 // fetchLoopCredits — callback-style credit fetch
 // v7.50: Uses marco.api.credits.fetchWorkspaces() via SDK.
 // ============================================
+/**
+ * fetchLoopCredits — callback-style credit fetch
+ * v7.50: Uses marco.api.credits.fetchWorkspaces() via SDK.
+ * v2.136: Sequential auth recovery — NO recursive self-call.
+ * @see spec/17-app-issues/88-auth-loading-failure-retry-inconsistency/00-overview.md
+ */
 export function fetchLoopCredits(
   isRetry?: boolean,
   autoDetectFn?: (token: string) => Promise<void>,
@@ -198,9 +210,14 @@ export function fetchLoopCredits(
         if (isAuthFailure(resp.status) && !isRetry) {
           const recovered = await handleAuthRecovery(token, resp.status, '');
           if (!recovered) { mc().updateUI(); return undefined; }
-          fetchLoopCredits(true, autoDetectFn);
 
-          return undefined;
+          // Sequential retry with recovered token — NOT a recursive self-call
+          const retryResp = await apiFetchWorkspaces();
+          if (!retryResp.ok) {
+            handleNonAuthError(retryResp);
+            return undefined;
+          }
+          return retryResp.data as WorkspacesApiResponse;
         }
 
         handleNonAuthError(resp);
@@ -274,12 +291,15 @@ async function resolveTokenWithRecovery(isRetry?: boolean): Promise<string> {
   return getBearerToken();
 }
 
-// CQ4: Extracted — handle auth failure in async path
+/**
+ * handleAsyncAuthFailure — sequential recovery, NO recursive self-call.
+ * @see spec/17-app-issues/88-auth-loading-failure-retry-inconsistency/00-overview.md
+ */
 async function handleAsyncAuthFailure(resp: SdkApiResponse, token: string): Promise<void> {
   markBearerTokenExpired('credit-fetch-async');
   if (token) { invalidateSessionBridgeKey(token); }
 
-  log('Credit API (async): Auth ' + resp.status + ' — forcing token refresh before retry...', 'warn');
+  log('Credit API (async): Auth ' + resp.status + ' — forcing token refresh...', 'warn');
   showToast('Auth ' + resp.status + ' — recovering session...', 'warn', { noStop: true });
 
   const newToken = await getBearerToken({ force: true });
@@ -289,9 +309,19 @@ async function handleAsyncAuthFailure(resp: SdkApiResponse, token: string): Prom
     throw new Error('AUTH_RECOVERY_FAILED');
   }
 
-  log('Credit API (async): Token refreshed — retrying once', 'check');
+  log('Credit API (async): Token refreshed — retrying once sequentially', 'check');
 
-  return fetchLoopCreditsAsync(true);
+  // Sequential retry — NOT a recursive fetchLoopCreditsAsync(true) call
+  const retryResp = await apiFetchWorkspaces();
+
+  if (!retryResp.ok) {
+    if (isAuthFailure(retryResp.status)) { markBearerTokenExpired('credit-fetch-async'); }
+    throw new Error('HTTP ' + retryResp.status + ' (after recovery)');
+  }
+
+  const data = retryResp.data as WorkspacesApiResponse;
+  parseLoopApiResponse(data);
+  log('Credit API (async): parsed ' + (loopCreditState.perWorkspace || []).length + ' workspaces (after recovery)', 'success');
 }
 
 async function doFetchLoopCreditsAsync(isRetry?: boolean): Promise<void> {

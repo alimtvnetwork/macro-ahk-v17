@@ -179,6 +179,10 @@ export async function fetchCreditBalance(
 
   log('CreditBalance: GET /workspaces/' + wsId + '/credit-balance' + (isRetry ? ' (RETRY)' : ''), 'check');
 
+  /**
+   * Sequential auth recovery — NO recursive fetchCreditBalance() call.
+   * @see spec/17-app-issues/88-auth-loading-failure-retry-inconsistency/00-overview.md
+   */
   try {
     const resp = await window.marco!.api!.credits.fetchBalance(wsId, { baseUrl: CREDIT_API_BASE });
 
@@ -188,13 +192,32 @@ export async function fetchCreditBalance(
         log('CreditBalance: Auth ' + resp.status + ' — recovering...', 'warn');
         const newToken = await recoverAuthOnce();
 
-        if (newToken) {
-          return fetchCreditBalance(wsId, true);
+        if (!newToken) {
+          logError('CreditBalance', 'Auth recovery failed — skipping');
+
+          return null;
         }
 
-        logError('CreditBalance', 'Auth recovery failed');
+        // Sequential retry — NOT recursive
+        const retryResp = await window.marco!.api!.credits.fetchBalance(wsId, { baseUrl: CREDIT_API_BASE });
 
-        return null;
+        if (!retryResp.ok) {
+          logError('CreditBalance', 'HTTP ' + retryResp.status + ' after recovery');
+
+          return null;
+        }
+
+        const retryData = retryResp.data as unknown as CreditBalanceResponse;
+
+        if (typeof retryData.daily_remaining !== 'number') {
+          logError('CreditBalance', 'Response missing daily_remaining after recovery');
+
+          return null;
+        }
+
+        logSub('daily_remaining=' + retryData.daily_remaining + ' (after recovery)', 1);
+
+        return retryData;
       }
 
       logError('CreditBalance', 'HTTP ' + resp.status);

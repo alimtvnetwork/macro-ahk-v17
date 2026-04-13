@@ -173,3 +173,13 @@ End-to-end message relay workflow: page scripts (MacroController or Marco SDK) p
 End-to-end prompt lifecycle workflow: Stage 1 reads markdown source files (info.json + prompt.md per numbered folder); Stage 2 build aggregation via AggregatePrompts.mjs validates, renders markdown to HTML, and outputs MacroPrompts.json with a Count-Hash36 version hash; Stage 3 deploys via ViteStaticCopy into chrome-extension dist/prompts/ as a web-accessible resource; Stage 4 SQLite seeding on install/update uses the version hash to skip unchanged data, upserts into Prompts + PromptsCategory tables with both JsonCopy and HtmlCopy; Stage 5 runtime loading on user menu open checks IndexedDB dual cache (marco_prompts_cache) first, falls back to GetPrompts bridge → SQLite on cache miss, with manual Load button for force-refresh; Stage 6 UI rendering picks HtmlCopy for MacroController (zero rendering cost) or JsonCopy for other consumers, displays category-tabbed dropdown, and pastes selected prompt into editor with variable resolution.
 
 ![Prompts Pipeline Workflow](images/prompts-pipeline-workflow.png)
+
+---
+
+## 15. Auth Retry Inconsistencies (DO NOT REPEAT)
+
+**Folder:** [`inconsistencies/`](inconsistencies/)  
+**File:** [`inconsistencies/auth-retry-inconsistencies.mmd`](inconsistencies/auth-retry-inconsistencies.mmd)  
+**Image:** [`inconsistencies/images/auth-retry-inconsistencies.png`](inconsistencies/images/auth-retry-inconsistencies.png)
+
+Documents the 5 unauthorized retry mechanisms that were added without spec approval and caused the persistent "Auth failed — no token after 12s" toast. **This diagram exists as a permanent record of what NOT to do.** See `spec/17-app-issues/88-auth-loading-failure-retry-inconsistency/00-overview.md` for full RCA. **No retry logic, no exponential backoff, no recursive self-calls.** Cycle failures are transient — the loop interval is the natural retry.
