@@ -5,7 +5,7 @@
  * and extraction from various storage sources.
  *
  * These utilities are site-agnostic and reusable across any
- * website using JWT bearer tokens or Supabase auth.
+ * website using JWT bearer tokens.
  *
  * @see spec/13-features/cross-project-sync.md — Shared asset model
  * @see standalone-scripts/macro-controller/src/auth-resolve.ts — Consumer
@@ -95,117 +95,6 @@ export class AuthTokenUtils {
                 "[AuthTokenUtils] extractBearerTokenFromUnknown: value is not parseable JSON, skipping object extraction —",
                 e instanceof Error ? e.message : String(e),
             );
-        }
-
-        return "";
-    }
-
-    /**
-     * Scan localStorage for Supabase auth keys matching `sb-*-auth-token*`.
-     * Returns the first usable access_token found, or empty string.
-     *
-     * @param onFound - Optional callback when a token is found (key, tokenLength).
-     * @param onScanError - Optional callback when scan fails.
-     */
-    static scanSupabaseLocalStorage(
-        onFound?: (key: string, tokenLength: number) => void,
-        onScanError?: (error: Error | string) => void,
-    ): string {
-        try {
-            const keys = AuthTokenUtils.collectLocalStorageKeys();
-
-            for (const key of keys) {
-                if (!key.startsWith("sb-") || !key.includes("-auth-token")) {
-                    continue;
-                }
-
-                const raw = localStorage.getItem(key) || "";
-                if (!raw || raw.length < 20) {
-                    continue;
-                }
-
-                const token = AuthTokenUtils.extractSupabaseTokenFromRaw(key, raw, onFound);
-                if (token) {
-                    return token;
-                }
-            }
-        } catch (scanErr) {
-            if (onScanError) {
-                onScanError(scanErr);
-            } else {
-                console.warn(
-                    "[AuthTokenUtils] Supabase localStorage scan failed —",
-                    scanErr instanceof Error ? scanErr.message : String(scanErr),
-                );
-            }
-        }
-
-        return "";
-    }
-
-    private static collectLocalStorageKeys(): string[] {
-        const keys: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key) {
-                keys.push(key);
-            }
-        }
-        return keys;
-    }
-
-    /**
-     * Extract a Supabase access_token from a raw localStorage value.
-     * Tries JSON parse first, falls back to treating as raw token.
-     *
-     * @param key - The localStorage key (for logging/callbacks).
-     * @param raw - The raw string value from localStorage.
-     * @param onFound - Optional callback when a token is found.
-     */
-    static extractSupabaseTokenFromRaw(
-        key: string,
-        raw: string,
-        onFound?: (key: string, tokenLength: number) => void,
-    ): string {
-        try {
-            const parsed = JSON.parse(raw) as Record<string, unknown>;
-
-            // Direct access_token field
-            const accessToken = parsed.access_token;
-            if (typeof accessToken === "string" && AuthTokenUtils.isUsableToken(accessToken)) {
-                onFound?.(key, accessToken.length);
-
-                return accessToken;
-            }
-
-            // Nested session.access_token
-            const session = (parsed.currentSession || parsed.session) as
-                | Record<string, unknown>
-                | undefined;
-            if (
-                session !== undefined &&
-                typeof session.access_token === "string" &&
-                AuthTokenUtils.isUsableToken(session.access_token as string)
-            ) {
-                onFound?.(key, (session.access_token as string).length);
-
-                return session.access_token as string;
-            }
-        } catch (jsonErr) {
-            // JSON parse failed — try treating the raw value as a plain token
-            console.debug(
-                "[AuthTokenUtils] extractSupabaseTokenFromRaw: localStorage[" +
-                    key +
-                    "] is not JSON, trying as raw token —",
-                jsonErr instanceof Error ? jsonErr.message : String(jsonErr),
-            );
-
-            const token = AuthTokenUtils.normalizeBearerToken(raw);
-            if (AuthTokenUtils.isUsableToken(token)) {
-                onFound?.(key, token.length);
-
-                return token;
-            }
         }
 
         return "";
