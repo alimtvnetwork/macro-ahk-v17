@@ -22,6 +22,7 @@ import {
   updateJwtRow,
   updateRefreshRow,
   updateWsCacheRow,
+  updateStartupGateRow,
 } from './auth-diag-rows';
 
 import { buildWaterfallSection } from './auth-diag-waterfall';
@@ -59,6 +60,7 @@ interface AuthDiagUpdateCtx {
   jwtDetailVal: HTMLElement;
   refreshRow: ReturnType<typeof buildDiagRow>;
   wsCacheRow: ReturnType<typeof buildDiagRow>;
+  gateRow: ReturnType<typeof buildDiagRow>;
   renderWaterfall: () => void;
 }
 
@@ -69,6 +71,7 @@ function performAuthDiagUpdate(ctx: AuthDiagUpdateCtx): void {
   updateJwtRow(ctx.deps, ctx.jwtRow, ctx.jwtDetailVal);
   updateRefreshRow(ctx.refreshRow);
   updateWsCacheRow(ctx.wsCacheRow);
+  updateStartupGateRow(ctx.gateRow);
   ctx.renderWaterfall();
 
   // Update header badge with SDK bridge outcome indicator
