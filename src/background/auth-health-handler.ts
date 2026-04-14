@@ -126,17 +126,17 @@ export async function buildAuthHealthResponse(): Promise<AuthHealthResponse> {
     if (s2.success && !resolvedVia) resolvedVia = s2.name;
 
     // ── Strategy 3: Network auth-token exchange (disabled) ──
-    const s4 = await timedStrategy("Auth-token exchange", 4, async () => {
+    const s3 = await timedStrategy("Auth-token exchange", 3, async () => {
         const detail = projectId
-            ? `Disabled — cookie/localStorage-only mode (no call to ${AUTH_API_BASE}/projects/${projectId}/auth-token)`
-            : `Disabled — cookie/localStorage-only mode (no call to ${AUTH_API_BASE}/projects/{id}/auth-token)`;
+            ? `Disabled — cookie-only mode (no call to ${AUTH_API_BASE}/projects/${projectId}/auth-token)`
+            : `Disabled — cookie-only mode (no call to ${AUTH_API_BASE}/projects/{id}/auth-token)`;
         return { success: false, detail };
     });
-    strategies.push(s4);
-    if (s4.success && !resolvedVia) resolvedVia = s4.name;
+    strategies.push(s3);
+    if (s3.success && !resolvedVia) resolvedVia = s3.name;
 
-    // ── Strategy 5: Cross-tab session cookie scan ──
-    const s5 = await timedStrategy("Cross-tab cookie scan", 5, async () => {
+    // ── Strategy 4: Cross-tab session cookie scan ──
+    const s4 = await timedStrategy("Cross-tab cookie scan", 4, async () => {
         try {
             const cookies = await _chrome.cookies!.getAll({ domain: "lovable.dev" });
             const sessionCookie = (cookies as Array<{ name: string; domain: string; expirationDate?: number }>).find(
@@ -156,7 +156,7 @@ export async function buildAuthHealthResponse(): Promise<AuthHealthResponse> {
             return { success: false, detail: (e as Error).message };
         }
     });
-    strategies.push(s5);
+    strategies.push(s4);
 
     const totalMs = Math.round(performance.now() - t0);
 
