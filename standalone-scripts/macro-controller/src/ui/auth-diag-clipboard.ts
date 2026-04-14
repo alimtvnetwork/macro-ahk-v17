@@ -91,6 +91,7 @@ function buildDiagnosticClipboardText(
   lines.push('Bridge:     ' + gate.bridgeState);
   lines.push('Cookies:    ' + gate.visibleCookies);
   lines.push('SignedUrl:   ' + (gate.signedUrlDetected ? 'yes' : 'no'));
+  lines.push('PreSeed:    ' + gate.preSeedSource);
   lines.push('Polls:      ' + gate.pollCount);
   lines.push('Refreshes:  ' + gate.refreshCount);
 
