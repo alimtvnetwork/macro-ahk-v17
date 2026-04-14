@@ -103,7 +103,7 @@ export async function buildAuthHealthResponse(): Promise<AuthHealthResponse> {
     strategies.push(s1);
 
     // ── Strategy 2: Signed URL token scan ──
-    const s3 = await timedStrategy("Signed URL token", 3, async () => {
+    const s2 = await timedStrategy("Signed URL token", 2, async () => {
         if (!tabUrl) {
             return { success: false, detail: "No active tab URL" };
         }
