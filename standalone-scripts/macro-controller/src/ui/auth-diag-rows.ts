@@ -345,6 +345,7 @@ export function updateStartupGateRow(gateRow: DiagRowElements): void {
     'bridge=' + snap.bridgeState,
     'cookies=' + snap.visibleCookies,
     'signedUrl=' + (snap.signedUrlDetected ? 'yes' : 'no'),
+    'preSeed=' + snap.preSeedSource,
     'polls=' + snap.pollCount,
     'refreshes=' + snap.refreshCount,
   ];
