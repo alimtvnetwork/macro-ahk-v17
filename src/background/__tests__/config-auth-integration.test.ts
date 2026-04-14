@@ -7,9 +7,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
  * and global fetch to validate the current no-network auth resolution waterfall:
  *
  *   1. Session cookie JWT
- *   2. Supabase localStorage JWT scan
- *   3. Signed URL token fallback
- *   4. Error diagnostics when nothing resolves
+ *   2. Signed URL token fallback
+ *   3. Error diagnostics when nothing resolves
  */
 
 /* ------------------------------------------------------------------ */
