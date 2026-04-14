@@ -2,7 +2,7 @@
 
 **Version**: v2.0.0  
 **Date**: 2026-04-03  
-**Supersedes**: Auth Bridge Waterfall v1.x (4-tier waterfall, Supabase scan, broadcast)
+**Supersedes**: Auth Bridge Waterfall v1.x (4-tier waterfall, external auth scan, broadcast)
 
 ---
 
