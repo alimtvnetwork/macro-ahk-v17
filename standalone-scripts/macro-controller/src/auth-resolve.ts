@@ -319,7 +319,7 @@ function logCookieDiagnostics(
 
   if (!hasTargetCookie) {
     log(fn + ': Session cookie NOT found in document.cookie (expected: HttpOnly)', 'info');
-    log(fn + ': Auth should resolve via Supabase localStorage scan or extension bridge', 'info');
+    log(fn + ': Auth should resolve via localStorage session bridge or extension bridge', 'info');
   }
 
   log(fn + ': === COOKIE DIAGNOSTIC END ===', 'info');
