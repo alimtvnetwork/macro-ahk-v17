@@ -68,39 +68,8 @@ function extractSignedUrlJwt(): string | null {
   return null;
 }
 
-function scanSupabaseLocalStorageForJwt(): string | null {
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key || !key.startsWith('sb-') || !key.includes('-auth-token')) {
-        continue;
-      }
-      const raw = localStorage.getItem(key);
-      if (!raw || raw.length < 20) {
-        continue;
-      }
-      try {
-        const parsed = JSON.parse(raw);
-        const accessToken = parsed?.access_token;
-        if (typeof accessToken === 'string' && accessToken.startsWith('eyJ') && accessToken.split('.').length === 3) {
-          return accessToken;
-        }
-        const session = parsed?.currentSession ?? parsed?.session;
-        if (session?.access_token && typeof session.access_token === 'string' && session.access_token.startsWith('eyJ')) {
-          return session.access_token;
-        }
-      } catch {
-        if (raw.startsWith('eyJ') && raw.split('.').length === 3) {
-          return raw;
-        }
-      }
-    }
-  } catch { /* localStorage unavailable */ }
-  return null;
-}
-
 /**
- * Fast client-side pre-seed: extracts JWT from signed URL or Supabase localStorage
+ * Fast client-side pre-seed: extracts JWT from signed URL params
  * and writes it into marco_bearer_token so resolveToken() can find it immediately.
  * Returns the source label if a token was seeded, or 'none'.
  */
@@ -113,23 +82,13 @@ function fastPreSeed(): string {
     }
   } catch { /* ignore */ }
 
-  // Try signed URL first (highest priority for cold preview loads)
+  // Try signed URL (cold preview loads with __lovable_token param)
   const signedUrlJwt = extractSignedUrlJwt();
   if (signedUrlJwt) {
     try {
       saveTokenWithTimestamp(signedUrlJwt);
       log('[TokenGate] Pre-seed: seeded JWT from signed URL param', 'success');
       return 'signed-url';
-    } catch { /* ignore */ }
-  }
-
-  // Try Supabase localStorage scan
-  const supabaseJwt = scanSupabaseLocalStorageForJwt();
-  if (supabaseJwt) {
-    try {
-      saveTokenWithTimestamp(supabaseJwt);
-      log('[TokenGate] Pre-seed: seeded JWT from Supabase localStorage', 'success');
-      return 'supabase-localStorage';
     } catch { /* ignore */ }
   }
 
