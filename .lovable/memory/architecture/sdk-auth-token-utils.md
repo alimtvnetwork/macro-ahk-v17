@@ -16,12 +16,6 @@ type: feature
 - `isJwtToken(raw)` — JWT format check (eyJ + 3 parts)
 - `isUsableToken(raw)` — Full validation (length, whitespace, JSON-like, JWT)
 - `extractBearerTokenFromUnknown(raw)` — Extract from string/JSON with fallback
-- `scanSupabaseLocalStorage(onFound?, onScanError?)` — Scan for sb-*-auth-token keys
-- `extractSupabaseTokenFromRaw(key, raw, onFound?)` — Parse Supabase auth JSON
-
-### Callbacks on scan
-SDK methods accept callbacks instead of using the controller's `log()` directly.
-The controller passes its own log functions via callback parameters.
 
 ### Backward compatibility
 auth-resolve.ts still exports `normalizeBearerToken`, `isJwtToken`, `isUsableToken`, `extractBearerTokenFromUnknown` as thin wrappers that delegate to `window.marco.authUtils.*` at runtime, with an inline fallback for early boot before SDK loads.
