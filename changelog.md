@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [v2.139.0] — 2026-04-15
+
+### Changed
+- **Auth contract unification**: Migrated all operational paths (`startup.ts`, `ws-move.ts`, `rename-api.ts`, `ws-adjacent.ts`, UI components) from legacy `resolveToken()`/`recoverAuthOnce()` to unified `getBearerToken()` / `getBearerToken({ force: true })` contract
+- Updated `AuthDiagDeps` and panel wiring to support async token resolution
+- Version bump: 2.133.0 → 2.139.0 (all 7 version files synced)
+
+### Removed
+- **Legacy auth functions**: Removed `resolveToken`, `recoverAuthOnce`, `invalidateSessionBridgeKey` — single Auth Bridge path enforced project-wide
+- **Supabase references**: Purged all Supabase-specific auth/token/localStorage references from startup gate, diagnostics, and token retrieval — project uses its own auth system exclusively (extension bridge + cookie + signed URL)
+
+### Fixed
+- **TS build errors**: Removed unused imports, prefixed unused params with `_`, converted illegal `await` in non-async functions to `.then()` chains
+- **Version sync**: All 7 version files (manifest.json version + version_name, constants.ts, shared-state.ts, instruction.ts ×3) now validated by `check-version-sync.mjs`
+
+---
+
 ## [v2.119.0] — 2026-04-08
 
 ### Fixed
