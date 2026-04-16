@@ -16,7 +16,7 @@ interface Props {
 
 export function ProjectSelector({ data, onSelect }: Props) {
   const activeId = data.activeProject?.id ?? "";
-  const selectableProjects = data.allProjects.filter((project) => project.isGlobal !== true);
+  const selectableProjects = data.allProjects;
   const hasProjects = selectableProjects.length > 0;
   const selectedValue = selectableProjects.some((project) => project.id === activeId) ? activeId : "";
 
