@@ -88,6 +88,12 @@ export const apiRegistry: ApiRegistry = Object.freeze({
             auth: true,
             description: "Resolve workspace for a given project",
         }),
+        switchContext: Object.freeze({
+            url: "/workspaces/{wsId}/workspace-access-requests",
+            method: "GET" as const,
+            auth: true,
+            description: "Switch active workspace context without moving a project (fallback when no project ID available)",
+        }),
     }),
 });
 
