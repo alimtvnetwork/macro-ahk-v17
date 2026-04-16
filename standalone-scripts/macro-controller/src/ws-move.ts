@@ -323,6 +323,90 @@ async function executeMove(
 }
 
 // ============================================
+// executeSwitchContext — fallback GET request when no project ID
+// ============================================
+
+async function executeSwitchContext(
+  targetWorkspaceId: string,
+  targetWorkspaceName: string,
+  isRetry: boolean,
+): Promise<void> {
+  const token = resolveToken();
+
+  if (!token) {
+    handleMoveNoToken();
+
+    return;
+  }
+
+  const label = isRetry ? ' (auth-retry)' : '';
+  log('=== SWITCH WORKSPACE CONTEXT ===' + label, 'delegate');
+  log('GET /workspaces/' + targetWorkspaceId + '/workspace-access-requests', 'delegate');
+  logSub('Target: ' + targetWorkspaceName + ' (id=' + targetWorkspaceId + ')', 1);
+  logSub('Auth: Bearer ' + token.substring(0, 12) + '...REDACTED', 1);
+
+  updateLoopMoveStatus('loading', 'Switching to ' + targetWorkspaceName + '...');
+
+  try {
+    const resp = await window.marco!.api!.workspace.switchContext(
+      targetWorkspaceId,
+      { baseUrl: CREDIT_API_BASE },
+    );
+
+    if (isAuthFailure(resp.status) && !isRetry) {
+      const invalidatedKey = invalidateSessionBridgeKey(token);
+      log('Switch got ' + resp.status + ' — invalidated "' + invalidatedKey + '", retrying with fallback', 'warn');
+      showToast('Switch auth ' + resp.status + ' — token "' + invalidatedKey + '" expired, retrying...', 'warn', { noStop: true });
+
+      const fallbackToken = resolveToken();
+
+      if (fallbackToken) {
+        await executeSwitchContext(targetWorkspaceId, targetWorkspaceName, true);
+
+        return;
+      }
+
+      try {
+        const recoveredToken = await recoverAuthOnce();
+        const refreshedToken = recoveredToken || resolveToken();
+
+        if (refreshedToken) {
+          await executeSwitchContext(targetWorkspaceId, targetWorkspaceName, true);
+
+          return;
+        }
+      } catch {
+        // fall through to handleMoveNoToken
+      }
+
+      handleMoveNoToken();
+
+      return;
+    }
+
+    if (resp.ok) {
+      log('Switch context response: ' + resp.status + label, 'success');
+    } else {
+      logError('ws-move', 'Switch context response: ' + resp.status + label);
+    }
+
+    if (!resp.ok) {
+      const bodyPreview = JSON.stringify(resp.data).substring(0, 500);
+      logError('Switch context failed', 'HTTP ' + resp.status + ' | body: ' + bodyPreview);
+      updateLoopMoveStatus('error', 'HTTP ' + resp.status + ': ' + bodyPreview.substring(0, 80));
+
+      return;
+    }
+
+    handleMoveSuccess(targetWorkspaceName, label);
+  } catch (err) {
+    logError('Switch context error', '' + (err as Error).message);
+    updateLoopMoveStatus('error', (err as Error).message);
+    clearDelegationState();
+  }
+}
+
+// ============================================
 // moveToWorkspace — public entry point
 // ============================================
 
@@ -332,15 +416,6 @@ export async function moveToWorkspace(targetWorkspaceId: string, targetWorkspace
   if (!isConfirmed) {
     log('Move cancelled by user', 'info');
     updateLoopMoveStatus('error', 'Move cancelled');
-
-    return;
-  }
-
-  const projectId = extractProjectIdFromUrl();
-
-  if (!projectId) {
-    logError('Cannot extract projectId from URL', '' + window.location.href);
-    updateLoopMoveStatus('error', 'No project ID in URL');
 
     return;
   }
@@ -366,5 +441,14 @@ export async function moveToWorkspace(targetWorkspaceId: string, targetWorkspace
     }
   }
 
-  await executeMove(projectId, targetWorkspaceId, targetWorkspaceName, false);
+  const projectId = extractProjectIdFromUrl();
+
+  if (projectId) {
+    // ✅ Primary path: move project to target workspace
+    await executeMove(projectId, targetWorkspaceId, targetWorkspaceName, false);
+  } else {
+    // ✅ Fallback path: switch workspace context without moving a project
+    log('No project ID in URL — using workspace-access-requests fallback', 'warn');
+    await executeSwitchContext(targetWorkspaceId, targetWorkspaceName, false);
+  }
 }
